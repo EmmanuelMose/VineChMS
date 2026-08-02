@@ -4,6 +4,8 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 
+import authRouter from "./auth/auth.router";
+
 const initializeApp = () => {
   const app = express();
 
@@ -30,6 +32,9 @@ const initializeApp = () => {
   app.get("/", (_req, res) => {
     res.send("VineChMS Backend server running successfully!");
   });
+
+  // Auth Routes
+  app.use("/api/auth", authRouter);
 
   return app;
 };
