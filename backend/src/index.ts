@@ -5,6 +5,20 @@ import express from "express";
 import cors from "cors";
 
 import authRouter from "./auth/auth.router";
+import organizationsRouter from "./organizations/organizations.router";
+import churchesRouter from "./churches/churches.router";
+import membersRouter from "./members/members.router";
+import positionsRouter from "./positions/positions.router";
+import leadersRouter from "./leaders/leaders.router";
+import servicesRouter from "./services/services.router";
+import attendanceRouter from "./attendance/attendance.router";
+import givingRouter from "./giving/giving.router";
+import expensesRouter from "./expenses/expenses.router";
+import eventsRouter from "./events/events.router";
+import prayerRouter from "./prayer/prayer.router";
+import announcementsRouter from "./announcements/announcements.router";
+import groupsRouter from "./groups/groups.router";
+import sermonsRouter from "./sermons/sermons.router";
 
 const initializeApp = () => {
   const app = express();
@@ -12,8 +26,9 @@ const initializeApp = () => {
   app.use(express.json());
 
   const allowedOrigins = [
-    "https://vinechms.vercel.app",
     "http://localhost:5173",
+    "http://localhost:3000",
+    "https://vinechms.vercel.app",
   ];
 
   app.use(
@@ -34,6 +49,20 @@ const initializeApp = () => {
   });
 
   app.use("/api/auth", authRouter);
+  app.use("/api/organizations", organizationsRouter);
+  app.use("/api/churches", churchesRouter);
+  app.use("/api/members", membersRouter);
+  app.use("/api/positions", positionsRouter);
+  app.use("/api/leaders", leadersRouter);
+  app.use("/api/services", servicesRouter);
+  app.use("/api/attendance", attendanceRouter);
+  app.use("/api/giving", givingRouter);
+  app.use("/api/expenses", expensesRouter);
+  app.use("/api/events", eventsRouter);
+  app.use("/api/prayer", prayerRouter);
+  app.use("/api/announcements", announcementsRouter);
+  app.use("/api/groups", groupsRouter);
+  app.use("/api/sermons", sermonsRouter);
 
   return app;
 };
