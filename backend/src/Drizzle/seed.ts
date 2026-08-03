@@ -4,17 +4,23 @@ import {
   largeOrganizations,
   organizations,
   churches,
+  positions,
+  givingCategories,
+  expenseCategories,
 } from "./schema";
 
 async function seed() {
   try {
-    console.log("Clearing existing data...");
+    console.log("🌿 Clearing existing data...");
     await db.delete(unregisteredUsers);
     await db.delete(churches);
     await db.delete(organizations);
     await db.delete(largeOrganizations);
+    await db.delete(positions);
+    await db.delete(givingCategories);
+    await db.delete(expenseCategories);
 
-    console.log("Creating large organizations...");
+    console.log("📦 Creating large organizations...");
     const largeOrg = await db
       .insert(largeOrganizations)
       .values({
@@ -34,7 +40,7 @@ async function seed() {
       })
       .returning();
 
-    console.log("Creating small organizations...");
+    console.log("📦 Creating small organizations...");
     const org = await db
       .insert(organizations)
       .values({
@@ -52,7 +58,7 @@ async function seed() {
       })
       .returning();
 
-    console.log("Creating churches...");
+    console.log("📦 Creating churches...");
     const church = await db
       .insert(churches)
       .values({
@@ -70,7 +76,88 @@ async function seed() {
       })
       .returning();
 
-    console.log("Creating unregistered users (must register first)...");
+    console.log("📦 Creating positions...");
+    await db.insert(positions).values([
+      {
+        name: "Senior Pastor",
+        description: "Lead pastor of the church",
+        churchId: church[0].churchId,
+        isActive: true,
+      },
+      {
+        name: "Elder",
+        description: "Church elder",
+        churchId: church[0].churchId,
+        isActive: true,
+      },
+      {
+        name: "Treasurer",
+        description: "Church treasurer",
+        churchId: church[0].churchId,
+        isActive: true,
+      },
+      {
+        name: "Secretary",
+        description: "Church secretary",
+        churchId: church[0].churchId,
+        isActive: true,
+      },
+    ]);
+
+    console.log("📦 Creating giving categories...");
+    await db.insert(givingCategories).values([
+      {
+        churchId: church[0].churchId,
+        name: "Tithes",
+        description: "10% of income",
+        type: "tithe",
+        isActive: true,
+        image: "https://res.cloudinary.com/demo/image/upload/v1/tithe-icon.png",
+      },
+      {
+        churchId: church[0].churchId,
+        name: "Offerings",
+        description: "Free-will offerings",
+        type: "offering",
+        isActive: true,
+        image: "https://res.cloudinary.com/demo/image/upload/v1/offering-icon.png",
+      },
+      {
+        churchId: church[0].churchId,
+        name: "Building Fund",
+        description: "Church building fund",
+        type: "special",
+        isActive: true,
+        image: "https://res.cloudinary.com/demo/image/upload/v1/building-icon.png",
+      },
+    ]);
+
+    console.log("📦 Creating expense categories...");
+    await db.insert(expenseCategories).values([
+      {
+        churchId: church[0].churchId,
+        name: "Utilities",
+        description: "Electricity, water, internet",
+        isActive: true,
+        image: "https://res.cloudinary.com/demo/image/upload/v1/utilities-icon.png",
+      },
+      {
+        churchId: church[0].churchId,
+        name: "Salaries",
+        description: "Staff and pastor salaries",
+        isActive: true,
+        image: "https://res.cloudinary.com/demo/image/upload/v1/salary-icon.png",
+      },
+      {
+        churchId: church[0].churchId,
+        name: "Ministry Expenses",
+        description: "Outreach and ministry costs",
+        isActive: true,
+        image: "https://res.cloudinary.com/demo/image/upload/v1/ministry-icon.png",
+      },
+    ]);
+
+    console.log("📧 Creating unregistered users (email + role only)...");
     const tokenExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 
     await db.insert(unregisteredUsers).values([
@@ -78,7 +165,7 @@ async function seed() {
         email: "emmanuelmose806@gmail.com",
         fullName: "Emmanuel Mose",
         role: "super_admin",
-        invitationToken: "ADMIN_TOKEN_123",
+        invitationToken: "ADMIN_TOKEN_001",
         tokenExpiresAt,
         largeOrganizationId: null,
         organizationId: null,
@@ -88,7 +175,7 @@ async function seed() {
         email: "emmanuelmose64@yahoo.com",
         fullName: "Emmanuel Mose",
         role: "church_admin",
-        invitationToken: "CHURCH_ADMIN_456",
+        invitationToken: "CHURCH_TOKEN_002",
         tokenExpiresAt,
         largeOrganizationId: null,
         organizationId: null,
@@ -98,7 +185,7 @@ async function seed() {
         email: "largeorg@example.com",
         fullName: "Large Organization Admin",
         role: "large_org_admin",
-        invitationToken: "LARGE_ORG_789",
+        invitationToken: "LARGE_TOKEN_003",
         tokenExpiresAt,
         largeOrganizationId: largeOrg[0].largeOrganizationId,
         organizationId: null,
@@ -108,7 +195,7 @@ async function seed() {
         email: "smallorg@example.com",
         fullName: "Small Organization Admin",
         role: "small_org_admin",
-        invitationToken: "SMALL_ORG_101",
+        invitationToken: "SMALL_TOKEN_004",
         tokenExpiresAt,
         largeOrganizationId: largeOrg[0].largeOrganizationId,
         organizationId: org[0].organizationId,
@@ -118,7 +205,7 @@ async function seed() {
         email: "churchadmin@example.com",
         fullName: "Church Admin",
         role: "church_admin",
-        invitationToken: "CHURCH_ADMIN_202",
+        invitationToken: "CHURCH_TOKEN_005",
         tokenExpiresAt,
         largeOrganizationId: largeOrg[0].largeOrganizationId,
         organizationId: org[0].organizationId,
@@ -128,7 +215,7 @@ async function seed() {
         email: "member@example.com",
         fullName: "John Member",
         role: "church_member",
-        invitationToken: "MEMBER_303",
+        invitationToken: "MEMBER_TOKEN_006",
         tokenExpiresAt,
         largeOrganizationId: largeOrg[0].largeOrganizationId,
         organizationId: org[0].organizationId,
@@ -138,7 +225,7 @@ async function seed() {
         email: "pastor@example.com",
         fullName: "Pastor Peter",
         role: "pastor",
-        invitationToken: "PASTOR_404",
+        invitationToken: "PASTOR_TOKEN_007",
         tokenExpiresAt,
         largeOrganizationId: largeOrg[0].largeOrganizationId,
         organizationId: org[0].organizationId,
@@ -148,7 +235,7 @@ async function seed() {
         email: "treasurer@example.com",
         fullName: "Treasurer Paul",
         role: "treasurer",
-        invitationToken: "TREASURER_505",
+        invitationToken: "TREASURER_TOKEN_008",
         tokenExpiresAt,
         largeOrganizationId: largeOrg[0].largeOrganizationId,
         organizationId: org[0].organizationId,
@@ -158,7 +245,7 @@ async function seed() {
         email: "secretary@example.com",
         fullName: "Secretary Jane",
         role: "secretary",
-        invitationToken: "SECRETARY_606",
+        invitationToken: "SECRETARY_TOKEN_009",
         tokenExpiresAt,
         largeOrganizationId: largeOrg[0].largeOrganizationId,
         organizationId: org[0].organizationId,
@@ -168,7 +255,7 @@ async function seed() {
         email: "elder@example.com",
         fullName: "Elder James",
         role: "elder",
-        invitationToken: "ELDER_707",
+        invitationToken: "ELDER_TOKEN_010",
         tokenExpiresAt,
         largeOrganizationId: largeOrg[0].largeOrganizationId,
         organizationId: org[0].organizationId,
@@ -193,7 +280,7 @@ async function seed() {
     console.log("elder@example.com              | elder");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("\n🔑 Users can register with just email and password.");
-    console.log("   No invitation token needed!");
+    console.log("   Email must exist in unregisteredUsers table first.");
     console.log("\n🎉 Seed completed!");
 
     process.exit(0);
