@@ -8,29 +8,18 @@ import {
   givingCategories,
   expenseCategories,
   services,
-  members,
-  leaders,
   events,
-  prayerRequests,
   announcements,
   groups,
   sermons,
-  giving,
-  pledges,
 } from "./schema";
-import bcrypt from "bcryptjs";
 
 async function seed() {
   try {
     console.log("🌿 Clearing existing data...");
-    await db.delete(giving);
-    await db.delete(pledges);
-    await db.delete(leaders);
-    await db.delete(members);
     await db.delete(sermons);
     await db.delete(groups);
     await db.delete(announcements);
-    await db.delete(prayerRequests);
     await db.delete(events);
     await db.delete(services);
     await db.delete(expenseCategories);
@@ -336,58 +325,6 @@ async function seed() {
         isPublic: true,
         maxAttendees: 200,
         imageUrl: "https://res.cloudinary.com/demo/image/upload/v1/women-conference.jpg",
-      },
-    ]);
-
-    console.log("📦 Creating prayer requests...");
-    await db.insert(prayerRequests).values([
-      {
-        churchId: church1[0].churchId,
-        memberId: 1,
-        title: "Healing for Mama Jane",
-        description: "Prayer for healing of Mama Jane who is in hospital",
-        status: "pending",
-        visibility: "public",
-        prayerCount: 5,
-        image: "https://res.cloudinary.com/demo/image/upload/v1/prayer-healing.jpg",
-      },
-      {
-        churchId: church1[0].churchId,
-        memberId: 1,
-        title: "Church Outreach",
-        description: "Prayer for the upcoming outreach program",
-        status: "praying",
-        visibility: "public",
-        prayerCount: 12,
-        image: "https://res.cloudinary.com/demo/image/upload/v1/prayer-outreach.jpg",
-      },
-      {
-        churchId: church1[0].churchId,
-        memberId: 1,
-        title: "Youth Revival",
-        description: "Prayer for the youth revival conference",
-        status: "pending",
-        visibility: "public",
-        prayerCount: 8,
-        image: "https://res.cloudinary.com/demo/image/upload/v1/prayer-youth.jpg",
-      },
-      {
-        churchId: church1[0].churchId,
-        memberId: 1,
-        title: "Financial Breakthrough",
-        description: "Prayer for church finances",
-        status: "praying",
-        visibility: "confidential",
-        prayerCount: 3,
-      },
-      {
-        churchId: church1[0].churchId,
-        memberId: 1,
-        title: "Pastor's Health",
-        description: "Prayer for Pastor Peter's health",
-        status: "pending",
-        visibility: "confidential",
-        prayerCount: 0,
       },
     ]);
 
