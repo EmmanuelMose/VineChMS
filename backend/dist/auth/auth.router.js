@@ -10,5 +10,6 @@ authRouter.post("/login", auth_controller_1.loginController);
 authRouter.post("/forgot-password", auth_controller_1.forgotPasswordController);
 authRouter.post("/verify-reset-code", auth_controller_1.verifyResetCodeController);
 authRouter.post("/reset-password", auth_controller_1.resetPasswordController);
+authRouter.post("/resend-verification", auth_controller_1.resendVerificationController);
 authRouter.get("/me", auth_middleware_1.authenticate, auth_controller_1.getCurrentUserController);
 exports.default = authRouter;

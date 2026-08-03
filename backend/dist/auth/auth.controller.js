@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCurrentUserController = exports.resetPasswordController = exports.verifyResetCodeController = exports.forgotPasswordController = exports.loginController = exports.verifyController = exports.registerController = void 0;
+exports.getCurrentUserController = exports.resendVerificationController = exports.resetPasswordController = exports.verifyResetCodeController = exports.forgotPasswordController = exports.loginController = exports.verifyController = exports.registerController = void 0;
 const auth_service_1 = require("./auth.service");
 const registerController = async (req, res) => {
     try {
-        const { fullName, email, password, invitationToken } = req.body;
-        await (0, auth_service_1.registerService)(fullName, email, password, invitationToken);
+        const { fullName, email, password } = req.body;
+        await (0, auth_service_1.registerService)(fullName, email, password);
         res.json({ success: true, message: "Verification code sent to your email" });
     }
     catch (error) {
@@ -37,8 +37,9 @@ const loginController = async (req, res) => {
 exports.loginController = loginController;
 const forgotPasswordController = async (req, res) => {
     try {
-        await (0, auth_service_1.forgotPasswordService)(req.body.email);
-        res.json({ success: true, message: "Reset code sent to your email" });
+        const { email } = req.body;
+        await (0, auth_service_1.forgotPasswordService)(email);
+        res.json({ success: true, message: "Password reset code sent to your email" });
     }
     catch (error) {
         res.status(400).json({ success: false, message: error.message });
@@ -58,8 +59,8 @@ const verifyResetCodeController = async (req, res) => {
 exports.verifyResetCodeController = verifyResetCodeController;
 const resetPasswordController = async (req, res) => {
     try {
-        const { email, password } = req.body;
-        await (0, auth_service_1.resetPasswordService)(email, password);
+        const { email, newPassword } = req.body;
+        await (0, auth_service_1.resetPasswordService)(email, newPassword);
         res.json({ success: true, message: "Password reset successfully" });
     }
     catch (error) {
@@ -67,6 +68,17 @@ const resetPasswordController = async (req, res) => {
     }
 };
 exports.resetPasswordController = resetPasswordController;
+const resendVerificationController = async (req, res) => {
+    try {
+        const { email } = req.body;
+        await (0, auth_service_1.resendVerificationService)(email);
+        res.json({ success: true, message: "Verification code resent to your email" });
+    }
+    catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+exports.resendVerificationController = resendVerificationController;
 const getCurrentUserController = async (req, res) => {
     try {
         const user = req.user;

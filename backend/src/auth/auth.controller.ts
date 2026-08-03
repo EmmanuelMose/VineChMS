@@ -6,6 +6,7 @@ import {
   forgotPasswordService,
   verifyResetCodeService,
   resetPasswordService,
+  resendVerificationService,
 } from "./auth.service";
 
 export const registerController = async (req: Request, res: Response) => {
@@ -40,8 +41,9 @@ export const loginController = async (req: Request, res: Response) => {
 
 export const forgotPasswordController = async (req: Request, res: Response) => {
   try {
-    await forgotPasswordService(req.body.email);
-    res.json({ success: true, message: "Reset code sent to your email" });
+    const { email } = req.body;
+    await forgotPasswordService(email);
+    res.json({ success: true, message: "Password reset code sent to your email" });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -59,9 +61,19 @@ export const verifyResetCodeController = async (req: Request, res: Response) => 
 
 export const resetPasswordController = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
-    await resetPasswordService(email, password);
+    const { email, newPassword } = req.body;
+    await resetPasswordService(email, newPassword);
     res.json({ success: true, message: "Password reset successfully" });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const resendVerificationController = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    await resendVerificationService(email);
+    res.json({ success: true, message: "Verification code resent to your email" });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
