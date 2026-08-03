@@ -23,93 +23,25 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 const generateCode = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
-export const createUnregisteredUserService = async (
-  email: string,
-  fullName: string,
-  role: UserRole,
-  invitedById: number,
-  organizationId?: number,
-  churchId?: number,
-  largeOrganizationId?: number
-) => {
-  const existingInvite = await db.query.unregisteredUsers.findFirst({
-    where: eq(unregisteredUsers.email, email),
-  });
-
-  if (existingInvite) {
-    throw new Error("User already invited");
-  }
-
-  const existingUser = await db.query.users.findFirst({
-    where: eq(users.email, email),
-  });
-
-  if (existingUser) {
-    throw new Error("User already registered");
-  }
-
-  const invitationToken = generateCode() + generateCode() + generateCode();
-  const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-  await db.insert(unregisteredUsers).values({
-    email,
-    fullName,
-    role,
-    invitationToken,
-    tokenExpiresAt,
-    invitedById,
-    organizationId: organizationId || null,
-    churchId: churchId || null,
-    largeOrganizationId: largeOrganizationId || null,
-  });
-
-  const invitationLink = `${process.env.FRONTEND_URL}/register?token=${invitationToken}`;
-  
-  await sendEmail(
-    email,
-    "You've Been Invited to VineChMS",
-    `You have been invited to join VineChMS as a ${role}. Click the link to register: ${invitationLink}`,
-    `
-    <h2 style="color: #2E7D32;">Welcome to VineChMS!</h2>
-    <p>You have been invited to join VineChMS as a <strong>${role}</strong>.</p>
-    <p>Click the button below to complete your registration:</p>
-    <a href="${invitationLink}" style="display: inline-block; padding: 12px 24px; background: #1565C0; color: #fff; text-decoration: none; border-radius: 6px;">Complete Registration</a>
-    <p>This invitation expires in 7 days.</p>
-    <p style="color: #FFC107;">VineChMS - Church Management Platform</p>
-    `
-  );
-};
-
 export const registerService = async (
   fullName: string,
   email: string,
-  password: string,
-  role: UserRole = "church_member",
-  invitationToken?: string
+  password: string
 ) => {
+  const unregisteredUser = await db.query.unregisteredUsers.findFirst({
+    where: eq(unregisteredUsers.email, email),
+  });
+
+  if (!unregisteredUser) {
+    throw new Error("You are not authorized to register. Please contact your administrator.");
+  }
+
   const existingUser = await db.query.users.findFirst({
     where: eq(users.email, email),
   });
 
   if (existingUser && existingUser.isVerified) {
     throw new Error("User already registered");
-  }
-
-  let unregisteredUser = null;
-  if (invitationToken) {
-    unregisteredUser = await db.query.unregisteredUsers.findFirst({
-      where: eq(unregisteredUsers.invitationToken, invitationToken),
-    });
-
-    if (!unregisteredUser) {
-      throw new Error("Invalid invitation token");
-    }
-
-    if (new Date() > new Date(unregisteredUser.tokenExpiresAt)) {
-      throw new Error("Invitation token has expired");
-    }
-
-    role = unregisteredUser.role as UserRole;
   }
 
   const verificationCode = generateCode();
@@ -119,19 +51,16 @@ export const registerService = async (
     email,
     fullName,
     passwordHash,
-    role: role,
+    role: unregisteredUser.role,
     verificationCode,
     isVerified: false,
     isActive: true,
     phone: null,
     profilePicture: null,
+    organizationId: unregisteredUser.organizationId || null,
+    churchId: unregisteredUser.churchId || null,
+    largeOrganizationId: unregisteredUser.largeOrganizationId || null,
   };
-
-  if (unregisteredUser) {
-    userData.organizationId = unregisteredUser.organizationId;
-    userData.churchId = unregisteredUser.churchId;
-    userData.largeOrganizationId = unregisteredUser.largeOrganizationId;
-  }
 
   if (existingUser && !existingUser.isVerified) {
     await db
@@ -140,7 +69,7 @@ export const registerService = async (
         fullName,
         passwordHash,
         verificationCode,
-        role,
+        role: unregisteredUser.role,
         isActive: true,
         organizationId: userData.organizationId || null,
         churchId: userData.churchId || null,
@@ -151,11 +80,9 @@ export const registerService = async (
     await db.insert(users).values(userData);
   }
 
-  if (unregisteredUser) {
-    await db
-      .delete(unregisteredUsers)
-      .where(eq(unregisteredUsers.unregisteredUserId, unregisteredUser.unregisteredUserId));
-  }
+  await db
+    .delete(unregisteredUsers)
+    .where(eq(unregisteredUsers.unregisteredUserId, unregisteredUser.unregisteredUserId));
 
   await sendEmail(
     email,
@@ -199,10 +126,10 @@ export const loginService = async (email: string, password: string) => {
   if (!match) throw new Error("Invalid credentials");
 
   const token = jwt.sign(
-    { 
-      userId: user.userId, 
-      role: user.role, 
-      email: user.email, 
+    {
+      userId: user.userId,
+      role: user.role,
+      email: user.email,
       fullName: user.fullName,
       churchId: user.churchId,
       organizationId: user.organizationId,

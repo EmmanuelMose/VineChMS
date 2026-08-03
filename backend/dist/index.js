@@ -27,9 +27,8 @@ const initializeApp = () => {
         credentials: true,
     }));
     app.get("/", (_req, res) => {
-        res.send("VineChMS Backend server running successfully!");
+        res.send("🌿 VineChMS Backend server running successfully!");
     });
-    // Auth Routes
     app.use("/api/auth", auth_router_1.default);
     return app;
 };

@@ -5,103 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = __importDefault(require("./db"));
 const schema_1 = require("./schema");
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
 async function seed() {
     try {
         console.log("Clearing existing data...");
-        await db_1.default.delete(schema_1.giving);
-        await db_1.default.delete(schema_1.leaders);
-        await db_1.default.delete(schema_1.members);
+        await db_1.default.delete(schema_1.unregisteredUsers);
         await db_1.default.delete(schema_1.churches);
         await db_1.default.delete(schema_1.organizations);
         await db_1.default.delete(schema_1.largeOrganizations);
-        await db_1.default.delete(schema_1.users);
-        console.log("Creating users...");
-        const passwordHash = await bcryptjs_1.default.hash("password123", 10);
-        const adminUser = await db_1.default
-            .insert(schema_1.users)
-            .values({
-            email: "admin@vinechms.com",
-            passwordHash,
-            fullName: "System Administrator",
-            role: "super_admin",
-            isActive: true,
-            isVerified: true,
-            verificationCode: "ADMIN123",
-        })
-            .returning();
-        const largeOrgAdmin = await db_1.default
-            .insert(schema_1.users)
-            .values({
-            email: "largeorg@example.com",
-            passwordHash,
-            fullName: "Large Organization Admin",
-            role: "large_org_admin",
-            isActive: true,
-            isVerified: true,
-            verificationCode: "LARGE456",
-        })
-            .returning();
-        const smallOrgAdmin = await db_1.default
-            .insert(schema_1.users)
-            .values({
-            email: "smallorg@example.com",
-            passwordHash,
-            fullName: "Small Organization Admin",
-            role: "small_org_admin",
-            isActive: true,
-            isVerified: true,
-            verificationCode: "SMALL789",
-        })
-            .returning();
-        const churchAdmin = await db_1.default
-            .insert(schema_1.users)
-            .values({
-            email: "churchadmin@example.com",
-            passwordHash,
-            fullName: "Church Admin",
-            role: "church_admin",
-            isActive: true,
-            isVerified: true,
-            verificationCode: "CHURCH123",
-        })
-            .returning();
-        const churchMember = await db_1.default
-            .insert(schema_1.users)
-            .values({
-            email: "member@example.com",
-            passwordHash,
-            fullName: "John Member",
-            role: "church_member",
-            isActive: true,
-            isVerified: true,
-            verificationCode: "MEMBER456",
-        })
-            .returning();
-        const pastor = await db_1.default
-            .insert(schema_1.users)
-            .values({
-            email: "pastor@example.com",
-            passwordHash,
-            fullName: "Pastor Peter",
-            role: "pastor",
-            isActive: true,
-            isVerified: true,
-            verificationCode: "PASTOR789",
-        })
-            .returning();
-        const treasurer = await db_1.default
-            .insert(schema_1.users)
-            .values({
-            email: "treasurer@example.com",
-            passwordHash,
-            fullName: "Treasurer Paul",
-            role: "treasurer",
-            isActive: true,
-            isVerified: true,
-            verificationCode: "TREAS123",
-        })
-            .returning();
         console.log("Creating large organizations...");
         const largeOrg = await db_1.default
             .insert(schema_1.largeOrganizations)
@@ -113,7 +23,6 @@ async function seed() {
             country: "Kenya",
             city: "Nairobi",
             state: "Nairobi",
-            createdBy: adminUser[0].userId,
             subscriptionPlan: "enterprise",
             subscriptionStatus: "active",
             maxOrganizations: 50,
@@ -134,411 +43,177 @@ async function seed() {
             city: "Nairobi",
             state: "Nairobi",
             largeOrganizationId: largeOrg[0].largeOrganizationId,
-            createdBy: largeOrgAdmin[0].userId,
             maxChurches: 20,
             maxMembers: 500,
             logo: "https://res.cloudinary.com/demo/image/upload/v1/nairobi-diocese-logo.png",
         })
             .returning();
         console.log("Creating churches...");
-        const church1 = await db_1.default
-            .insert(schema_1.churches)
-            .values({
-            name: "Nairobi Central Church",
-            description: "Main church in Nairobi",
-            email: "info@nairolicentral.org",
-            phone: "+254712345679",
-            country: "Kenya",
-            city: "Nairobi",
-            state: "Nairobi",
-            denomination: "Pentecostal",
-            organizationId: org[0].organizationId,
-            createdBy: smallOrgAdmin[0].userId,
-            maxMembers: 200,
-            logo: "https://res.cloudinary.com/demo/image/upload/v1/nairobi-central-logo.png",
-        })
-            .returning();
-        const church2 = await db_1.default
-            .insert(schema_1.churches)
-            .values({
-            name: "Westlands Fellowship",
-            description: "Westlands area church",
-            email: "info@westlandsfellowship.org",
-            phone: "+254712345680",
-            country: "Kenya",
-            city: "Nairobi",
-            state: "Nairobi",
-            denomination: "Pentecostal",
-            organizationId: org[0].organizationId,
-            createdBy: smallOrgAdmin[0].userId,
-            maxMembers: 150,
-            logo: "https://res.cloudinary.com/demo/image/upload/v1/westlands-logo.png",
-        })
-            .returning();
-        console.log("Creating members...");
-        const member1 = await db_1.default
-            .insert(schema_1.members)
-            .values({
-            userId: churchMember[0].userId,
-            churchId: church1[0].churchId,
-            membershipNumber: "MEM001",
-            isActive: true,
-            isBaptized: true,
-            isConfirmed: true,
-            isLeader: false,
-        })
-            .returning();
-        const member2 = await db_1.default
-            .insert(schema_1.members)
-            .values({
-            userId: pastor[0].userId,
-            churchId: church1[0].churchId,
-            membershipNumber: "MEM002",
-            isActive: true,
-            isBaptized: true,
-            isConfirmed: true,
-            isLeader: true,
-        })
-            .returning();
-        const member3 = await db_1.default
-            .insert(schema_1.members)
-            .values({
-            userId: treasurer[0].userId,
-            churchId: church1[0].churchId,
-            membershipNumber: "MEM003",
-            isActive: true,
-            isBaptized: true,
-            isConfirmed: true,
-            isLeader: true,
-        })
-            .returning();
-        const member4 = await db_1.default
-            .insert(schema_1.members)
-            .values({
-            userId: churchAdmin[0].userId,
-            churchId: church1[0].churchId,
-            membershipNumber: "MEM004",
-            isActive: true,
-            isBaptized: true,
-            isConfirmed: true,
-            isLeader: true,
-        })
-            .returning();
-        console.log("Creating positions...");
-        const positionsList = await db_1.default
-            .insert(schema_1.positions)
-            .values([
+        await db_1.default.insert(schema_1.churches).values([
             {
-                name: "Senior Pastor",
-                description: "Lead pastor of the church",
-                churchId: church1[0].churchId,
-                isActive: true,
+                name: "Nairobi Central Church",
+                description: "Main church in Nairobi",
+                email: "info@nairolicentral.org",
+                phone: "+254712345679",
+                country: "Kenya",
+                city: "Nairobi",
+                state: "Nairobi",
+                denomination: "Pentecostal",
+                organizationId: org[0].organizationId,
+                maxMembers: 200,
+                logo: "https://res.cloudinary.com/demo/image/upload/v1/nairobi-central-logo.png",
             },
             {
-                name: "Elder",
-                description: "Church elder",
-                churchId: church1[0].churchId,
-                isActive: true,
-            },
-            {
-                name: "Treasurer",
-                description: "Church treasurer",
-                churchId: church1[0].churchId,
-                isActive: true,
-            },
-            {
-                name: "Secretary",
-                description: "Church secretary",
-                churchId: church1[0].churchId,
-                isActive: true,
-            },
-        ])
-            .returning();
-        console.log("Creating leaders...");
-        await db_1.default.insert(schema_1.leaders).values([
-            {
-                memberId: member2[0].memberId,
-                positionId: positionsList[0].positionId,
-                startDate: new Date(),
-                isActive: true,
-                isApproved: true,
-                approvedBy: churchAdmin[0].userId,
-                approvedAt: new Date(),
-                profilePicture: "https://res.cloudinary.com/demo/image/upload/v1/pastor-peter.jpg",
-            },
-            {
-                memberId: member3[0].memberId,
-                positionId: positionsList[2].positionId,
-                startDate: new Date(),
-                isActive: true,
-                isApproved: true,
-                approvedBy: churchAdmin[0].userId,
-                approvedAt: new Date(),
-                profilePicture: "https://res.cloudinary.com/demo/image/upload/v1/treasurer-paul.jpg",
-            },
-            {
-                memberId: member4[0].memberId,
-                positionId: positionsList[3].positionId,
-                startDate: new Date(),
-                isActive: true,
-                isApproved: true,
-                approvedBy: churchAdmin[0].userId,
-                approvedAt: new Date(),
-                profilePicture: "https://res.cloudinary.com/demo/image/upload/v1/secretary-jane.jpg",
+                name: "Westlands Fellowship",
+                description: "Westlands area church",
+                email: "info@westlandsfellowship.org",
+                phone: "+254712345680",
+                country: "Kenya",
+                city: "Nairobi",
+                state: "Nairobi",
+                denomination: "Pentecostal",
+                organizationId: org[0].organizationId,
+                maxMembers: 150,
+                logo: "https://res.cloudinary.com/demo/image/upload/v1/westlands-logo.png",
             },
         ]);
-        console.log("Creating services...");
-        await db_1.default.insert(schema_1.services).values([
+        console.log("Creating unregistered users (must be registered first)...");
+        const invitationToken1 = "INV" + Math.floor(100000 + Math.random() * 900000);
+        const invitationToken2 = "INV" + Math.floor(100000 + Math.random() * 900000);
+        const invitationToken3 = "INV" + Math.floor(100000 + Math.random() * 900000);
+        const invitationToken4 = "INV" + Math.floor(100000 + Math.random() * 900000);
+        const invitationToken5 = "INV" + Math.floor(100000 + Math.random() * 900000);
+        const invitationToken6 = "INV" + Math.floor(100000 + Math.random() * 900000);
+        const invitationToken7 = "INV" + Math.floor(100000 + Math.random() * 900000);
+        const invitationToken8 = "INV" + Math.floor(100000 + Math.random() * 900000);
+        const invitationToken9 = "INV" + Math.floor(100000 + Math.random() * 900000);
+        const invitationToken10 = "INV" + Math.floor(100000 + Math.random() * 900000);
+        const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        await db_1.default.insert(schema_1.unregisteredUsers).values([
             {
-                churchId: church1[0].churchId,
-                name: "Sunday Worship",
-                description: "Main Sunday service",
-                dayOfWeek: 0,
-                startTime: new Date(),
-                endTime: new Date(),
-                serviceType: "worship",
-                attendanceType: "in_person",
-                isActive: true,
+                email: "emmanuelmose806@gmail.com",
+                fullName: "Emmanuel Mose",
+                role: "super_admin",
+                invitationToken: invitationToken1,
+                tokenExpiresAt,
+                largeOrganizationId: null,
+                organizationId: null,
+                churchId: null,
             },
             {
-                churchId: church1[0].churchId,
-                name: "Wednesday Bible Study",
-                description: "Mid-week Bible study",
-                dayOfWeek: 3,
-                startTime: new Date(),
-                endTime: new Date(),
-                serviceType: "bible_study",
-                attendanceType: "both",
-                isActive: true,
+                email: "emmanuelmose64@yahoo.com",
+                fullName: "Emmanuel Mose",
+                role: "church_admin",
+                invitationToken: invitationToken2,
+                tokenExpiresAt,
+                largeOrganizationId: null,
+                organizationId: null,
+                churchId: null,
             },
             {
-                churchId: church2[0].churchId,
-                name: "Sunday Worship",
-                description: "Main Sunday service",
-                dayOfWeek: 0,
-                startTime: new Date(),
-                endTime: new Date(),
-                serviceType: "worship",
-                attendanceType: "in_person",
-                isActive: true,
-            },
-        ]);
-        console.log("Creating giving categories...");
-        const givingCats = await db_1.default.insert(schema_1.givingCategories).values([
-            {
-                churchId: church1[0].churchId,
-                name: "Tithes",
-                description: "10% of income",
-                type: "tithe",
-                isActive: true,
-                image: "https://res.cloudinary.com/demo/image/upload/v1/tithe-icon.png",
+                email: "largeorg@example.com",
+                fullName: "Large Organization Admin",
+                role: "large_org_admin",
+                invitationToken: invitationToken3,
+                tokenExpiresAt,
+                largeOrganizationId: largeOrg[0].largeOrganizationId,
+                organizationId: null,
+                churchId: null,
             },
             {
-                churchId: church1[0].churchId,
-                name: "Offerings",
-                description: "Free-will offerings",
-                type: "offering",
-                isActive: true,
-                image: "https://res.cloudinary.com/demo/image/upload/v1/offering-icon.png",
+                email: "smallorg@example.com",
+                fullName: "Small Organization Admin",
+                role: "small_org_admin",
+                invitationToken: invitationToken4,
+                tokenExpiresAt,
+                largeOrganizationId: largeOrg[0].largeOrganizationId,
+                organizationId: org[0].organizationId,
+                churchId: null,
             },
             {
-                churchId: church1[0].churchId,
-                name: "Building Fund",
-                description: "Church building fund",
-                type: "special",
-                isActive: true,
-                image: "https://res.cloudinary.com/demo/image/upload/v1/building-icon.png",
-            },
-        ]).returning();
-        console.log("Creating expense categories...");
-        await db_1.default.insert(schema_1.expenseCategories).values([
-            {
-                churchId: church1[0].churchId,
-                name: "Utilities",
-                description: "Electricity, water, internet",
-                isActive: true,
-                image: "https://res.cloudinary.com/demo/image/upload/v1/utilities-icon.png",
+                email: "churchadmin@example.com",
+                fullName: "Church Admin",
+                role: "church_admin",
+                invitationToken: invitationToken5,
+                tokenExpiresAt,
+                largeOrganizationId: largeOrg[0].largeOrganizationId,
+                organizationId: org[0].organizationId,
+                churchId: 1,
             },
             {
-                churchId: church1[0].churchId,
-                name: "Salaries",
-                description: "Staff and pastor salaries",
-                isActive: true,
-                image: "https://res.cloudinary.com/demo/image/upload/v1/salary-icon.png",
+                email: "member@example.com",
+                fullName: "John Member",
+                role: "church_member",
+                invitationToken: invitationToken6,
+                tokenExpiresAt,
+                largeOrganizationId: largeOrg[0].largeOrganizationId,
+                organizationId: org[0].organizationId,
+                churchId: 1,
             },
             {
-                churchId: church1[0].churchId,
-                name: "Ministry Expenses",
-                description: "Outreach and ministry costs",
-                isActive: true,
-                image: "https://res.cloudinary.com/demo/image/upload/v1/ministry-icon.png",
-            },
-        ]);
-        console.log("Creating events with images...");
-        await db_1.default.insert(schema_1.events).values([
-            {
-                churchId: church1[0].churchId,
-                title: "Annual Conference 2025",
-                description: "Annual church conference with guest speakers",
-                location: "Nairobi Convention Centre",
-                startDate: new Date("2025-06-15"),
-                endDate: new Date("2025-06-18"),
-                status: "published",
-                isPublic: true,
-                maxAttendees: 500,
-                createdBy: churchAdmin[0].userId,
-                imageUrl: "https://res.cloudinary.com/demo/image/upload/v1/conference-banner.jpg",
-                coverImageUrl: "https://res.cloudinary.com/demo/image/upload/v1/conference-cover.jpg",
-                gallery: JSON.stringify([
-                    "https://res.cloudinary.com/demo/image/upload/v1/gallery1.jpg",
-                    "https://res.cloudinary.com/demo/image/upload/v1/gallery2.jpg",
-                    "https://res.cloudinary.com/demo/image/upload/v1/gallery3.jpg",
-                ]),
+                email: "pastor@example.com",
+                fullName: "Pastor Peter",
+                role: "pastor",
+                invitationToken: invitationToken7,
+                tokenExpiresAt,
+                largeOrganizationId: largeOrg[0].largeOrganizationId,
+                organizationId: org[0].organizationId,
+                churchId: 1,
             },
             {
-                churchId: church1[0].churchId,
-                title: "Youth Camp",
-                description: "Annual youth camp with fun activities",
-                location: "Kijabe",
-                startDate: new Date("2025-08-10"),
-                endDate: new Date("2025-08-14"),
-                status: "published",
-                isPublic: true,
-                maxAttendees: 100,
-                createdBy: churchAdmin[0].userId,
-                imageUrl: "https://res.cloudinary.com/demo/image/upload/v1/youth-camp-banner.jpg",
-                coverImageUrl: "https://res.cloudinary.com/demo/image/upload/v1/youth-camp-cover.jpg",
-                gallery: JSON.stringify([
-                    "https://res.cloudinary.com/demo/image/upload/v1/youth-gallery1.jpg",
-                    "https://res.cloudinary.com/demo/image/upload/v1/youth-gallery2.jpg",
-                ]),
+                email: "treasurer@example.com",
+                fullName: "Treasurer Paul",
+                role: "treasurer",
+                invitationToken: invitationToken8,
+                tokenExpiresAt,
+                largeOrganizationId: largeOrg[0].largeOrganizationId,
+                organizationId: org[0].organizationId,
+                churchId: 1,
+            },
+            {
+                email: "secretary@example.com",
+                fullName: "Secretary Jane",
+                role: "secretary",
+                invitationToken: invitationToken9,
+                tokenExpiresAt,
+                largeOrganizationId: largeOrg[0].largeOrganizationId,
+                organizationId: org[0].organizationId,
+                churchId: 1,
+            },
+            {
+                email: "elder@example.com",
+                fullName: "Elder James",
+                role: "elder",
+                invitationToken: invitationToken10,
+                tokenExpiresAt,
+                largeOrganizationId: largeOrg[0].largeOrganizationId,
+                organizationId: org[0].organizationId,
+                churchId: 1,
             },
         ]);
-        console.log("Creating prayer requests...");
-        await db_1.default.insert(schema_1.prayerRequests).values([
-            {
-                churchId: church1[0].churchId,
-                memberId: member1[0].memberId,
-                title: "Healing for Mama Jane",
-                description: "Prayer for healing of Mama Jane who is in hospital",
-                status: "pending",
-                visibility: "public",
-                prayerCount: 5,
-                image: "https://res.cloudinary.com/demo/image/upload/v1/prayer-healing.jpg",
-            },
-            {
-                churchId: church1[0].churchId,
-                memberId: member2[0].memberId,
-                title: "Church Outreach",
-                description: "Prayer for the upcoming outreach program",
-                status: "praying",
-                visibility: "public",
-                prayerCount: 12,
-                image: "https://res.cloudinary.com/demo/image/upload/v1/prayer-outreach.jpg",
-            },
-        ]);
-        console.log("Creating announcements...");
-        await db_1.default.insert(schema_1.announcements).values([
-            {
-                churchId: church1[0].churchId,
-                title: "Church Service Changes",
-                content: "Sunday service will now start at 10:00 AM instead of 9:00 AM",
-                isPublished: true,
-                publishedAt: new Date(),
-                createdBy: churchAdmin[0].userId,
-                imageUrl: "https://res.cloudinary.com/demo/image/upload/v1/announcement-service.jpg",
-                imagePosition: "top",
-            },
-            {
-                churchId: church1[0].churchId,
-                title: "Prayer Week",
-                content: "Join us for a week of prayer starting Monday",
-                isPublished: true,
-                publishedAt: new Date(),
-                createdBy: churchAdmin[0].userId,
-                imageUrl: "https://res.cloudinary.com/demo/image/upload/v1/announcement-prayer.jpg",
-                imagePosition: "cover",
-            },
-        ]);
-        console.log("Creating groups...");
-        await db_1.default.insert(schema_1.groups).values([
-            {
-                churchId: church1[0].churchId,
-                name: "Men's Fellowship",
-                description: "Men's group meeting every Saturday",
-                type: "fellowship",
-                leaderId: member2[0].memberId,
-                meetingDay: 6,
-                location: "Church Hall",
-                isActive: true,
-            },
-            {
-                churchId: church1[0].churchId,
-                name: "Women's Fellowship",
-                description: "Women's group meeting every Friday",
-                type: "fellowship",
-                leaderId: member3[0].memberId,
-                meetingDay: 5,
-                location: "Church Hall",
-                isActive: true,
-            },
-        ]);
-        console.log("Creating sermons...");
-        await db_1.default.insert(schema_1.sermons).values([
-            {
-                churchId: church1[0].churchId,
-                title: "The Power of Faith",
-                speaker: "Pastor Peter",
-                topic: "Faith",
-                scripture: "Hebrews 11:1",
-                description: "Sermon on the power of faith",
-                preachedAt: new Date("2025-01-05"),
-                videoUrl: "https://res.cloudinary.com/demo/video/upload/v1/faith-sermon.mp4",
-                audioUrl: "https://res.cloudinary.com/demo/audio/upload/v1/faith-sermon.mp3",
-            },
-            {
-                churchId: church1[0].churchId,
-                title: "Love Your Neighbor",
-                speaker: "Pastor Peter",
-                topic: "Love",
-                scripture: "Mark 12:31",
-                description: "Sermon on loving others",
-                preachedAt: new Date("2025-01-12"),
-                videoUrl: "https://res.cloudinary.com/demo/video/upload/v1/love-sermon.mp4",
-                audioUrl: "https://res.cloudinary.com/demo/audio/upload/v1/love-sermon.mp3",
-            },
-        ]);
-        console.log("Creating sample giving records...");
-        await db_1.default.insert(schema_1.giving).values([
-            {
-                memberId: member1[0].memberId,
-                churchId: church1[0].churchId,
-                categoryId: givingCats[0].categoryId,
-                amount: "100.00",
-                currency: "KES",
-                type: "tithe",
-                status: "completed",
-                date: new Date(),
-                paymentMethod: "cash",
-                receiptNumber: "RCP-001",
-                receiptFile: "https://res.cloudinary.com/demo/image/upload/v1/receipt-001.jpg",
-            },
-            {
-                memberId: member2[0].memberId,
-                churchId: church1[0].churchId,
-                categoryId: givingCats[1].categoryId,
-                amount: "50.00",
-                currency: "KES",
-                type: "offering",
-                status: "completed",
-                date: new Date(),
-                paymentMethod: "cash",
-                receiptNumber: "RCP-002",
-                receiptFile: "https://res.cloudinary.com/demo/image/upload/v1/receipt-002.jpg",
-            },
-        ]);
-        console.log("Database seeding completed successfully.");
-        console.log("Unverified user created with email: unverified@example.com");
+        console.log("\n Database seeding completed successfully!");
+        console.log("\n Unregistered Users (Must Register First):");
+        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        console.log("Email                         | Role                 | Token");
+        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        console.log(`emmanuelmose806@gmail.com      | super_admin          | ${invitationToken1}`);
+        console.log(`emmanuelmose64@yahoo.com       | church_admin         | ${invitationToken2}`);
+        console.log(`largeorg@example.com           | large_org_admin      | ${invitationToken3}`);
+        console.log(`smallorg@example.com           | small_org_admin      | ${invitationToken4}`);
+        console.log(`churchadmin@example.com        | church_admin         | ${invitationToken5}`);
+        console.log(`member@example.com             | church_member        | ${invitationToken6}`);
+        console.log(`pastor@example.com             | pastor               | ${invitationToken7}`);
+        console.log(`treasurer@example.com          | treasurer            | ${invitationToken8}`);
+        console.log(`secretary@example.com          | secretary            | ${invitationToken9}`);
+        console.log(`elder@example.com              | elder                | ${invitationToken10}`);
+        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        console.log("\n🔑 Use these tokens to register:");
+        console.log("1. Go to /register page");
+        console.log("2. Enter email and password");
+        console.log("3. Use the invitation token above");
+        console.log("4. Check email for verification code");
+        console.log("5. Verify email to complete registration");
+        console.log("\n🎉 Seed completed!");
         process.exit(0);
     }
     catch (error) {

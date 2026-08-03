@@ -6,44 +6,12 @@ import {
   forgotPasswordService,
   verifyResetCodeService,
   resetPasswordService,
-  createUnregisteredUserService,
 } from "./auth.service";
-
-export const createUnregisteredUserController = async (req: Request, res: Response) => {
-  try {
-    const { email, fullName, role, organizationId, churchId, largeOrganizationId } = req.body;
-    const invitedById = (req as any).user?.userId;
-
-    if (!invitedById) {
-      return res.status(401).json({
-        success: false,
-        message: "You must be logged in to invite users",
-      });
-    }
-
-    await createUnregisteredUserService(
-      email,
-      fullName,
-      role,
-      invitedById,
-      organizationId,
-      churchId,
-      largeOrganizationId
-    );
-
-    res.json({
-      success: true,
-      message: `Invitation sent to ${email} for role: ${role}`,
-    });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-};
 
 export const registerController = async (req: Request, res: Response) => {
   try {
-    const { fullName, email, password, role, invitationToken } = req.body;
-    await registerService(fullName, email, password, role, invitationToken);
+    const { fullName, email, password } = req.body;
+    await registerService(fullName, email, password);
     res.json({ success: true, message: "Verification code sent to your email" });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });

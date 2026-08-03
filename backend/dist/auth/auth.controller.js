@@ -2,11 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCurrentUserController = exports.resetPasswordController = exports.verifyResetCodeController = exports.forgotPasswordController = exports.loginController = exports.verifyController = exports.registerController = void 0;
 const auth_service_1 = require("./auth.service");
-// Register
 const registerController = async (req, res) => {
     try {
-        const { fullName, email, password, role } = req.body;
-        await (0, auth_service_1.registerService)(fullName, email, password, role);
+        const { fullName, email, password, invitationToken } = req.body;
+        await (0, auth_service_1.registerService)(fullName, email, password, invitationToken);
         res.json({ success: true, message: "Verification code sent to your email" });
     }
     catch (error) {
@@ -14,7 +13,6 @@ const registerController = async (req, res) => {
     }
 };
 exports.registerController = registerController;
-// Verify Email
 const verifyController = async (req, res) => {
     try {
         const { email, code } = req.body;
@@ -26,7 +24,6 @@ const verifyController = async (req, res) => {
     }
 };
 exports.verifyController = verifyController;
-// Login
 const loginController = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -38,7 +35,6 @@ const loginController = async (req, res) => {
     }
 };
 exports.loginController = loginController;
-// Forgot Password
 const forgotPasswordController = async (req, res) => {
     try {
         await (0, auth_service_1.forgotPasswordService)(req.body.email);
@@ -49,7 +45,6 @@ const forgotPasswordController = async (req, res) => {
     }
 };
 exports.forgotPasswordController = forgotPasswordController;
-// Verify Reset Code
 const verifyResetCodeController = async (req, res) => {
     try {
         const { email, code } = req.body;
@@ -61,7 +56,6 @@ const verifyResetCodeController = async (req, res) => {
     }
 };
 exports.verifyResetCodeController = verifyResetCodeController;
-// Reset Password
 const resetPasswordController = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -73,7 +67,6 @@ const resetPasswordController = async (req, res) => {
     }
 };
 exports.resetPasswordController = resetPasswordController;
-// Get Current User
 const getCurrentUserController = async (req, res) => {
     try {
         const user = req.user;
@@ -84,6 +77,9 @@ const getCurrentUserController = async (req, res) => {
                 email: user.email,
                 fullName: user.fullName,
                 role: user.role,
+                churchId: user.churchId,
+                organizationId: user.organizationId,
+                largeOrganizationId: user.largeOrganizationId,
             },
         });
     }
