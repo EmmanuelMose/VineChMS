@@ -345,27 +345,6 @@ export const members = pgTable(
   })
 );
 
-export const familyMembers = pgTable(
-  "family_members",
-  {
-    familyMemberId: serial("family_member_id").primaryKey(),
-    memberId: integer("member_id")
-      .references(() => members.memberId, { onDelete: "cascade" })
-      .notNull(),
-    fullName: varchar("full_name", { length: 100 }).notNull(),
-    relationship: varchar("relationship", { length: 50 }).notNull(),
-    email: varchar("email", { length: 255 }),
-    phone: varchar("phone", { length: 20 }),
-    dateOfBirth: timestamp("date_of_birth"),
-    profilePicture: varchar("profile_picture", { length: 500 }),
-    isMember: boolean("is_member").default(false),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => ({
-    memberIdIdx: index("family_member_idx").on(table.memberId),
-  })
-);
-
 export const positions = pgTable(
   "positions",
   {
@@ -373,14 +352,19 @@ export const positions = pgTable(
     name: varchar("name", { length: 100 }).notNull(),
     description: text("description"),
     churchId: integer("church_id")
-      .references(() => churches.churchId, { onDelete: "cascade" })
-      .notNull(),
+      .references(() => churches.churchId, { onDelete: "cascade" }),
+    organizationId: integer("organization_id")
+      .references(() => organizations.organizationId, { onDelete: "cascade" }),
+    largeOrganizationId: integer("large_organization_id")
+      .references(() => largeOrganizations.largeOrganizationId, { onDelete: "cascade" }),
     isActive: boolean("is_active").default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => ({
     churchIdx: index("position_church_idx").on(table.churchId),
+    orgIdx: index("position_org_idx").on(table.organizationId),
+    largeOrgIdx: index("position_large_org_idx").on(table.largeOrganizationId),
   })
 );
 
@@ -410,6 +394,60 @@ export const leaders = pgTable(
   (table) => ({
     memberIdx: index("leader_member_idx").on(table.memberId),
     positionIdx: index("leader_position_idx").on(table.positionId),
+  })
+);
+
+export const departments = pgTable(
+  "departments",
+  {
+    departmentId: serial("department_id").primaryKey(),
+    name: varchar("name", { length: 100 }).notNull(),
+    description: text("description"),
+    type: departmentTypeEnum("type").notNull(),
+    parentDepartmentId: integer("parent_department_id")
+      .references((): any => departments.departmentId, { onDelete: "set null" }),
+    largeOrganizationId: integer("large_organization_id")
+      .references(() => largeOrganizations.largeOrganizationId, { onDelete: "cascade" }),
+    organizationId: integer("organization_id")
+      .references(() => organizations.organizationId, { onDelete: "cascade" }),
+    churchId: integer("church_id")
+      .references(() => churches.churchId, { onDelete: "cascade" }),
+    leaderId: integer("leader_id")
+      .references(() => members.memberId, { onDelete: "set null" }),
+    isActive: boolean("is_active").default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    largeOrgIdx: index("dept_large_org_idx").on(table.largeOrganizationId),
+    orgIdx: index("dept_org_idx").on(table.organizationId),
+    churchIdx: index("dept_church_idx").on(table.churchId),
+    parentIdx: index("dept_parent_idx").on(table.parentDepartmentId),
+  })
+);
+
+export const departmentMembers = pgTable(
+  "department_members",
+  {
+    departmentMemberId: serial("department_member_id").primaryKey(),
+    departmentId: integer("department_id")
+      .references(() => departments.departmentId, { onDelete: "cascade" })
+      .notNull(),
+    memberId: integer("member_id")
+      .references(() => members.memberId, { onDelete: "cascade" })
+      .notNull(),
+    positionId: integer("position_id")
+      .references(() => positions.positionId, { onDelete: "set null" }),
+    role: varchar("role", { length: 50 }),
+    isActive: boolean("is_active").default(true),
+    joinedAt: timestamp("joined_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    unique: unique("unique_dept_member").on(table.departmentId, table.memberId),
+    deptIdx: index("dept_member_dept_idx").on(table.departmentId),
+    memberIdx: index("dept_member_member_idx").on(table.memberId),
   })
 );
 
@@ -974,60 +1012,6 @@ export const sermons = pgTable(
   })
 );
 
-export const departments = pgTable(
-  "departments",
-  {
-    departmentId: serial("department_id").primaryKey(),
-    name: varchar("name", { length: 100 }).notNull(),
-    description: text("description"),
-    type: departmentTypeEnum("type").notNull(),
-    parentDepartmentId: integer("parent_department_id")
-      .references((): any => departments.departmentId, { onDelete: "set null" }),
-    largeOrganizationId: integer("large_organization_id")
-      .references(() => largeOrganizations.largeOrganizationId, { onDelete: "cascade" }),
-    organizationId: integer("organization_id")
-      .references(() => organizations.organizationId, { onDelete: "cascade" }),
-    churchId: integer("church_id")
-      .references(() => churches.churchId, { onDelete: "cascade" }),
-    leaderId: integer("leader_id")
-      .references(() => members.memberId, { onDelete: "set null" }),
-    isActive: boolean("is_active").default(true),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  },
-  (table) => ({
-    largeOrgIdx: index("dept_large_org_idx").on(table.largeOrganizationId),
-    orgIdx: index("dept_org_idx").on(table.organizationId),
-    churchIdx: index("dept_church_idx").on(table.churchId),
-    parentIdx: index("dept_parent_idx").on(table.parentDepartmentId),
-  })
-);
-
-export const departmentMembers = pgTable(
-  "department_members",
-  {
-    departmentMemberId: serial("department_member_id").primaryKey(),
-    departmentId: integer("department_id")
-      .references(() => departments.departmentId, { onDelete: "cascade" })
-      .notNull(),
-    memberId: integer("member_id")
-      .references(() => members.memberId, { onDelete: "cascade" })
-      .notNull(),
-    positionId: integer("position_id")
-      .references(() => positions.positionId, { onDelete: "set null" }),
-    role: varchar("role", { length: 50 }),
-    isActive: boolean("is_active").default(true),
-    joinedAt: timestamp("joined_at").defaultNow().notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  },
-  (table) => ({
-    unique: unique("unique_dept_member").on(table.departmentId, table.memberId),
-    deptIdx: index("dept_member_dept_idx").on(table.departmentId),
-    memberIdx: index("dept_member_member_idx").on(table.memberId),
-  })
-);
-
 export const usersRelations = relations(users, ({ one, many }) => ({
   unregisteredUsers: many(unregisteredUsers),
   createdBy: one(users, {
@@ -1105,7 +1089,6 @@ export const membersRelations = relations(members, ({ one, many }) => ({
     fields: [members.churchId],
     references: [churches.churchId],
   }),
-  familyMembers: many(familyMembers),
   leaders: many(leaders),
   attendance: many(attendance),
   giving: many(giving),
@@ -1121,6 +1104,14 @@ export const positionsRelations = relations(positions, ({ one, many }) => ({
   church: one(churches, {
     fields: [positions.churchId],
     references: [churches.churchId],
+  }),
+  organization: one(organizations, {
+    fields: [positions.organizationId],
+    references: [organizations.organizationId],
+  }),
+  largeOrganization: one(largeOrganizations, {
+    fields: [positions.largeOrganizationId],
+    references: [largeOrganizations.largeOrganizationId],
   }),
   leaders: many(leaders),
   departmentMembers: many(departmentMembers),
@@ -1139,6 +1130,54 @@ export const leadersRelations = relations(leaders, ({ one }) => ({
     fields: [leaders.approvedBy],
     references: [users.userId],
   }),
+}));
+
+export const departmentsRelations = relations(departments, ({ one, many }) => ({
+  largeOrganization: one(largeOrganizations, {
+    fields: [departments.largeOrganizationId],
+    references: [largeOrganizations.largeOrganizationId],
+  }),
+  organization: one(organizations, {
+    fields: [departments.organizationId],
+    references: [organizations.organizationId],
+  }),
+  church: one(churches, {
+    fields: [departments.churchId],
+    references: [churches.churchId],
+  }),
+  parent: one(departments, {
+    fields: [departments.parentDepartmentId],
+    references: [departments.departmentId],
+  }),
+  children: many(departments, { relationName: "children" }),
+  leader: one(members, {
+    fields: [departments.leaderId],
+    references: [members.memberId],
+  }),
+  departmentMembers: many(departmentMembers),
+}));
+
+export const departmentMembersRelations = relations(departmentMembers, ({ one }) => ({
+  department: one(departments, {
+    fields: [departmentMembers.departmentId],
+    references: [departments.departmentId],
+  }),
+  member: one(members, {
+    fields: [departmentMembers.memberId],
+    references: [members.memberId],
+  }),
+  position: one(positions, {
+    fields: [departmentMembers.positionId],
+    references: [positions.positionId],
+  }),
+}));
+
+export const servicesRelations = relations(services, ({ one, many }) => ({
+  church: one(churches, {
+    fields: [services.churchId],
+    references: [churches.churchId],
+  }),
+  attendance: many(attendance),
 }));
 
 export const attendanceRelations = relations(attendance, ({ one }) => ({
@@ -1264,46 +1303,6 @@ export const sermonsRelations = relations(sermons, ({ one }) => ({
   }),
 }));
 
-export const departmentsRelations = relations(departments, ({ one, many }) => ({
-  largeOrganization: one(largeOrganizations, {
-    fields: [departments.largeOrganizationId],
-    references: [largeOrganizations.largeOrganizationId],
-  }),
-  organization: one(organizations, {
-    fields: [departments.organizationId],
-    references: [organizations.organizationId],
-  }),
-  church: one(churches, {
-    fields: [departments.churchId],
-    references: [churches.churchId],
-  }),
-  parent: one(departments, {
-    fields: [departments.parentDepartmentId],
-    references: [departments.departmentId],
-  }),
-  children: many(departments, { relationName: "children" }),
-  leader: one(members, {
-    fields: [departments.leaderId],
-    references: [members.memberId],
-  }),
-  departmentMembers: many(departmentMembers),
-}));
-
-export const departmentMembersRelations = relations(departmentMembers, ({ one }) => ({
-  department: one(departments, {
-    fields: [departmentMembers.departmentId],
-    references: [departments.departmentId],
-  }),
-  member: one(members, {
-    fields: [departmentMembers.memberId],
-    references: [members.memberId],
-  }),
-  position: one(positions, {
-    fields: [departmentMembers.positionId],
-    references: [positions.positionId],
-  }),
-}));
-
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type UnregisteredUser = typeof unregisteredUsers.$inferSelect;
@@ -1320,6 +1319,10 @@ export type Position = typeof positions.$inferSelect;
 export type NewPosition = typeof positions.$inferInsert;
 export type Leader = typeof leaders.$inferSelect;
 export type NewLeader = typeof leaders.$inferInsert;
+export type Department = typeof departments.$inferSelect;
+export type NewDepartment = typeof departments.$inferInsert;
+export type DepartmentMember = typeof departmentMembers.$inferSelect;
+export type NewDepartmentMember = typeof departmentMembers.$inferInsert;
 export type Service = typeof services.$inferSelect;
 export type NewService = typeof services.$inferInsert;
 export type Attendance = typeof attendance.$inferSelect;
@@ -1348,8 +1351,6 @@ export type Sermon = typeof sermons.$inferSelect;
 export type NewSermon = typeof sermons.$inferInsert;
 export type Visitor = typeof visitors.$inferSelect;
 export type NewVisitor = typeof visitors.$inferInsert;
-export type FamilyMember = typeof familyMembers.$inferSelect;
-export type NewFamilyMember = typeof familyMembers.$inferInsert;
 export type Budget = typeof budgets.$inferSelect;
 export type NewBudget = typeof budgets.$inferInsert;
 export type Pledge = typeof pledges.$inferSelect;
@@ -1358,7 +1359,3 @@ export type GivingCategory = typeof givingCategories.$inferSelect;
 export type NewGivingCategory = typeof givingCategories.$inferInsert;
 export type ExpenseCategory = typeof expenseCategories.$inferSelect;
 export type NewExpenseCategory = typeof expenseCategories.$inferInsert;
-export type Department = typeof departments.$inferSelect;
-export type NewDepartment = typeof departments.$inferInsert;
-export type DepartmentMember = typeof departmentMembers.$inferSelect;
-export type NewDepartmentMember = typeof departmentMembers.$inferInsert;

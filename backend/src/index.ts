@@ -9,6 +9,7 @@ import organizationsRouter from "./organizations/organizations.router";
 import churchesRouter from "./churches/churches.router";
 import membersRouter from "./members/members.router";
 import positionsRouter from "./positions/positions.router";
+import departmentsRouter from "./departments/departments.router";
 import leadersRouter from "./leaders/leaders.router";
 import servicesRouter from "./services/services.router";
 import attendanceRouter from "./attendance/attendance.router";
@@ -19,7 +20,6 @@ import prayerRouter from "./prayer/prayer.router";
 import announcementsRouter from "./announcements/announcements.router";
 import groupsRouter from "./groups/groups.router";
 import sermonsRouter from "./sermons/sermons.router";
-import departmentsRouter from "./departments/departments.router";
 
 const initializeApp = () => {
   const app = express();
@@ -46,7 +46,7 @@ const initializeApp = () => {
   );
 
   app.get("/", (_req, res) => {
-    res.send("🌿 VineChMS Backend server running successfully!");
+    res.send("VineChMS Backend server running successfully!");
   });
 
   app.use("/api/auth", authRouter);
@@ -54,6 +54,7 @@ const initializeApp = () => {
   app.use("/api/churches", churchesRouter);
   app.use("/api/members", membersRouter);
   app.use("/api/positions", positionsRouter);
+  app.use("/api/departments", departmentsRouter);
   app.use("/api/leaders", leadersRouter);
   app.use("/api/services", servicesRouter);
   app.use("/api/attendance", attendanceRouter);
@@ -64,7 +65,6 @@ const initializeApp = () => {
   app.use("/api/announcements", announcementsRouter);
   app.use("/api/groups", groupsRouter);
   app.use("/api/sermons", sermonsRouter);
-  app.use("/api/departments", departmentsRouter);
 
   return app;
 };

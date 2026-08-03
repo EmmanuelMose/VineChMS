@@ -5,7 +5,9 @@ import { eq, desc } from "drizzle-orm";
 export const createPositionService = async (data: {
   name: string;
   description?: string | null;
-  churchId: number;
+  churchId?: number | null;
+  organizationId?: number | null;
+  largeOrganizationId?: number | null;
   isActive?: boolean;
 }) => {
   const [result] = await db
@@ -13,7 +15,9 @@ export const createPositionService = async (data: {
     .values({
       name: data.name,
       description: data.description || null,
-      churchId: data.churchId,
+      churchId: data.churchId || null,
+      organizationId: data.organizationId || null,
+      largeOrganizationId: data.largeOrganizationId || null,
       isActive: data.isActive !== undefined ? data.isActive : true,
     })
     .returning();
@@ -34,6 +38,30 @@ export const getPositionByIdService = async (id: number) => {
     .where(eq(positions.positionId, id));
   if (!result) throw new Error("Position not found");
   return result;
+};
+
+export const getPositionsByChurchService = async (churchId: number) => {
+  return await db
+    .select()
+    .from(positions)
+    .where(eq(positions.churchId, churchId))
+    .orderBy(desc(positions.createdAt));
+};
+
+export const getPositionsByOrganizationService = async (organizationId: number) => {
+  return await db
+    .select()
+    .from(positions)
+    .where(eq(positions.organizationId, organizationId))
+    .orderBy(desc(positions.createdAt));
+};
+
+export const getPositionsByLargeOrganizationService = async (largeOrganizationId: number) => {
+  return await db
+    .select()
+    .from(positions)
+    .where(eq(positions.largeOrganizationId, largeOrganizationId))
+    .orderBy(desc(positions.createdAt));
 };
 
 export const updatePositionService = async (id: number, data: any) => {

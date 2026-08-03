@@ -11,8 +11,8 @@ import {
   getSubDepartments,
   addMemberToDepartment,
   getDepartmentMembers,
-  removeMemberFromDepartment,
   updateDepartmentMember,
+  removeMemberFromDepartment,
 } from "./departments.controller";
 import { authenticate } from "../middleware/auth.middleware";
 

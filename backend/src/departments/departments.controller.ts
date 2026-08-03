@@ -11,8 +11,8 @@ import {
   getSubDepartmentsService,
   addMemberToDepartmentService,
   getDepartmentMembersService,
-  removeMemberFromDepartmentService,
   updateDepartmentMemberService,
+  removeMemberFromDepartmentService,
 } from "./departments.service";
 import { AuthRequest } from "../middleware/auth.middleware";
 
@@ -30,34 +30,34 @@ export const createDepartment = async (req: AuthRequest, res: Response) => {
     if (type === "large_org_department" && !largeOrganizationId) {
       return res.status(400).json({
         success: false,
-        message: "largeOrganizationId is required for large org departments",
+        message: "largeOrganizationId is required for large_org_department",
       });
     }
 
     if (type === "org_department" && !organizationId) {
       return res.status(400).json({
         success: false,
-        message: "organizationId is required for org departments",
+        message: "organizationId is required for org_department",
       });
     }
 
     if (type === "church_department" && !churchId) {
       return res.status(400).json({
         success: false,
-        message: "churchId is required for church departments",
+        message: "churchId is required for church_department",
       });
     }
 
     const result = await createDepartmentService({
       name,
-      description,
+      description: description || null,
       type,
       largeOrganizationId: largeOrganizationId || null,
       organizationId: organizationId || null,
       churchId: churchId || null,
       parentDepartmentId: parentDepartmentId || null,
       leaderId: leaderId || null,
-      isActive,
+      isActive: isActive !== undefined ? isActive : true,
     });
 
     res.status(201).json({ success: true, data: result });
@@ -161,7 +161,7 @@ export const addMemberToDepartment = async (req: AuthRequest, res: Response) => 
       memberId,
       positionId: positionId || null,
       role: role || null,
-      isActive,
+      isActive: isActive !== undefined ? isActive : true,
     });
 
     res.status(201).json({ success: true, data: result });
@@ -180,21 +180,21 @@ export const getDepartmentMembers = async (req: Request, res: Response) => {
   }
 };
 
-export const removeMemberFromDepartment = async (req: Request, res: Response) => {
-  try {
-    const id = parseInt(req.params.id);
-    await removeMemberFromDepartmentService(id);
-    res.json({ success: true, message: "Member removed from department" });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-};
-
 export const updateDepartmentMember = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     const result = await updateDepartmentMemberService(id, req.body);
     res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const removeMemberFromDepartment = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    await removeMemberFromDepartmentService(id);
+    res.json({ success: true, message: "Member removed from department" });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }

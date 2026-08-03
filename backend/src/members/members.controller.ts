@@ -7,6 +7,7 @@ import {
   getMemberByUserIdService,
   getMembersByChurchService,
   getMembersByOrganizationService,
+  getMembersByLargeOrganizationService,
 } from "./members.service";
 import { AuthRequest } from "../middleware/auth.middleware";
 
@@ -15,8 +16,10 @@ export const getMembers = async (req: AuthRequest, res: Response) => {
     const userRole = req.user!.role;
     const churchId = req.user!.churchId;
     const organizationId = req.user!.organizationId;
+    const largeOrganizationId = req.user!.largeOrganizationId;
 
     let result;
+
     if (userRole === "super_admin") {
       result = await getMembersService();
     } else if (userRole === "church_admin" || userRole === "pastor" || userRole === "church_member") {
@@ -35,6 +38,14 @@ export const getMembers = async (req: AuthRequest, res: Response) => {
         });
       }
       result = await getMembersByOrganizationService(organizationId);
+    } else if (userRole === "large_org_admin" || userRole === "large_org_member") {
+      if (!largeOrganizationId) {
+        return res.status(400).json({
+          success: false,
+          message: "User is not associated with a large organization",
+        });
+      }
+      result = await getMembersByLargeOrganizationService(largeOrganizationId);
     } else {
       result = await getMembersByChurchService(churchId!);
     }

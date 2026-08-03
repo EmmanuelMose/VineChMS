@@ -1,5 +1,5 @@
 import db from "../Drizzle/db";
-import { departments, departmentMembers, members, positions, users } from "../Drizzle/schema";
+import { departments, departmentMembers, members, positions } from "../Drizzle/schema";
 import { eq, desc, and } from "drizzle-orm";
 
 export const createDepartmentService = async (data: {
@@ -32,20 +32,7 @@ export const createDepartmentService = async (data: {
 
 export const getDepartmentsService = async () => {
   return await db
-    .select({
-      departmentId: departments.departmentId,
-      name: departments.name,
-      description: departments.description,
-      type: departments.type,
-      largeOrganizationId: departments.largeOrganizationId,
-      organizationId: departments.organizationId,
-      churchId: departments.churchId,
-      parentDepartmentId: departments.parentDepartmentId,
-      leaderId: departments.leaderId,
-      isActive: departments.isActive,
-      createdAt: departments.createdAt,
-      updatedAt: departments.updatedAt,
-    })
+    .select()
     .from(departments)
     .orderBy(desc(departments.createdAt));
 };
@@ -167,21 +154,21 @@ export const getDepartmentMembersService = async (departmentId: number) => {
     .orderBy(desc(departmentMembers.joinedAt));
 };
 
-export const removeMemberFromDepartmentService = async (departmentMemberId: number) => {
-  const [result] = await db
-    .delete(departmentMembers)
-    .where(eq(departmentMembers.departmentMemberId, departmentMemberId))
-    .returning({ id: departmentMembers.departmentMemberId });
-  if (!result) throw new Error("Department member not found");
-  return result;
-};
-
 export const updateDepartmentMemberService = async (id: number, data: any) => {
   const [result] = await db
     .update(departmentMembers)
     .set({ ...data, updatedAt: new Date() })
     .where(eq(departmentMembers.departmentMemberId, id))
     .returning();
+  if (!result) throw new Error("Department member not found");
+  return result;
+};
+
+export const removeMemberFromDepartmentService = async (departmentMemberId: number) => {
+  const [result] = await db
+    .delete(departmentMembers)
+    .where(eq(departmentMembers.departmentMemberId, departmentMemberId))
+    .returning({ id: departmentMembers.departmentMemberId });
   if (!result) throw new Error("Department member not found");
   return result;
 };
