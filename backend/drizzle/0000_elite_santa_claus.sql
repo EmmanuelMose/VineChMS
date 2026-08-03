@@ -1,6 +1,7 @@
 CREATE TYPE "public"."announcement_image_position" AS ENUM('top', 'bottom', 'left', 'right', 'cover');--> statement-breakpoint
 CREATE TYPE "public"."approval_status" AS ENUM('pending', 'approved', 'rejected');--> statement-breakpoint
 CREATE TYPE "public"."attendance_type" AS ENUM('in_person', 'online', 'both');--> statement-breakpoint
+CREATE TYPE "public"."department_type" AS ENUM('large_org_department', 'org_department', 'church_department');--> statement-breakpoint
 CREATE TYPE "public"."document_visibility" AS ENUM('public', 'members_only', 'leadership_only', 'private');--> statement-breakpoint
 CREATE TYPE "public"."event_status" AS ENUM('draft', 'published', 'cancelled', 'completed');--> statement-breakpoint
 CREATE TYPE "public"."expense_status" AS ENUM('pending', 'approved', 'rejected', 'paid');--> statement-breakpoint
@@ -96,6 +97,34 @@ CREATE TABLE "churches" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "department_members" (
+	"department_member_id" serial PRIMARY KEY NOT NULL,
+	"department_id" integer NOT NULL,
+	"member_id" integer NOT NULL,
+	"position_id" integer,
+	"role" varchar(50),
+	"is_active" boolean DEFAULT true,
+	"joined_at" timestamp DEFAULT now() NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "unique_dept_member" UNIQUE("department_id","member_id")
+);
+--> statement-breakpoint
+CREATE TABLE "departments" (
+	"department_id" serial PRIMARY KEY NOT NULL,
+	"name" varchar(100) NOT NULL,
+	"description" text,
+	"type" "department_type" NOT NULL,
+	"parent_department_id" integer,
+	"large_organization_id" integer,
+	"organization_id" integer,
+	"church_id" integer,
+	"leader_id" integer,
+	"is_active" boolean DEFAULT true,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "documents" (
 	"document_id" serial PRIMARY KEY NOT NULL,
 	"church_id" integer NOT NULL,
@@ -177,19 +206,6 @@ CREATE TABLE "expenses" (
 	"notes" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "family_members" (
-	"family_member_id" serial PRIMARY KEY NOT NULL,
-	"member_id" integer NOT NULL,
-	"full_name" varchar(100) NOT NULL,
-	"relationship" varchar(50) NOT NULL,
-	"email" varchar(255),
-	"phone" varchar(20),
-	"date_of_birth" timestamp,
-	"profile_picture" varchar(500),
-	"is_member" boolean DEFAULT false,
-	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "giving" (
@@ -392,7 +408,9 @@ CREATE TABLE "positions" (
 	"position_id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(100) NOT NULL,
 	"description" text,
-	"church_id" integer NOT NULL,
+	"church_id" integer,
+	"organization_id" integer,
+	"large_organization_id" integer,
 	"is_active" boolean DEFAULT true,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
@@ -527,6 +545,14 @@ ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_user_id_users_user_id_fk" FO
 ALTER TABLE "budgets" ADD CONSTRAINT "budgets_church_id_churches_church_id_fk" FOREIGN KEY ("church_id") REFERENCES "public"."churches"("church_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "churches" ADD CONSTRAINT "churches_organization_id_organizations_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("organization_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "churches" ADD CONSTRAINT "churches_created_by_users_user_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("user_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "department_members" ADD CONSTRAINT "department_members_department_id_departments_department_id_fk" FOREIGN KEY ("department_id") REFERENCES "public"."departments"("department_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "department_members" ADD CONSTRAINT "department_members_member_id_members_member_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("member_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "department_members" ADD CONSTRAINT "department_members_position_id_positions_position_id_fk" FOREIGN KEY ("position_id") REFERENCES "public"."positions"("position_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "departments" ADD CONSTRAINT "departments_parent_department_id_departments_department_id_fk" FOREIGN KEY ("parent_department_id") REFERENCES "public"."departments"("department_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "departments" ADD CONSTRAINT "departments_large_organization_id_large_organizations_large_organization_id_fk" FOREIGN KEY ("large_organization_id") REFERENCES "public"."large_organizations"("large_organization_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "departments" ADD CONSTRAINT "departments_organization_id_organizations_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("organization_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "departments" ADD CONSTRAINT "departments_church_id_churches_church_id_fk" FOREIGN KEY ("church_id") REFERENCES "public"."churches"("church_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "departments" ADD CONSTRAINT "departments_leader_id_members_member_id_fk" FOREIGN KEY ("leader_id") REFERENCES "public"."members"("member_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "documents" ADD CONSTRAINT "documents_church_id_churches_church_id_fk" FOREIGN KEY ("church_id") REFERENCES "public"."churches"("church_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "documents" ADD CONSTRAINT "documents_uploaded_by_users_user_id_fk" FOREIGN KEY ("uploaded_by") REFERENCES "public"."users"("user_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "event_registrations" ADD CONSTRAINT "event_registrations_event_id_events_event_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("event_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -537,7 +563,6 @@ ALTER TABLE "expense_categories" ADD CONSTRAINT "expense_categories_church_id_ch
 ALTER TABLE "expenses" ADD CONSTRAINT "expenses_church_id_churches_church_id_fk" FOREIGN KEY ("church_id") REFERENCES "public"."churches"("church_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "expenses" ADD CONSTRAINT "expenses_category_id_expense_categories_category_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."expense_categories"("category_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "expenses" ADD CONSTRAINT "expenses_approved_by_users_user_id_fk" FOREIGN KEY ("approved_by") REFERENCES "public"."users"("user_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "family_members" ADD CONSTRAINT "family_members_member_id_members_member_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("member_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "giving" ADD CONSTRAINT "giving_member_id_members_member_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("member_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "giving" ADD CONSTRAINT "giving_church_id_churches_church_id_fk" FOREIGN KEY ("church_id") REFERENCES "public"."churches"("church_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "giving" ADD CONSTRAINT "giving_category_id_giving_categories_category_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."giving_categories"("category_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
@@ -565,6 +590,8 @@ ALTER TABLE "pledges" ADD CONSTRAINT "pledges_member_id_members_member_id_fk" FO
 ALTER TABLE "pledges" ADD CONSTRAINT "pledges_church_id_churches_church_id_fk" FOREIGN KEY ("church_id") REFERENCES "public"."churches"("church_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "pledges" ADD CONSTRAINT "pledges_category_id_giving_categories_category_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."giving_categories"("category_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "positions" ADD CONSTRAINT "positions_church_id_churches_church_id_fk" FOREIGN KEY ("church_id") REFERENCES "public"."churches"("church_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "positions" ADD CONSTRAINT "positions_organization_id_organizations_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("organization_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "positions" ADD CONSTRAINT "positions_large_organization_id_large_organizations_large_organization_id_fk" FOREIGN KEY ("large_organization_id") REFERENCES "public"."large_organizations"("large_organization_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "prayer_interactions" ADD CONSTRAINT "prayer_interactions_prayer_request_id_prayer_requests_prayer_request_id_fk" FOREIGN KEY ("prayer_request_id") REFERENCES "public"."prayer_requests"("prayer_request_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "prayer_interactions" ADD CONSTRAINT "prayer_interactions_member_id_members_member_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("member_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "prayer_requests" ADD CONSTRAINT "prayer_requests_church_id_churches_church_id_fk" FOREIGN KEY ("church_id") REFERENCES "public"."churches"("church_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -588,6 +615,12 @@ CREATE INDEX "budget_church_idx" ON "budgets" USING btree ("church_id");--> stat
 CREATE INDEX "budget_year_idx" ON "budgets" USING btree ("year");--> statement-breakpoint
 CREATE INDEX "church_name_idx" ON "churches" USING btree ("name");--> statement-breakpoint
 CREATE INDEX "church_org_idx" ON "churches" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "dept_member_dept_idx" ON "department_members" USING btree ("department_id");--> statement-breakpoint
+CREATE INDEX "dept_member_member_idx" ON "department_members" USING btree ("member_id");--> statement-breakpoint
+CREATE INDEX "dept_large_org_idx" ON "departments" USING btree ("large_organization_id");--> statement-breakpoint
+CREATE INDEX "dept_org_idx" ON "departments" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "dept_church_idx" ON "departments" USING btree ("church_id");--> statement-breakpoint
+CREATE INDEX "dept_parent_idx" ON "departments" USING btree ("parent_department_id");--> statement-breakpoint
 CREATE INDEX "document_church_idx" ON "documents" USING btree ("church_id");--> statement-breakpoint
 CREATE INDEX "document_type_idx" ON "documents" USING btree ("document_type");--> statement-breakpoint
 CREATE INDEX "event_reg_event_idx" ON "event_registrations" USING btree ("event_id");--> statement-breakpoint
@@ -597,7 +630,6 @@ CREATE INDEX "event_date_idx" ON "events" USING btree ("start_date");--> stateme
 CREATE INDEX "expense_category_church_idx" ON "expense_categories" USING btree ("church_id");--> statement-breakpoint
 CREATE INDEX "expense_church_idx" ON "expenses" USING btree ("church_id");--> statement-breakpoint
 CREATE INDEX "expense_date_idx" ON "expenses" USING btree ("date");--> statement-breakpoint
-CREATE INDEX "family_member_idx" ON "family_members" USING btree ("member_id");--> statement-breakpoint
 CREATE INDEX "giving_member_idx" ON "giving" USING btree ("member_id");--> statement-breakpoint
 CREATE INDEX "giving_church_idx" ON "giving" USING btree ("church_id");--> statement-breakpoint
 CREATE INDEX "giving_date_idx" ON "giving" USING btree ("date");--> statement-breakpoint
@@ -624,6 +656,8 @@ CREATE INDEX "org_large_org_idx" ON "organizations" USING btree ("large_organiza
 CREATE INDEX "pledge_member_idx" ON "pledges" USING btree ("member_id");--> statement-breakpoint
 CREATE INDEX "pledge_church_idx" ON "pledges" USING btree ("church_id");--> statement-breakpoint
 CREATE INDEX "position_church_idx" ON "positions" USING btree ("church_id");--> statement-breakpoint
+CREATE INDEX "position_org_idx" ON "positions" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "position_large_org_idx" ON "positions" USING btree ("large_organization_id");--> statement-breakpoint
 CREATE INDEX "prayer_interaction_prayer_idx" ON "prayer_interactions" USING btree ("prayer_request_id");--> statement-breakpoint
 CREATE INDEX "prayer_interaction_member_idx" ON "prayer_interactions" USING btree ("member_id");--> statement-breakpoint
 CREATE INDEX "prayer_church_idx" ON "prayer_requests" USING btree ("church_id");--> statement-breakpoint
