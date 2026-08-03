@@ -102,18 +102,33 @@ export const createMemberAndInviteService = async (
 
   const invitationLink = `${process.env.FRONTEND_URL}/register?token=${invitationToken}`;
   
+  const emailHtml = `
+    <h2>Welcome to VineChMS!</h2>
+    <p>Hello ${fullName},</p>
+    <p>You have been invited to join VineChMS as a <strong>${role}</strong>.</p>
+    <p>Your invitation token is:</p>
+    <h1 style="color: #1565C0; font-size: 32px; background: #f0f4ff; padding: 15px; border-radius: 8px; text-align: center;">${invitationToken}</h1>
+    <p>Click the button below to complete your registration:</p>
+    <p style="text-align: center; margin-top: 20px;">
+      <a href="${invitationLink}" style="display: inline-block; padding: 12px 24px; background: #1565C0; color: #fff; text-decoration: none; border-radius: 6px;">Complete Registration</a>
+    </p>
+    <p>Or copy and paste this link in your browser:</p>
+    <p style="word-break: break-all; background: #f5f5f5; padding: 10px; border-radius: 4px;">${invitationLink}</p>
+    <p><strong>Your token:</strong> ${invitationToken}</p>
+    <p>This invitation expires in 7 days.</p>
+    <p>VineChMS - Church Management Platform</p>
+  `;
+
+  console.log("=======================================");
+  console.log(`INVITATION TOKEN FOR ${email}: ${invitationToken}`);
+  console.log(`Register Link: ${invitationLink}`);
+  console.log("=======================================");
+
   await sendEmail(
     email,
     "You've Been Invited to VineChMS",
-    `You have been invited to join VineChMS as a ${role}. Click the link to register: ${invitationLink}`,
-    `
-    <h2 style="color: #2E7D32;">Welcome to VineChMS!</h2>
-    <p>You have been invited to join VineChMS as a <strong>${role}</strong>.</p>
-    <p>Click the button below to complete your registration:</p>
-    <a href="${invitationLink}" style="display: inline-block; padding: 12px 24px; background: #1565C0; color: #fff; text-decoration: none; border-radius: 6px;">Complete Registration</a>
-    <p>This invitation expires in 7 days.</p>
-    <p style="color: #FFC107;">VineChMS - Church Management Platform</p>
-    `
+    `You have been invited to join VineChMS as a ${role}. Your invitation token is: ${invitationToken}. Click the link to register: ${invitationLink}`,
+    emailHtml
   );
 };
 
@@ -228,17 +243,19 @@ export const registerService = async (
     .delete(unregisteredUsers)
     .where(eq(unregisteredUsers.unregisteredUserId, unregisteredUser.unregisteredUserId));
 
+  const verificationHtml = `
+    <h2>Welcome to VineChMS!</h2>
+    <p>Your verification code is:</p>
+    <h1 style="color: #1565C0; font-size: 32px; background: #f0f4ff; padding: 15px; border-radius: 8px; text-align: center;">${verificationCode}</h1>
+    <p>Enter this code to verify your account.</p>
+    <p>VineChMS - Church Management Platform</p>
+  `;
+
   await sendEmail(
     email,
     "Verify Your Account - VineChMS",
     `Your verification code is ${verificationCode}`,
-    `
-    <h2 style="color: #2E7D32;">Welcome to VineChMS!</h2>
-    <p>Your verification code is:</p>
-    <h1 style="color: #1565C0; font-size: 32px;">${verificationCode}</h1>
-    <p>Enter this code to verify your account.</p>
-    <p style="color: #FFC107;">VineChMS - Church Management Platform</p>
-    `
+    verificationHtml
   );
 };
 
@@ -354,18 +371,20 @@ export const forgotPasswordService = async (email: string) => {
     })
     .where(eq(users.userId, user.userId));
 
+  const resetHtml = `
+    <h2>Password Reset Request</h2>
+    <p>Your password reset code is:</p>
+    <h1 style="color: #1565C0; font-size: 32px; background: #f0f4ff; padding: 15px; border-radius: 8px; text-align: center;">${resetCode}</h1>
+    <p>Enter this code to reset your password.</p>
+    <p><strong>Note:</strong> This code expires in 1 hour.</p>
+    <p>VineChMS - Church Management Platform</p>
+  `;
+
   await sendEmail(
     email,
     "Password Reset - VineChMS",
     `Your password reset code is ${resetCode}`,
-    `
-    <h2 style="color: #2E7D32;">Password Reset Request</h2>
-    <p>Your password reset code is:</p>
-    <h1 style="color: #1565C0; font-size: 32px;">${resetCode}</h1>
-    <p>Enter this code to reset your password.</p>
-    <p><strong>Note:</strong> This code expires in 1 hour.</p>
-    <p style="color: #FFC107;">VineChMS - Church Management Platform</p>
-    `
+    resetHtml
   );
 };
 
@@ -405,15 +424,17 @@ export const resetPasswordService = async (email: string, newPassword: string) =
     })
     .where(eq(users.userId, user.userId));
 
+  const resetSuccessHtml = `
+    <h2>Password Reset Successful</h2>
+    <p>Your password has been successfully reset.</p>
+    <p>VineChMS - Church Management Platform</p>
+  `;
+
   await sendEmail(
     email,
     "Password Reset Successful - VineChMS",
     `Your password has been successfully reset.`,
-    `
-    <h2 style="color: #2E7D32;">Password Reset Successful</h2>
-    <p>Your password has been successfully reset.</p>
-    <p style="color: #FFC107;">VineChMS - Church Management Platform</p>
-    `
+    resetSuccessHtml
   );
 };
 
@@ -437,16 +458,18 @@ export const resendVerificationService = async (email: string) => {
     .set({ verificationCode })
     .where(eq(users.userId, user.userId));
 
+  const resendHtml = `
+    <h2>Resend Verification Code</h2>
+    <p>Your new verification code is:</p>
+    <h1 style="color: #1565C0; font-size: 32px; background: #f0f4ff; padding: 15px; border-radius: 8px; text-align: center;">${verificationCode}</h1>
+    <p>Enter this code to verify your account.</p>
+    <p>VineChMS - Church Management Platform</p>
+  `;
+
   await sendEmail(
     email,
     "Resend Verification - VineChMS",
     `Your new verification code is ${verificationCode}`,
-    `
-    <h2 style="color: #2E7D32;">Resend Verification Code</h2>
-    <p>Your new verification code is:</p>
-    <h1 style="color: #1565C0; font-size: 32px;">${verificationCode}</h1>
-    <p>Enter this code to verify your account.</p>
-    <p style="color: #FFC107;">VineChMS - Church Management Platform</p>
-    `
+    resendHtml
   );
 };
