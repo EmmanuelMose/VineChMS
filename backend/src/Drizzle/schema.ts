@@ -309,15 +309,19 @@ export const members = pgTable(
   {
     memberId: serial("member_id").primaryKey(),
     userId: integer("user_id")
-      .references(() => users.userId, { onDelete: "cascade" })
-      .notNull()
-      .unique(),
+      .references(() => users.userId, { onDelete: "set null" }),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    fullName: varchar("full_name", { length: 100 }).notNull(),
     churchId: integer("church_id")
-      .references(() => churches.churchId, { onDelete: "cascade" })
-      .notNull(),
-    membershipNumber: varchar("membership_number", { length: 50 }).unique(),
-    membershipDate: timestamp("membership_date").defaultNow(),
-    isActive: boolean("is_active").default(true),
+      .references(() => churches.churchId, { onDelete: "cascade" }),
+    organizationId: integer("organization_id")
+      .references(() => organizations.organizationId, { onDelete: "cascade" }),
+    largeOrganizationId: integer("large_organization_id")
+      .references(() => largeOrganizations.largeOrganizationId, { onDelete: "cascade" }),
+    membershipNumber: varchar("membership_number", { length: 50 }),
+    membershipDate: timestamp("membership_date"),
+    role: userRoleEnum("role").notNull(),
+    isActive: boolean("is_active").default(false),
     isBaptized: boolean("is_baptized").default(false),
     baptismDate: timestamp("baptism_date"),
     isConfirmed: boolean("is_confirmed").default(false),
@@ -329,11 +333,11 @@ export const members = pgTable(
   },
   (table) => ({
     userIdIdx: index("member_user_idx").on(table.userId),
+    emailIdx: index("member_email_idx").on(table.email),
     churchIdIdx: index("member_church_idx").on(table.churchId),
     membershipNumberIdx: index("member_number_idx").on(table.membershipNumber),
   })
 );
-
 export const familyMembers = pgTable(
   "family_members",
   {

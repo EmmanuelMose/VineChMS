@@ -314,11 +314,16 @@ CREATE TABLE "leaders" (
 --> statement-breakpoint
 CREATE TABLE "members" (
 	"member_id" serial PRIMARY KEY NOT NULL,
-	"user_id" integer NOT NULL,
-	"church_id" integer NOT NULL,
+	"user_id" integer,
+	"email" varchar(255) NOT NULL,
+	"full_name" varchar(100) NOT NULL,
+	"church_id" integer,
+	"organization_id" integer,
+	"large_organization_id" integer,
 	"membership_number" varchar(50),
-	"membership_date" timestamp DEFAULT now(),
-	"is_active" boolean DEFAULT true,
+	"membership_date" timestamp,
+	"role" "user_role" NOT NULL,
+	"is_active" boolean DEFAULT false,
 	"is_baptized" boolean DEFAULT false,
 	"baptism_date" timestamp,
 	"is_confirmed" boolean DEFAULT false,
@@ -327,8 +332,7 @@ CREATE TABLE "members" (
 	"notes" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "members_user_id_unique" UNIQUE("user_id"),
-	CONSTRAINT "members_membership_number_unique" UNIQUE("membership_number")
+	CONSTRAINT "members_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
 CREATE TABLE "notifications" (
@@ -550,8 +554,10 @@ ALTER TABLE "large_organizations" ADD CONSTRAINT "large_organizations_created_by
 ALTER TABLE "leaders" ADD CONSTRAINT "leaders_member_id_members_member_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("member_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "leaders" ADD CONSTRAINT "leaders_position_id_positions_position_id_fk" FOREIGN KEY ("position_id") REFERENCES "public"."positions"("position_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "leaders" ADD CONSTRAINT "leaders_approved_by_users_user_id_fk" FOREIGN KEY ("approved_by") REFERENCES "public"."users"("user_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "members" ADD CONSTRAINT "members_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "members" ADD CONSTRAINT "members_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "members" ADD CONSTRAINT "members_church_id_churches_church_id_fk" FOREIGN KEY ("church_id") REFERENCES "public"."churches"("church_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "members" ADD CONSTRAINT "members_organization_id_organizations_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("organization_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "members" ADD CONSTRAINT "members_large_organization_id_large_organizations_large_organization_id_fk" FOREIGN KEY ("large_organization_id") REFERENCES "public"."large_organizations"("large_organization_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "organizations" ADD CONSTRAINT "organizations_large_organization_id_large_organizations_large_organization_id_fk" FOREIGN KEY ("large_organization_id") REFERENCES "public"."large_organizations"("large_organization_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "organizations" ADD CONSTRAINT "organizations_created_by_users_user_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("user_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
@@ -607,6 +613,7 @@ CREATE INDEX "large_org_email_idx" ON "large_organizations" USING btree ("email"
 CREATE INDEX "leader_member_idx" ON "leaders" USING btree ("member_id");--> statement-breakpoint
 CREATE INDEX "leader_position_idx" ON "leaders" USING btree ("position_id");--> statement-breakpoint
 CREATE INDEX "member_user_idx" ON "members" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "member_email_idx" ON "members" USING btree ("email");--> statement-breakpoint
 CREATE INDEX "member_church_idx" ON "members" USING btree ("church_id");--> statement-breakpoint
 CREATE INDEX "member_number_idx" ON "members" USING btree ("membership_number");--> statement-breakpoint
 CREATE INDEX "notification_user_idx" ON "notifications" USING btree ("user_id");--> statement-breakpoint

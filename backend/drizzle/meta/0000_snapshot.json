@@ -1,5 +1,5 @@
 {
-  "id": "c2712d64-7fb7-42c9-bc4d-5a9fcf11632e",
+  "id": "76842cdc-83fc-439f-8448-193aded1c4c0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -2830,13 +2830,37 @@
           "name": "user_id",
           "type": "integer",
           "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
           "notNull": true
         },
         "church_id": {
           "name": "church_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "large_organization_id": {
+          "name": "large_organization_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         },
         "membership_number": {
           "name": "membership_number",
@@ -2848,15 +2872,21 @@
           "name": "membership_date",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "user_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
         },
         "is_active": {
           "name": "is_active",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
-          "default": true
+          "default": false
         },
         "is_baptized": {
           "name": "is_baptized",
@@ -2928,6 +2958,21 @@
           "method": "btree",
           "with": {}
         },
+        "member_email_idx": {
+          "name": "member_email_idx",
+          "columns": [
+            {
+              "expression": "email",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "member_church_idx": {
           "name": "member_church_idx",
           "columns": [
@@ -2970,7 +3015,7 @@
           "columnsTo": [
             "user_id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "set null",
           "onUpdate": "no action"
         },
         "members_church_id_churches_church_id_fk": {
@@ -2985,22 +3030,41 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
+        },
+        "members_organization_id_organizations_organization_id_fk": {
+          "name": "members_organization_id_organizations_organization_id_fk",
+          "tableFrom": "members",
+          "tableTo": "organizations",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "organization_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "members_large_organization_id_large_organizations_large_organization_id_fk": {
+          "name": "members_large_organization_id_large_organizations_large_organization_id_fk",
+          "tableFrom": "members",
+          "tableTo": "large_organizations",
+          "columnsFrom": [
+            "large_organization_id"
+          ],
+          "columnsTo": [
+            "large_organization_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "members_user_id_unique": {
-          "name": "members_user_id_unique",
+        "members_email_unique": {
+          "name": "members_email_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "user_id"
-          ]
-        },
-        "members_membership_number_unique": {
-          "name": "members_membership_number_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "membership_number"
+            "email"
           ]
         }
       },

@@ -1,26 +1,44 @@
 import { Request, Response } from "express";
 import {
-  createMemberService,
   getMembersService,
   getMemberByIdService,
   updateMemberService,
   deleteMemberService,
   getMemberByUserIdService,
+  getMembersByChurchService,
+  getMembersByOrganizationService,
 } from "./members.service";
 import { AuthRequest } from "../middleware/auth.middleware";
 
-export const createMember = async (req: AuthRequest, res: Response) => {
-  try {
-    const result = await createMemberService(req.body);
-    res.status(201).json({ success: true, data: result });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-};
-
 export const getMembers = async (req: AuthRequest, res: Response) => {
   try {
-    const result = await getMembersService();
+    const userRole = req.user!.role;
+    const churchId = req.user!.churchId;
+    const organizationId = req.user!.organizationId;
+
+    let result;
+    if (userRole === "super_admin") {
+      result = await getMembersService();
+    } else if (userRole === "church_admin" || userRole === "pastor" || userRole === "church_member") {
+      if (!churchId) {
+        return res.status(400).json({
+          success: false,
+          message: "User is not associated with a church",
+        });
+      }
+      result = await getMembersByChurchService(churchId);
+    } else if (userRole === "small_org_admin" || userRole === "small_org_member") {
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: "User is not associated with an organization",
+        });
+      }
+      result = await getMembersByOrganizationService(organizationId);
+    } else {
+      result = await getMembersByChurchService(churchId!);
+    }
+
     res.json({ success: true, data: result });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });

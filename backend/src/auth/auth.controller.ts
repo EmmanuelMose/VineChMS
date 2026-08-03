@@ -7,12 +7,45 @@ import {
   verifyResetCodeService,
   resetPasswordService,
   resendVerificationService,
+  createMemberAndInviteService,
 } from "./auth.service";
+import { AuthRequest } from "../middleware/auth.middleware";
+
+export const createMemberAndInviteController = async (req: AuthRequest, res: Response) => {
+  try {
+    const { fullName, email, role, organizationId, churchId, largeOrganizationId } = req.body;
+    const invitedById = req.user!.userId;
+
+    if (!fullName || !email || !role) {
+      return res.status(400).json({
+        success: false,
+        message: "fullName, email, and role are required",
+      });
+    }
+
+    await createMemberAndInviteService(
+      fullName,
+      email,
+      role,
+      invitedById,
+      organizationId,
+      churchId,
+      largeOrganizationId
+    );
+
+    res.json({
+      success: true,
+      message: `Member created and invitation sent to ${email} for role: ${role}`,
+    });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
 
 export const registerController = async (req: Request, res: Response) => {
   try {
-    const { fullName, email, password } = req.body;
-    await registerService(fullName, email, password);
+    const { fullName, email, password, invitationToken } = req.body;
+    await registerService(fullName, email, password, invitationToken);
     res.json({ success: true, message: "Verification code sent to your email" });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
@@ -41,9 +74,8 @@ export const loginController = async (req: Request, res: Response) => {
 
 export const forgotPasswordController = async (req: Request, res: Response) => {
   try {
-    const { email } = req.body;
-    await forgotPasswordService(email);
-    res.json({ success: true, message: "Password reset code sent to your email" });
+    await forgotPasswordService(req.body.email);
+    res.json({ success: true, message: "Reset code sent to your email" });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -79,19 +111,19 @@ export const resendVerificationController = async (req: Request, res: Response) 
   }
 };
 
-export const getCurrentUserController = async (req: Request, res: Response) => {
+export const getCurrentUserController = async (req: AuthRequest, res: Response) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
     res.json({
       success: true,
       data: {
-        userId: user.userId,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role,
-        churchId: user.churchId,
-        organizationId: user.organizationId,
-        largeOrganizationId: user.largeOrganizationId,
+        userId: user!.userId,
+        email: user!.email,
+        fullName: user!.fullName,
+        role: user!.role,
+        churchId: user!.churchId,
+        organizationId: user!.organizationId,
+        largeOrganizationId: user!.largeOrganizationId,
       },
     });
   } catch (error: any) {

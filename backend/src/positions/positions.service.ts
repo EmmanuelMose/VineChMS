@@ -2,10 +2,20 @@ import db from "../Drizzle/db";
 import { positions } from "../Drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 
-export const createPositionService = async (data: any) => {
+export const createPositionService = async (data: {
+  name: string;
+  description?: string | null;
+  churchId: number;
+  isActive?: boolean;
+}) => {
   const [result] = await db
     .insert(positions)
-    .values(data)
+    .values({
+      name: data.name,
+      description: data.description || null,
+      churchId: data.churchId,
+      isActive: data.isActive !== undefined ? data.isActive : true,
+    })
     .returning();
   return result;
 };

@@ -10,7 +10,22 @@ import { AuthRequest } from "../middleware/auth.middleware";
 
 export const createPosition = async (req: AuthRequest, res: Response) => {
   try {
-    const result = await createPositionService(req.body);
+    const { name, description, churchId, isActive } = req.body;
+    
+    if (!name || !churchId) {
+      return res.status(400).json({
+        success: false,
+        message: "name and churchId are required",
+      });
+    }
+
+    const result = await createPositionService({
+      name,
+      description: description || null,
+      churchId,
+      isActive: isActive !== undefined ? isActive : true,
+    });
+    
     res.status(201).json({ success: true, data: result });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });

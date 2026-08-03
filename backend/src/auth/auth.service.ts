@@ -1,5 +1,5 @@
 import db from "../Drizzle/db";
-import { users, unregisteredUsers } from "../Drizzle/schema";
+import { users, unregisteredUsers, members } from "../Drizzle/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -23,17 +23,120 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 const generateCode = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
-export const registerService = async (
+const generateMembershipNumber = (churchId: number): string => {
+  const year = new Date().getFullYear();
+  const random = Math.floor(1000 + Math.random() * 9000);
+  return `CH${churchId}-${year}-${random}`;
+};
+
+const adminRoles = ["super_admin", "large_org_admin", "small_org_admin", "church_admin"];
+const memberRoles = ["church_member", "pastor", "treasurer", "secretary", "elder"];
+
+export const createMemberAndInviteService = async (
   fullName: string,
   email: string,
-  password: string
+  role: UserRole,
+  invitedById: number,
+  organizationId?: number,
+  churchId?: number,
+  largeOrganizationId?: number
 ) => {
-  const unregisteredUser = await db.query.unregisteredUsers.findFirst({
+  const existingInvite = await db.query.unregisteredUsers.findFirst({
     where: eq(unregisteredUsers.email, email),
   });
 
+  if (existingInvite) {
+    throw new Error("User already invited");
+  }
+
+  const existingUser = await db.query.users.findFirst({
+    where: eq(users.email, email),
+  });
+
+  if (existingUser) {
+    throw new Error("User already registered");
+  }
+
+  const existingMember = await db.query.members.findFirst({
+    where: eq(members.email, email),
+  });
+
+  if (existingMember) {
+    throw new Error("Member already exists");
+  }
+
+  const invitationToken = generateCode() + generateCode() + generateCode();
+  const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+  if (memberRoles.includes(role) && churchId) {
+    const membershipNumber = generateMembershipNumber(churchId);
+    
+    const memberData = {
+      email: email,
+      fullName: fullName,
+      churchId: churchId,
+      organizationId: organizationId || null,
+      largeOrganizationId: largeOrganizationId || null,
+      membershipNumber: membershipNumber,
+      isActive: false,
+      isBaptized: false,
+      isConfirmed: false,
+      isLeader: false,
+      role: role,
+    };
+
+    await db.insert(members).values(memberData);
+  }
+
+  await db.insert(unregisteredUsers).values({
+    email,
+    fullName,
+    role,
+    invitationToken,
+    tokenExpiresAt,
+    invitedById,
+    organizationId: organizationId || null,
+    churchId: churchId || null,
+    largeOrganizationId: largeOrganizationId || null,
+  });
+
+  const invitationLink = `${process.env.FRONTEND_URL}/register?token=${invitationToken}`;
+  
+  await sendEmail(
+    email,
+    "You've Been Invited to VineChMS",
+    `You have been invited to join VineChMS as a ${role}. Click the link to register: ${invitationLink}`,
+    `
+    <h2 style="color: #2E7D32;">Welcome to VineChMS!</h2>
+    <p>You have been invited to join VineChMS as a <strong>${role}</strong>.</p>
+    <p>Click the button below to complete your registration:</p>
+    <a href="${invitationLink}" style="display: inline-block; padding: 12px 24px; background: #1565C0; color: #fff; text-decoration: none; border-radius: 6px;">Complete Registration</a>
+    <p>This invitation expires in 7 days.</p>
+    <p style="color: #FFC107;">VineChMS - Church Management Platform</p>
+    `
+  );
+};
+
+export const registerService = async (
+  fullName: string,
+  email: string,
+  password: string,
+  invitationToken: string
+) => {
+  const unregisteredUser = await db.query.unregisteredUsers.findFirst({
+    where: eq(unregisteredUsers.invitationToken, invitationToken),
+  });
+
   if (!unregisteredUser) {
-    throw new Error("You are not authorized to register. Please contact your administrator.");
+    throw new Error("Invalid invitation token");
+  }
+
+  if (new Date() > new Date(unregisteredUser.tokenExpiresAt)) {
+    throw new Error("Invitation token has expired");
+  }
+
+  if (unregisteredUser.email !== email) {
+    throw new Error("Email does not match invitation");
   }
 
   const existingUser = await db.query.users.findFirst({
@@ -47,7 +150,7 @@ export const registerService = async (
   const verificationCode = generateCode();
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const userData: any = {
+  const userData = {
     email,
     fullName,
     passwordHash,
@@ -61,6 +164,8 @@ export const registerService = async (
     churchId: unregisteredUser.churchId || null,
     largeOrganizationId: unregisteredUser.largeOrganizationId || null,
   };
+
+  let userId: number;
 
   if (existingUser && !existingUser.isVerified) {
     await db
@@ -76,9 +181,52 @@ export const registerService = async (
         largeOrganizationId: userData.largeOrganizationId || null,
       })
       .where(eq(users.userId, existingUser.userId));
+    userId = existingUser.userId;
   } else {
-    await db.insert(users).values(userData);
+    const [newUser] = await db.insert(users).values(userData).returning();
+    userId = newUser.userId;
   }
+
+  if (memberRoles.includes(unregisteredUser.role) && unregisteredUser.churchId) {
+    const membershipNumber = generateMembershipNumber(unregisteredUser.churchId);
+    
+    const existingMember = await db.query.members.findFirst({
+      where: eq(members.email, email),
+    });
+
+    if (existingMember) {
+      await db
+        .update(members)
+        .set({
+          userId: userId,
+          isActive: true,
+          fullName: fullName,
+          membershipNumber: membershipNumber,
+          membershipDate: new Date(),
+        })
+        .where(eq(members.email, email));
+    } else {
+      await db.insert(members).values({
+        userId: userId,
+        email: email,
+        fullName: fullName,
+        churchId: unregisteredUser.churchId,
+        organizationId: unregisteredUser.organizationId || null,
+        largeOrganizationId: unregisteredUser.largeOrganizationId || null,
+        membershipNumber: membershipNumber,
+        isActive: true,
+        isBaptized: false,
+        isConfirmed: false,
+        isLeader: false,
+        role: unregisteredUser.role,
+        membershipDate: new Date(),
+      });
+    }
+  }
+
+  await db
+    .delete(unregisteredUsers)
+    .where(eq(unregisteredUsers.unregisteredUserId, unregisteredUser.unregisteredUserId));
 
   await sendEmail(
     email,
@@ -115,6 +263,13 @@ export const verifyService = async (email: string, code: string) => {
     .update(users)
     .set({ isVerified: true, verificationCode: null })
     .where(eq(users.userId, user.userId));
+
+  if (memberRoles.includes(user.role)) {
+    await db
+      .update(members)
+      .set({ isActive: true })
+      .where(eq(members.userId, user.userId));
+  }
 };
 
 export const loginService = async (email: string, password: string) => {
@@ -137,6 +292,16 @@ export const loginService = async (email: string, password: string) => {
   const match = await bcrypt.compare(password, user.passwordHash);
   if (!match) {
     throw new Error("Invalid credentials");
+  }
+
+  if (!adminRoles.includes(user.role)) {
+    const member = await db.query.members.findFirst({
+      where: eq(members.userId, user.userId),
+    });
+
+    if (!member || !member.isActive) {
+      throw new Error("Member account is not active");
+    }
   }
 
   const token = jwt.sign(
@@ -176,12 +341,8 @@ export const forgotPasswordService = async (email: string) => {
     where: eq(users.email, email),
   });
 
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  if (!user.isVerified) {
-    throw new Error("Account not verified");
+  if (!user || !user.isVerified) {
+    throw new Error("User not found or not verified");
   }
 
   const resetCode = generateCode();
@@ -199,12 +360,10 @@ export const forgotPasswordService = async (email: string) => {
     `Your password reset code is ${resetCode}`,
     `
     <h2 style="color: #2E7D32;">Password Reset Request</h2>
-    <p>We received a request to reset your password.</p>
     <p>Your password reset code is:</p>
     <h1 style="color: #1565C0; font-size: 32px;">${resetCode}</h1>
     <p>Enter this code to reset your password.</p>
     <p><strong>Note:</strong> This code expires in 1 hour.</p>
-    <p>If you didn't request this, please ignore this email.</p>
     <p style="color: #FFC107;">VineChMS - Church Management Platform</p>
     `
   );
@@ -215,15 +374,7 @@ export const verifyResetCodeService = async (email: string, code: string) => {
     where: eq(users.email, email),
   });
 
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  if (!user.isVerified) {
-    throw new Error("Account not verified");
-  }
-
-  if (user.verificationCode !== code) {
+  if (!user || user.verificationCode !== code) {
     throw new Error("Invalid reset code");
   }
 };
@@ -261,7 +412,6 @@ export const resetPasswordService = async (email: string, newPassword: string) =
     `
     <h2 style="color: #2E7D32;">Password Reset Successful</h2>
     <p>Your password has been successfully reset.</p>
-    <p>If you didn't perform this action, please contact support immediately.</p>
     <p style="color: #FFC107;">VineChMS - Church Management Platform</p>
     `
   );
