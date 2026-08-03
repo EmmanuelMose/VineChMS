@@ -30,10 +30,9 @@ const initializeApp = () => {
   );
 
   app.get("/", (_req, res) => {
-    res.send("VineChMS Backend server running successfully!");
+    res.send("🌿 VineChMS Backend server running successfully!");
   });
 
-  // Auth Routes
   app.use("/api/auth", authRouter);
 
   return app;

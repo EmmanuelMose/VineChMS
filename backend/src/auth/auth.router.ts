@@ -7,6 +7,7 @@ import {
   verifyResetCodeController,
   resetPasswordController,
   getCurrentUserController,
+  createUnregisteredUserController,
 } from "./auth.controller";
 import { authenticate } from "../middleware/auth.middleware";
 
@@ -19,5 +20,6 @@ authRouter.post("/forgot-password", forgotPasswordController);
 authRouter.post("/verify-reset-code", verifyResetCodeController);
 authRouter.post("/reset-password", resetPasswordController);
 authRouter.get("/me", authenticate, getCurrentUserController);
+authRouter.post("/invite", authenticate, createUnregisteredUserController);
 
 export default authRouter;

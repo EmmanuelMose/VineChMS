@@ -3,8 +3,20 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
+export interface AuthRequest extends Request {
+  user?: {
+    userId: number;
+    email: string;
+    fullName: string;
+    role: string;
+    churchId?: number;
+    organizationId?: number;
+    largeOrganizationId?: number;
+  };
+}
+
 export const authenticate = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
@@ -24,9 +36,12 @@ export const authenticate = async (
       email: string;
       fullName: string;
       role: string;
+      churchId?: number;
+      organizationId?: number;
+      largeOrganizationId?: number;
     };
 
-    (req as any).user = decoded;
+    req.user = decoded;
     next();
   } catch (error) {
     return res.status(401).json({
@@ -34,4 +49,24 @@ export const authenticate = async (
       message: "Invalid or expired token",
     });
   }
+};
+
+export const authorize = (...allowedRoles: string[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: Insufficient permissions",
+      });
+    }
+
+    next();
+  };
 };

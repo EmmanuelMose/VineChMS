@@ -16,6 +16,7 @@ import {
   groups,
   sermons,
   giving,
+  unregisteredUsers,
 } from "./schema";
 import bcrypt from "bcryptjs";
 
@@ -29,6 +30,7 @@ async function seed() {
     await db.delete(organizations);
     await db.delete(largeOrganizations);
     await db.delete(users);
+    await db.delete(unregisteredUsers);
 
     console.log("Creating users...");
     const passwordHash = await bcrypt.hash("password123", 10);
@@ -36,9 +38,9 @@ async function seed() {
     const adminUser = await db
       .insert(users)
       .values({
-        email: "admin@vinechms.com",
+        email: "emmanuelmose806@gmail.com",
         passwordHash,
-        fullName: "System Administrator",
+        fullName: "Emmanuel Mose",
         role: "super_admin",
         isActive: true,
         isVerified: true,
@@ -124,6 +126,44 @@ async function seed() {
       })
       .returning();
 
+    const secretary = await db
+      .insert(users)
+      .values({
+        email: "secretary@example.com",
+        passwordHash,
+        fullName: "Secretary Jane",
+        role: "secretary",
+        isActive: true,
+        isVerified: true,
+        verificationCode: "SECRET123",
+      })
+      .returning();
+
+    const elder = await db
+      .insert(users)
+      .values({
+        email: "elder@example.com",
+        passwordHash,
+        fullName: "Elder James",
+        role: "elder",
+        isActive: true,
+        isVerified: true,
+        verificationCode: "ELDER123",
+      })
+      .returning();
+
+    const secondEmail = await db
+      .insert(users)
+      .values({
+        email: "emmanuelmose64@yahoo.com",
+        passwordHash,
+        fullName: "Emmanuel Mose",
+        role: "church_admin",
+        isActive: true,
+        isVerified: true,
+        verificationCode: "ADMIN456",
+      })
+      .returning();
 
     console.log("Creating large organizations...");
     const largeOrg = await db
@@ -255,6 +295,44 @@ async function seed() {
       })
       .returning();
 
+    const member5 = await db
+      .insert(members)
+      .values({
+        userId: secretary[0].userId,
+        churchId: church1[0].churchId,
+        membershipNumber: "MEM005",
+        isActive: true,
+        isBaptized: true,
+        isConfirmed: true,
+        isLeader: true,
+      })
+      .returning();
+
+    const member6 = await db
+      .insert(members)
+      .values({
+        userId: elder[0].userId,
+        churchId: church1[0].churchId,
+        membershipNumber: "MEM006",
+        isActive: true,
+        isBaptized: true,
+        isConfirmed: true,
+        isLeader: true,
+      })
+      .returning();
+
+    const member7 = await db
+      .insert(members)
+      .values({
+        userId: secondEmail[0].userId,
+        churchId: church1[0].churchId,
+        membershipNumber: "MEM007",
+        isActive: true,
+        isBaptized: true,
+        isConfirmed: true,
+        isLeader: true,
+      })
+      .returning();
 
     console.log("Creating positions...");
     const positionsList = await db
@@ -300,6 +378,16 @@ async function seed() {
         profilePicture: "https://res.cloudinary.com/demo/image/upload/v1/pastor-peter.jpg",
       },
       {
+        memberId: member6[0].memberId,
+        positionId: positionsList[1].positionId,
+        startDate: new Date(),
+        isActive: true,
+        isApproved: true,
+        approvedBy: churchAdmin[0].userId,
+        approvedAt: new Date(),
+        profilePicture: "https://res.cloudinary.com/demo/image/upload/v1/elder-james.jpg",
+      },
+      {
         memberId: member3[0].memberId,
         positionId: positionsList[2].positionId,
         startDate: new Date(),
@@ -310,7 +398,7 @@ async function seed() {
         profilePicture: "https://res.cloudinary.com/demo/image/upload/v1/treasurer-paul.jpg",
       },
       {
-        memberId: member4[0].memberId,
+        memberId: member5[0].memberId,
         positionId: positionsList[3].positionId,
         startDate: new Date(),
         isActive: true,
@@ -581,7 +669,24 @@ async function seed() {
     ]);
 
     console.log("Database seeding completed successfully.");
-    console.log("Unverified user created with email: unverified@example.com");
+    console.log("Users created:");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("Email                         | Role                 | Password");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("emmanuelmose806@gmail.com      | super_admin          | password123");
+    console.log("emmanuelmose64@yahoo.com       | church_admin         | password123");
+    console.log("largeorg@example.com           | large_org_admin      | password123");
+    console.log("smallorg@example.com           | small_org_admin      | password123");
+    console.log("churchadmin@example.com        | church_admin         | password123");
+    console.log("member@example.com             | church_member        | password123");
+    console.log("pastor@example.com             | pastor               | password123");
+    console.log("treasurer@example.com          | treasurer            | password123");
+    console.log("secretary@example.com          | secretary            | password123");
+    console.log("elder@example.com              | elder                | password123");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("All users password: password123");
+    console.log("🎉 Seed completed!");
+
     process.exit(0);
   } catch (error) {
     console.error("Database seeding failed.");

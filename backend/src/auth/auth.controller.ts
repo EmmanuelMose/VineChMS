@@ -6,20 +6,50 @@ import {
   forgotPasswordService,
   verifyResetCodeService,
   resetPasswordService,
+  createUnregisteredUserService,
 } from "./auth.service";
 
-// Register
+export const createUnregisteredUserController = async (req: Request, res: Response) => {
+  try {
+    const { email, fullName, role, organizationId, churchId, largeOrganizationId } = req.body;
+    const invitedById = (req as any).user?.userId;
+
+    if (!invitedById) {
+      return res.status(401).json({
+        success: false,
+        message: "You must be logged in to invite users",
+      });
+    }
+
+    await createUnregisteredUserService(
+      email,
+      fullName,
+      role,
+      invitedById,
+      organizationId,
+      churchId,
+      largeOrganizationId
+    );
+
+    res.json({
+      success: true,
+      message: `Invitation sent to ${email} for role: ${role}`,
+    });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 export const registerController = async (req: Request, res: Response) => {
   try {
-    const { fullName, email, password, role } = req.body;
-    await registerService(fullName, email, password, role);
+    const { fullName, email, password, role, invitationToken } = req.body;
+    await registerService(fullName, email, password, role, invitationToken);
     res.json({ success: true, message: "Verification code sent to your email" });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
 };
 
-// Verify Email
 export const verifyController = async (req: Request, res: Response) => {
   try {
     const { email, code } = req.body;
@@ -30,7 +60,6 @@ export const verifyController = async (req: Request, res: Response) => {
   }
 };
 
-// Login
 export const loginController = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -41,7 +70,6 @@ export const loginController = async (req: Request, res: Response) => {
   }
 };
 
-// Forgot Password
 export const forgotPasswordController = async (req: Request, res: Response) => {
   try {
     await forgotPasswordService(req.body.email);
@@ -51,7 +79,6 @@ export const forgotPasswordController = async (req: Request, res: Response) => {
   }
 };
 
-// Verify Reset Code
 export const verifyResetCodeController = async (req: Request, res: Response) => {
   try {
     const { email, code } = req.body;
@@ -62,7 +89,6 @@ export const verifyResetCodeController = async (req: Request, res: Response) => 
   }
 };
 
-// Reset Password
 export const resetPasswordController = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -73,7 +99,6 @@ export const resetPasswordController = async (req: Request, res: Response) => {
   }
 };
 
-// Get Current User
 export const getCurrentUserController = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
@@ -84,6 +109,9 @@ export const getCurrentUserController = async (req: Request, res: Response) => {
         email: user.email,
         fullName: user.fullName,
         role: user.role,
+        churchId: user.churchId,
+        organizationId: user.organizationId,
+        largeOrganizationId: user.largeOrganizationId,
       },
     });
   } catch (error: any) {
