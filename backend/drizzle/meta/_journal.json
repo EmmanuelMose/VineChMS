@@ -8,6 +8,13 @@
       "when": 1785757977836,
       "tag": "0000_rainy_tyger_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785762035845,
+      "tag": "0001_typical_weapon_omega",
+      "breakpoints": true
     }
   ]
 }
