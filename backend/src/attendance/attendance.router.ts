@@ -7,6 +7,9 @@ import {
   deleteAttendance,
   getAttendanceByMember,
   getAttendanceByService,
+  getAttendanceByDate,
+  getAttendanceSummary,
+  getAttendanceByMemberAndService,
 } from "./attendance.controller";
 import { authenticate } from "../middleware/auth.middleware";
 
@@ -19,5 +22,8 @@ attendanceRouter.put("/:id", authenticate, updateAttendance);
 attendanceRouter.delete("/:id", authenticate, deleteAttendance);
 attendanceRouter.get("/member/:memberId", authenticate, getAttendanceByMember);
 attendanceRouter.get("/service/:serviceId", authenticate, getAttendanceByService);
+attendanceRouter.get("/date/:date", authenticate, getAttendanceByDate);
+attendanceRouter.get("/summary/:serviceId", authenticate, getAttendanceSummary);
+attendanceRouter.get("/member/:memberId/service/:serviceId", authenticate, getAttendanceByMemberAndService);
 
 export default attendanceRouter;
