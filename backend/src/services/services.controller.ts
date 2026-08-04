@@ -5,6 +5,9 @@ import {
   getServiceByIdService,
   updateServiceService,
   deleteServiceService,
+  getServicesByChurchService,
+  getActiveServicesService,
+  getServicesByDayService,
 } from "./services.service";
 import { AuthRequest } from "../middleware/auth.middleware";
 
@@ -51,6 +54,35 @@ export const deleteService = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     await deleteServiceService(id);
     res.json({ success: true, message: "Service deleted" });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getServicesByChurch = async (req: Request, res: Response) => {
+  try {
+    const churchId = parseInt(req.params.churchId);
+    const result = await getServicesByChurchService(churchId);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getActiveServices = async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await getActiveServicesService();
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getServicesByDay = async (req: Request, res: Response) => {
+  try {
+    const dayOfWeek = parseInt(req.params.dayOfWeek);
+    const result = await getServicesByDayService(dayOfWeek);
+    res.json({ success: true, data: result });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
