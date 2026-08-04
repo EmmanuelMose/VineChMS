@@ -6,8 +6,11 @@ import {
   updateGroupService,
   deleteGroupService,
   getGroupsByChurchService,
+  getActiveGroupsService,
   addMemberToGroupService,
   getGroupMembersService,
+  getMemberGroupsService,
+  updateGroupMemberService,
   removeMemberFromGroupService,
 } from "./groups.service";
 import { AuthRequest } from "../middleware/auth.middleware";
@@ -70,11 +73,22 @@ export const getGroupsByChurch = async (req: Request, res: Response) => {
   }
 };
 
+export const getActiveGroups = async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await getActiveGroupsService();
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 export const addMemberToGroup = async (req: AuthRequest, res: Response) => {
   try {
+    console.log('📥 addMemberToGroup - Request body:', req.body);
     const result = await addMemberToGroupService(req.body);
     res.status(201).json({ success: true, data: result });
   } catch (error: any) {
+    console.error('❌ addMemberToGroup error:', error.message);
     res.status(400).json({ success: false, message: error.message });
   }
 };
@@ -83,6 +97,26 @@ export const getGroupMembers = async (req: Request, res: Response) => {
   try {
     const groupId = parseInt(req.params.groupId);
     const result = await getGroupMembersService(groupId);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getMemberGroups = async (req: Request, res: Response) => {
+  try {
+    const memberId = parseInt(req.params.memberId);
+    const result = await getMemberGroupsService(memberId);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const updateGroupMember = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const result = await updateGroupMemberService(id, req.body);
     res.json({ success: true, data: result });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
