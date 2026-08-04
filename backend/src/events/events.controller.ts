@@ -6,10 +6,12 @@ import {
   updateEventService,
   deleteEventService,
   getEventsByChurchService,
+  getPublishedEventsService,
   registerForEventService,
   getEventRegistrationsService,
   updateEventRegistrationService,
   deleteEventRegistrationService,
+  getMemberEventRegistrationsService,
 } from "./events.service";
 import { AuthRequest } from "../middleware/auth.middleware";
 
@@ -71,6 +73,15 @@ export const getEventsByChurch = async (req: Request, res: Response) => {
   }
 };
 
+export const getPublishedEvents = async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await getPublishedEventsService();
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 export const registerForEvent = async (req: AuthRequest, res: Response) => {
   try {
     const result = await registerForEventService(req.body);
@@ -105,6 +116,16 @@ export const deleteEventRegistration = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     await deleteEventRegistrationService(id);
     res.json({ success: true, message: "Registration deleted" });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getMemberEventRegistrations = async (req: Request, res: Response) => {
+  try {
+    const memberId = parseInt(req.params.memberId);
+    const result = await getMemberEventRegistrationsService(memberId);
+    res.json({ success: true, data: result });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
