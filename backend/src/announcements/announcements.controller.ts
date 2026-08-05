@@ -4,16 +4,20 @@ import {
   getAnnouncementsService,
   getAllAnnouncementsService,
   getAnnouncementByIdService,
+  getAnnouncementsByChurchService,
+  getPublishedAnnouncementsByChurchService,
+  getActiveAnnouncementsService,
   updateAnnouncementService,
   deleteAnnouncementService,
-  getAnnouncementsByChurchService,
   publishAnnouncementService,
+  unpublishAnnouncementService,
 } from "./announcements.service";
 import { AuthRequest } from "../middleware/auth.middleware";
 
 export const createAnnouncement = async (req: AuthRequest, res: Response) => {
   try {
-    const result = await createAnnouncementService(req.body);
+    const userId = req.user?.userId;
+    const result = await createAnnouncementService({ ...req.body, createdBy: userId });
     res.status(201).json({ success: true, data: result });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
@@ -48,6 +52,35 @@ export const getAnnouncementById = async (req: Request, res: Response) => {
   }
 };
 
+export const getAnnouncementsByChurch = async (req: Request, res: Response) => {
+  try {
+    const churchId = parseInt(req.params.churchId);
+    const result = await getAnnouncementsByChurchService(churchId);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getPublishedAnnouncementsByChurch = async (req: Request, res: Response) => {
+  try {
+    const churchId = parseInt(req.params.churchId);
+    const result = await getPublishedAnnouncementsByChurchService(churchId);
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getActiveAnnouncements = async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await getActiveAnnouncementsService();
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 export const updateAnnouncement = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
@@ -68,20 +101,20 @@ export const deleteAnnouncement = async (req: Request, res: Response) => {
   }
 };
 
-export const getAnnouncementsByChurch = async (req: Request, res: Response) => {
+export const publishAnnouncement = async (req: Request, res: Response) => {
   try {
-    const churchId = parseInt(req.params.churchId);
-    const result = await getAnnouncementsByChurchService(churchId);
+    const id = parseInt(req.params.id);
+    const result = await publishAnnouncementService(id);
     res.json({ success: true, data: result });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
 };
 
-export const publishAnnouncement = async (req: Request, res: Response) => {
+export const unpublishAnnouncement = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
-    const result = await publishAnnouncementService(id);
+    const result = await unpublishAnnouncementService(id);
     res.json({ success: true, data: result });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
