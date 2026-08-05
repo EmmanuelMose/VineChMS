@@ -8,21 +8,26 @@ const Navbar = () => {
     setIsOpen(!isOpen);
   };
 
+  const closeMenu = () => {
+    setIsOpen(false);
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
         <div className="navbar-logo">
+          <span className="logo-icon">🌿</span>
           <span className="logo-text">Vine<span className="logo-highlight">ChMS</span></span>
         </div>
 
         <div className={`navbar-menu ${isOpen ? 'active' : ''}`}>
           <ul className="navbar-links">
-            <li><a href="#features" className="nav-link">Features</a></li>
-            <li><a href="#hierarchy" className="nav-link">Hierarchy</a></li>
-            <li><a href="#pricing" className="nav-link">Pricing</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
+            <li><a href="#features" className="nav-link" onClick={closeMenu}>Features</a></li>
+            <li><a href="#services" className="nav-link" onClick={closeMenu}>Services</a></li>
+            <li><a href="#hierarchy" className="nav-link" onClick={closeMenu}>Hierarchy</a></li>
+            <li><a href="#contact" className="nav-link" onClick={closeMenu}>Contact</a></li>
           </ul>
-          <button className="btn-get-started">Get Started</button>
+          <button className="btn-get-started" onClick={closeMenu}>Get Started</button>
         </div>
 
         <div className="navbar-toggle" onClick={toggleMenu}>
