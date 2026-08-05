@@ -21,6 +21,7 @@ import announcementsRouter from "./announcements/announcements.router";
 import groupsRouter from "./groups/groups.router";
 import sermonsRouter from "./sermons/sermons.router";
 import visitorsRouter from "./visitors/visitors.router";
+import invitationsRouter from "./invitations/invitations.router";
 
 const initializeApp = () => {
   const app = express();
@@ -67,6 +68,7 @@ const initializeApp = () => {
   app.use("/api/groups", groupsRouter);
   app.use("/api/sermons", sermonsRouter);
   app.use("/api/visitors", visitorsRouter);
+  app.use("/api/invitations", invitationsRouter);
 
   return app;
 };
