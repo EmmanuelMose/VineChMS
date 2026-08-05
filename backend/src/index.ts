@@ -22,6 +22,8 @@ import groupsRouter from "./groups/groups.router";
 import sermonsRouter from "./sermons/sermons.router";
 import visitorsRouter from "./visitors/visitors.router";
 import invitationsRouter from "./invitations/invitations.router";
+import pledgesRouter from "./pledges/pledges.router";
+import budgetsRouter from "./budgets/budgets.router";
 
 const initializeApp = () => {
   const app = express();
@@ -69,6 +71,8 @@ const initializeApp = () => {
   app.use("/api/sermons", sermonsRouter);
   app.use("/api/visitors", visitorsRouter);
   app.use("/api/invitations", invitationsRouter);
+  app.use("/api/pledges", pledgesRouter);
+  app.use("/api/budgets", budgetsRouter);
 
   return app;
 };
