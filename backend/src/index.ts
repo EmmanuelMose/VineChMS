@@ -24,6 +24,7 @@ import visitorsRouter from "./visitors/visitors.router";
 import invitationsRouter from "./invitations/invitations.router";
 import pledgesRouter from "./pledges/pledges.router";
 import budgetsRouter from "./budgets/budgets.router";
+import auditLogsRouter from "./audit-logs/audit-logs.router";
 
 const initializeApp = () => {
   const app = express();
@@ -73,6 +74,7 @@ const initializeApp = () => {
   app.use("/api/invitations", invitationsRouter);
   app.use("/api/pledges", pledgesRouter);
   app.use("/api/budgets", budgetsRouter);
+  app.use("/api/audit-logs", auditLogsRouter);
 
   return app;
 };
