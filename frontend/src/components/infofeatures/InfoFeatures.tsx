@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { Users, Wallet, Calendar, Mic, MessageSquare, type LucideIcon } from "lucide-react";
 import "./InfoFeatures.css";
 
 interface Feature {
   id: string;
-  icon: LucideIcon;
   label: string;
   title: string;
   description: string;
@@ -15,7 +13,6 @@ interface Feature {
 const FEATURES: Feature[] = [
   {
     id: "directory",
-    icon: Users,
     label: "Directory",
     title: "Member Directory & Management",
     description:
@@ -30,7 +27,6 @@ const FEATURES: Feature[] = [
   },
   {
     id: "giving",
-    icon: Wallet,
     label: "Giving",
     title: "Giving & Financial Management",
     description:
@@ -45,7 +41,6 @@ const FEATURES: Feature[] = [
   },
   {
     id: "events",
-    icon: Calendar,
     label: "Events",
     title: "Event & Service Scheduling",
     description:
@@ -60,7 +55,6 @@ const FEATURES: Feature[] = [
   },
   {
     id: "media",
-    icon: Mic,
     label: "Media",
     title: "Sermon & Media Archives",
     description:
@@ -75,7 +69,6 @@ const FEATURES: Feature[] = [
   },
   {
     id: "comms",
-    icon: MessageSquare,
     label: "Comms",
     title: "Communications & SMS Broadcast",
     description:
@@ -112,16 +105,18 @@ export default function InfoFeatures() {
 
         <div className="info-features-tabs">
           {FEATURES.map((feature) => {
-            const Icon = feature.icon;
             const isActive = activeTab === feature.id;
             return (
               <button
                 key={feature.id}
                 onClick={() => setActiveTab(feature.id)}
                 className={`info-tab ${isActive ? "info-tab-active" : ""}`}
-                style={isActive ? { borderColor: feature.color, color: feature.color } : {}}
+                style={{
+                  borderColor: isActive ? feature.color : "#e5e7eb",
+                  color: isActive ? feature.color : "#4b5563",
+                  background: isActive ? "rgba(255,255,255,0.9)" : "#f9fafb",
+                }}
               >
-                <Icon className="info-tab-icon" style={isActive ? { color: feature.color } : {}} />
                 {feature.label}
               </button>
             );
@@ -131,12 +126,7 @@ export default function InfoFeatures() {
         <div className="info-feature-card">
           <div className="info-feature-card-content">
             <div className="info-feature-card-left">
-              <div
-                className="info-feature-card-icon"
-                style={{ background: `linear-gradient(135deg, ${activeFeature.color}, ${activeFeature.color}dd)` }}
-              >
-                <activeFeature.icon className="info-feature-card-icon-svg" />
-              </div>
+              <div className="info-feature-card-dot" style={{ background: activeFeature.color }}></div>
               <h3 className="info-feature-card-title">{activeFeature.title}</h3>
               <p className="info-feature-card-desc">{activeFeature.description}</p>
             </div>
