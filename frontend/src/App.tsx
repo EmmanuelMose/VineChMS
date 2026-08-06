@@ -8,6 +8,7 @@ import ForgotPassword from './pages/auth/ForgotPassword/ForgotPassword';
 import VerifyResetCode from './pages/auth/VerifyResetCode/VerifyResetCode';
 import ResetPassword from './pages/auth/ResetPassword/ResetPassword';
 import ChurchAdminDashboard from './pages/dashboard/churchadmindashboard/ChurchAdminDashboard';
+import ChurchAdminDashboardOverview from './pages/dashboard/churchadmindashboard/dashboard/ChurchAdminDashboardOverview';
 import Members from './pages/dashboard/churchadmindashboard/members/Members';
 import Leaders from './pages/dashboard/churchadmindashboard/leaders/Leaders';
 
@@ -32,7 +33,8 @@ function App() {
           path="/dashboard/church-admin" 
           element={isChurchAdmin ? <ChurchAdminDashboard /> : <Navigate to="/auth/login" />}
         >
-          <Route index element={<Navigate to="members" replace />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<ChurchAdminDashboardOverview />} />
           <Route path="members" element={<Members />} />
           <Route path="leaders" element={<Leaders />} />
         </Route>
