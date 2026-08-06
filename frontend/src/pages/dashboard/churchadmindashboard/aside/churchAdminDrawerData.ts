@@ -13,9 +13,7 @@ import {
   FiBarChart2,
   FiSettings,
   FiFile,
-  FiLogOut,
 } from "react-icons/fi";
-
 import { FaBullhorn } from "react-icons/fa";
 
 export type DrawerData = {
@@ -115,11 +113,5 @@ export const churchAdminDrawerData: DrawerData[] = [
     name: "Settings",
     icon: FiSettings,
     link: "settings",
-  },
-  {
-    id: "logout",
-    name: "Log Out",
-    icon: FiLogOut,
-    link: "logout",
   },
 ];

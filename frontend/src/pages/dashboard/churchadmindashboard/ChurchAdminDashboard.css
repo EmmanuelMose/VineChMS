@@ -1,215 +1,471 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .church-dashboard {
   min-height: 100vh;
-  background: #f1f5f9;
+  background: #f0f2f5;
+  overflow: hidden;
+  position: relative;
 }
 
 .church-dashboard-container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 0.75rem;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .church-dashboard-layout {
   display: flex;
-  gap: 1rem;
-  min-height: calc(100vh - 2rem);
+  height: calc(100vh - 1.5rem);
   background: white;
-  border-radius: 24px;
+  border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+.church-dashboard-drawer-wrapper {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .church-dashboard-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 2rem);
+  min-width: 0;
   overflow: hidden;
+  position: relative;
 }
 
 .church-dashboard-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 2rem;
+  padding: 0.75rem 1.5rem;
   background: white;
   border-bottom: 1px solid #e5e7eb;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 1rem;
+  flex-shrink: 0;
+  min-height: 64px;
 }
 
 .church-dashboard-header-left {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .church-dashboard-menu-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
+  padding: 0.4rem;
   border-radius: 10px;
   background: transparent;
   border: 1px solid #e5e7eb;
   color: #4b5563;
   cursor: pointer;
   transition: all 0.3s ease;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
 }
 
 .church-dashboard-menu-btn:hover {
   background: #f3f4f6;
   border-color: #2E7D32;
   color: #2E7D32;
+  transform: scale(1.05);
 }
 
 .church-dashboard-header-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .church-dashboard-title {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #111827;
   margin: 0;
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .church-dashboard-subtitle {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #6b7280;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .church-dashboard-header-right {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
+  position: relative;
 }
 
 .church-dashboard-profile {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.4rem 1rem 0.4rem 0.4rem;
+  gap: 0.6rem;
+  padding: 0.3rem 0.8rem 0.3rem 0.3rem;
   border-radius: 50px;
   background: #f8faf8;
   border: 1px solid #e5e7eb;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .church-dashboard-profile:hover {
   border-color: #2E7D32;
   box-shadow: 0 2px 12px rgba(46, 125, 50, 0.08);
+  transform: translateY(-1px);
 }
 
 .church-dashboard-profile-avatar {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: linear-gradient(135deg, #2E7D32, #1565C0);
   color: white;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
+  flex-shrink: 0;
+  animation: pulseAvatar 2s ease-in-out infinite;
+}
+
+@keyframes pulseAvatar {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .church-dashboard-profile-info {
   display: flex;
   flex-direction: column;
-  line-height: 1.3;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 .church-dashboard-profile-name {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #111827;
+  white-space: nowrap;
 }
 
 .church-dashboard-profile-role {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: #6b7280;
+  white-space: nowrap;
+}
+
+.church-dashboard-profile-arrow {
+  color: #9ca3af;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.church-dashboard-profile-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+.church-dashboard-profile-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  min-width: 180px;
+  padding: 0.4rem;
+  z-index: 50;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.church-dashboard-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.church-dashboard-dropdown-item:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.church-dashboard-dropdown-item.logout-item {
+  color: #dc2626;
+}
+
+.church-dashboard-dropdown-item.logout-item:hover {
+  background: #fef2f2;
+}
+
+.church-dashboard-dropdown-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0.25rem 0.4rem;
 }
 
 .church-dashboard-content {
   flex: 1;
-  padding: 2rem;
+  padding: 1.25rem;
   background: #f8faf8;
   overflow-y: auto;
-  animation: churchDashboardFadeIn 0.4s ease;
+  min-height: 0;
 }
 
-@keyframes churchDashboardFadeIn {
+.church-dashboard-content-inner {
+  animation: contentFadeIn 0.4s ease;
+}
+
+@keyframes contentFadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
+}
+
+.church-dashboard-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.church-dashboard-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.church-dashboard-content::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.church-dashboard-content::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
 
 .church-dashboard-footer {
-  padding: 1rem 2rem;
+  padding: 0.6rem 1.5rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   color: #9ca3af;
   border-top: 1px solid #e5e7eb;
   background: white;
+  flex-shrink: 0;
 }
 
+/* Mobile Styles */
 @media (max-width: 768px) {
   .church-dashboard-container {
-    padding: 0.5rem;
+    padding: 0.4rem;
+    height: 100vh;
   }
+
   .church-dashboard-layout {
-    border-radius: 16px;
-    min-height: calc(100vh - 1rem);
+    height: calc(100vh - 0.8rem);
+    border-radius: 12px;
   }
+
+  .church-dashboard-drawer-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .church-dashboard-drawer-wrapper.mobile-open {
+    transform: translateX(0);
+  }
+
+  .church-dashboard-drawer-wrapper::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  .church-dashboard-drawer-wrapper.mobile-open::after {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .church-dashboard-header {
-    padding: 1rem;
-    flex-direction: column;
-    align-items: flex-start;
+    padding: 0.5rem 0.75rem;
+    min-height: 56px;
   }
-  .church-dashboard-header-left {
-    width: 100%;
-  }
-  .church-dashboard-header-right {
-    width: 100%;
-    justify-content: flex-start;
-  }
+
   .church-dashboard-title {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
+
+  .church-dashboard-subtitle {
+    font-size: 0.65rem;
+  }
+
   .church-dashboard-content {
-    padding: 1rem;
+    padding: 0.75rem;
   }
-  .church-dashboard-profile {
-    padding: 0.3rem 0.75rem 0.3rem 0.3rem;
-  }
-  .church-dashboard-profile-avatar {
-    width: 30px;
-    height: 30px;
-    font-size: 0.7rem;
-  }
+
   .church-dashboard-profile-info {
     display: none;
+  }
+
+  .church-dashboard-profile {
+    padding: 0.25rem;
+  }
+
+  .church-dashboard-profile-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.65rem;
+  }
+
+  .church-dashboard-profile-arrow {
+    display: none;
+  }
+
+  .church-dashboard-header-right {
+    gap: 0.4rem;
+  }
+
+  .church-dashboard-menu-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0.3rem;
+  }
+
+  .church-dashboard-footer {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.55rem;
+  }
+
+  .church-dashboard-profile-dropdown {
+    right: -0.5rem;
+    min-width: 160px;
   }
 }
 
 @media (max-width: 480px) {
+  .church-dashboard-container {
+    padding: 0.2rem;
+  }
+
+  .church-dashboard-layout {
+    border-radius: 8px;
+    height: calc(100vh - 0.4rem);
+  }
+
   .church-dashboard-header {
-    padding: 0.75rem;
+    padding: 0.4rem 0.5rem;
+    min-height: 48px;
   }
+
+  .church-dashboard-title {
+    font-size: 0.8rem;
+  }
+
   .church-dashboard-content {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
+
+  .church-dashboard-profile-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.55rem;
+  }
+
   .church-dashboard-menu-btn {
-    padding: 0.35rem;
+    width: 30px;
+    height: 30px;
+    padding: 0.25rem;
   }
+
+  .church-dashboard-menu-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Animations for interactive elements */
+.church-dashboard-menu-btn:active {
+  transform: scale(0.92);
+}
+
+.church-dashboard-profile:active {
+  transform: scale(0.97);
+}
+
+/* Smooth scrollbar for main content */
+.church-dashboard-content {
+  scroll-behavior: smooth;
+}
+
+/* Hover animation for quick actions */
+.church-dashboard-dropdown-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.church-dashboard-dropdown-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(46, 125, 50, 0.05);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.church-dashboard-dropdown-item:hover::after {
+  opacity: 1;
 }

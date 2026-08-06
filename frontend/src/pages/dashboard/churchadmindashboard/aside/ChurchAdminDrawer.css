@@ -10,32 +10,69 @@
   position: sticky;
   top: 0;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.church-drawer::-webkit-scrollbar {
+  width: 2px;
+}
+
+.church-drawer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.church-drawer::-webkit-scrollbar-thumb {
+  background: rgba(255, 193, 7, 0.2);
+  border-radius: 4px;
 }
 
 .church-drawer-open {
-  width: 280px;
-  min-width: 280px;
+  width: 260px;
+  min-width: 260px;
 }
 
 .church-drawer-closed {
-  width: 72px;
-  min-width: 72px;
+  width: 68px;
+  min-width: 68px;
 }
 
 .church-drawer-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem 1rem 1rem;
+  padding: 1rem 0.75rem 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.church-drawer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.church-drawer-brand-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  animation: gentlePulse 3s ease-in-out infinite;
+}
+
+@keyframes gentlePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 .church-drawer-title {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #FFC107;
+  color: #ffffff;
   transition: all 0.3s ease;
   white-space: nowrap;
+}
+
+.church-drawer-brand-highlight {
+  color: #FFC107;
 }
 
 .opacity-0 {
@@ -52,89 +89,158 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.4rem;
+  padding: 0.3rem;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   transition: all 0.3s ease;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
 }
 
 .church-drawer-toggle:hover {
   background: rgba(255, 193, 7, 0.15);
   color: #FFC107;
   border-color: rgba(255, 193, 7, 0.3);
+  transform: rotate(180deg);
+}
+
+.church-drawer-user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
+}
+
+.church-drawer-user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFC107, #f9a825);
+  color: #111827;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  animation: avatarGlow 3s ease-in-out infinite;
+}
+
+@keyframes avatarGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.2); }
+  50% { box-shadow: 0 0 20px 4px rgba(255, 193, 7, 0.1); }
+}
+
+.church-drawer-user-info {
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.church-drawer-user-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.church-drawer-user-role {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
 }
 
 .church-drawer-nav {
   flex: 1;
-  padding: 1rem 0.75rem;
+  padding: 0.5rem 0.6rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.1rem;
   overflow-y: auto;
 }
 
 .church-drawer-link {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.7rem 1rem;
-  border-radius: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+  cursor: pointer;
 }
 
 .church-drawer-link:hover {
   background: rgba(255, 193, 7, 0.08);
   color: #FFC107;
-  transform: translateX(4px);
+  transform: translateX(3px);
 }
 
 .church-drawer-link-active {
-  background: rgba(255, 193, 7, 0.12);
+  background: rgba(255, 193, 7, 0.1);
   color: #FFC107;
-  box-shadow: inset 3px 0 0 #FFC107;
 }
 
 .church-drawer-link-active::before {
   content: '';
   position: absolute;
-  left: -0.75rem;
+  left: -0.6rem;
   top: 50%;
   transform: translateY(-50%);
   width: 3px;
-  height: 24px;
+  height: 20px;
   background: #FFC107;
-  border-radius: 0 4px 4px 0;
+  border-radius: 0 3px 3px 0;
 }
 
 .church-drawer-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 24px;
+  min-width: 20px;
   color: inherit;
   transition: color 0.3s ease;
 }
 
 .church-drawer-text {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 500;
   white-space: nowrap;
   transition: all 0.3s ease;
 }
 
+.church-drawer-badge {
+  margin-left: auto;
+  padding: 0.05rem 0.4rem;
+  border-radius: 50px;
+  font-size: 0.5rem;
+  font-weight: 600;
+  background: #FFC107;
+  color: #111827;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
 .church-drawer-logout {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.7rem 1rem;
-  border-radius: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.3);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -145,31 +251,47 @@
 }
 
 .church-drawer-logout:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.12);
   color: #ef4444;
-  transform: translateX(4px);
+  transform: translateX(3px);
 }
 
 .church-drawer-footer {
-  padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
   text-align: center;
+  flex-shrink: 0;
 }
 
 .church-drawer-footer-text {
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.25);
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.15);
   white-space: nowrap;
 }
 
+/* Mobile Styles */
 @media (max-width: 768px) {
   .church-drawer-open {
-    width: 240px;
-    min-width: 240px;
+    width: 280px;
+    min-width: 280px;
+    border-radius: 0 16px 16px 0;
   }
+
   .church-drawer-closed {
     width: 0;
     min-width: 0;
     overflow: hidden;
+  }
+
+  .church-drawer {
+    box-shadow: 8px 0 40px rgba(0, 0, 0, 0.4);
+  }
+}
+
+@media (max-width: 480px) {
+  .church-drawer-open {
+    width: 100%;
+    min-width: 100%;
+    border-radius: 0;
   }
 }
