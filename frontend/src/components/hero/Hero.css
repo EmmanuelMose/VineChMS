@@ -15,7 +15,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: brightness(0.55) saturate(1.2);
+  filter: brightness(0.50) saturate(1.2);
   transform: scale(1.02);
   animation: heroZoom 24s ease-in-out infinite alternate;
 }
@@ -29,9 +29,9 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg,
-      rgba(10, 26, 14, 0.70) 0%,
-      rgba(21, 101, 192, 0.15) 40%,
-      rgba(10, 26, 14, 0.60) 80%);
+      rgba(10, 26, 14, 0.65) 0%,
+      rgba(21, 101, 192, 0.12) 40%,
+      rgba(10, 26, 14, 0.55) 80%);
   z-index: 1;
 }
 
@@ -85,7 +85,7 @@
 
 .hero-badge-wrapper {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   margin-bottom: 1.5rem;
 }
 
@@ -295,4 +295,3 @@
   margin-top: 0.1rem;
   letter-spacing: 0.03em;
 }
-

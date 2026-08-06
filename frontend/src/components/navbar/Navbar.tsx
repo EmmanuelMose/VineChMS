@@ -32,7 +32,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className={`navbar ${scrolled ? "navbar-glass" : ""}`}>
+    <header className={`navbar ${scrolled ? "navbar-glass" : "navbar-transparent"}`}>
       <div className="navbar-container">
         <a href="#" className="navbar-logo">
           <div className="logo-icon-wrapper">
