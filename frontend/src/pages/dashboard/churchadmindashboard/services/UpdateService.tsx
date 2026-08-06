@@ -51,12 +51,25 @@ export default function UpdateService({ isOpen, onClose, onSuccess, service }: U
     setLoading(true);
 
     try {
+      // Create proper date objects for start and end times
+      const today = new Date();
+      const startDate = new Date(today);
+      const [startHours, startMinutes] = formData.startTime.split(":").map(Number);
+      startDate.setHours(startHours, startMinutes, 0, 0);
+
+      let endDate = null;
+      if (formData.endTime) {
+        endDate = new Date(today);
+        const [endHours, endMinutes] = formData.endTime.split(":").map(Number);
+        endDate.setHours(endHours, endMinutes, 0, 0);
+      }
+
       await updateService(service.serviceId, {
         name: formData.name,
         description: formData.description || undefined,
         dayOfWeek: formData.dayOfWeek,
-        startTime: new Date(`1970-01-01T${formData.startTime}`).toISOString(),
-        endTime: formData.endTime ? new Date(`1970-01-01T${formData.endTime}`).toISOString() : undefined,
+        startTime: startDate.toISOString(),
+        endTime: endDate ? endDate.toISOString() : undefined,
         serviceType: formData.serviceType,
         attendanceType: formData.attendanceType,
         isActive: formData.isActive,
@@ -64,6 +77,7 @@ export default function UpdateService({ isOpen, onClose, onSuccess, service }: U
       onSuccess();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to update service");
+      console.error("Update service error:", err.response?.data || err.message);
     } finally {
       setLoading(false);
     }

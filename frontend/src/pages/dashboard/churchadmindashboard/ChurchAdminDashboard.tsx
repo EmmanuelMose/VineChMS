@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import ChurchAdminDrawer from "./aside/ChurchAdminDrawer";
-import { FiMenu, FiX, FiUser, FiChevronDown } from "react-icons/fi";
+import { FiMenu, FiX, FiUser, FiChevronDown, FiLogOut, FiSettings } from "react-icons/fi";
+import { clearUser } from "../../../Features/userSlice";
 import "./ChurchAdminDashboard.css";
 
 export default function ChurchAdminDashboard() {
@@ -10,6 +11,8 @@ export default function ChurchAdminDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const user = useSelector((state: any) => state.user.user);
 
   const toggleDrawer = () => {
@@ -19,6 +22,16 @@ export default function ChurchAdminDashboard() {
     }
   };
 
+  const handleLogout = () => {
+    dispatch(clearUser());
+    navigate("/auth/login");
+  };
+
+  const handleProfileClick = () => {
+    // Navigate to settings or profile page
+    navigate("/dashboard/church-admin/settings");
+    setIsProfileOpen(false);
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -72,9 +85,9 @@ export default function ChurchAdminDashboard() {
           <div className={`church-dashboard-drawer-wrapper ${isMobileMenuOpen ? "mobile-open" : ""}`}>
             <ChurchAdminDrawer
               isSidebarOpen={isDrawerOpen}
-              onToggle={toggleDrawer} onCloseMobile={function (): void {
-                throw new Error("Function not implemented.");
-              } }            />
+              onToggle={toggleDrawer}
+              onCloseMobile={() => setIsMobileMenuOpen(false)}
+            />
           </div>
 
           <div className="church-dashboard-main">
@@ -119,12 +132,20 @@ export default function ChurchAdminDashboard() {
 
                 {isProfileOpen && (
                   <div className="church-dashboard-profile-dropdown">
-                    <div className="church-dashboard-dropdown-item">
+                    <div className="church-dashboard-dropdown-item" onClick={handleProfileClick}>
                       <FiUser size={16} />
                       <span>My Profile</span>
                     </div>
+                    <div className="church-dashboard-dropdown-item" onClick={() => {
+                      navigate("/dashboard/church-admin/settings");
+                      setIsProfileOpen(false);
+                    }}>
+                      <FiSettings size={16} />
+                      <span>Settings</span>
+                    </div>
                     <div className="church-dashboard-dropdown-divider"></div>
-                    <div className="church-dashboard-dropdown-item logout-item">
+                    <div className="church-dashboard-dropdown-item logout-item" onClick={handleLogout}>
+                      <FiLogOut size={16} />
                       <span>Log Out</span>
                     </div>
                   </div>

@@ -13,6 +13,7 @@ interface CreateServiceProps {
 
 export default function CreateService({ isOpen, onClose, onSuccess, churchId }: CreateServiceProps) {
   const token = useSelector((state: any) => state.user.token);
+  const userChurchId = useSelector((state: any) => state.user.user?.churchId);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -33,17 +34,44 @@ export default function CreateService({ isOpen, onClose, onSuccess, churchId }: 
     setLoading(true);
 
     try {
-      await createService({
-        churchId: churchId!,
-        name: formData.name,
-        description: formData.description || undefined,
-        dayOfWeek: formData.dayOfWeek,
-        startTime: new Date(`1970-01-01T${formData.startTime}`).toISOString(),
-        endTime: formData.endTime ? new Date(`1970-01-01T${formData.endTime}`).toISOString() : undefined,
+      const finalChurchId = churchId || userChurchId;
+      
+      if (!finalChurchId) {
+        setError("Church ID is required");
+        setLoading(false);
+        return;
+      }
+
+      // Create date objects
+      const today = new Date();
+      const startDate = new Date(today);
+      const [startHours, startMinutes] = formData.startTime.split(":").map(Number);
+      startDate.setHours(startHours, startMinutes, 0, 0);
+
+      let endDate = null;
+      if (formData.endTime) {
+        endDate = new Date(today);
+        const [endHours, endMinutes] = formData.endTime.split(":").map(Number);
+        endDate.setHours(endHours, endMinutes, 0, 0);
+      }
+
+      // Build payload EXACTLY like Postman
+      const payload = {
+        churchId: Number(finalChurchId),
+        name: formData.name.trim(),
+        description: formData.description.trim() || undefined,
+        dayOfWeek: Number(formData.dayOfWeek),
+        startTime: startDate.toISOString(),
+        endTime: endDate ? endDate.toISOString() : undefined,
         serviceType: formData.serviceType,
         attendanceType: formData.attendanceType,
-        isActive: formData.isActive,
-      }, token);
+        isActive: Boolean(formData.isActive),
+      };
+
+      console.log("Sending payload:", JSON.stringify(payload, null, 2));
+
+      const response = await createService(payload, token);
+      console.log("Service created:", response);
       
       setFormData({
         name: "",
@@ -57,6 +85,7 @@ export default function CreateService({ isOpen, onClose, onSuccess, churchId }: 
       });
       onSuccess();
     } catch (err: any) {
+      console.error("Full error response:", err.response);
       setError(err.response?.data?.message || "Failed to create service");
     } finally {
       setLoading(false);
@@ -120,7 +149,6 @@ export default function CreateService({ isOpen, onClose, onSuccess, churchId }: 
                 <option value="prayer">Prayer</option>
                 <option value="youth">Youth</option>
                 <option value="children">Children</option>
-                <option value="fellowship">Fellowship</option>
               </select>
             </div>
           </div>
