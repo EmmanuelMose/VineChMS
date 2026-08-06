@@ -1,4 +1,17 @@
-import { Church, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
+import {
+  MdChurch,
+  MdEmail,
+  MdPhone,
+  MdLocationPin,
+  MdChevronRight,
+  MdSend,
+} from "react-icons/md";
+import {
+  FaFacebook,
+  FaTwitter,
+  FaInstagram,
+  FaYoutube,
+} from "react-icons/fa";
 import "./Footer.css";
 
 const SOLUTIONS: string[] = [
@@ -25,6 +38,13 @@ const RESOURCES: string[] = [
   "Blog",
 ];
 
+const SOCIAL_LINKS = [
+  { icon: FaFacebook, href: "#" },
+  { icon: FaTwitter, href: "#" },
+  { icon: FaInstagram, href: "#" },
+  { icon: FaYoutube, href: "#" },
+];
+
 export default function Footer() {
   return (
     <footer className="footer">
@@ -33,7 +53,7 @@ export default function Footer() {
           <div className="footer-brand">
             <a href="#" className="footer-logo-link">
               <div className="footer-logo-icon">
-                <Church className="footer-logo-svg" />
+                <MdChurch className="footer-logo-svg" />
               </div>
               <span className="footer-logo-text">
                 Vine<span className="footer-logo-highlight">ChMS</span>
@@ -45,17 +65,31 @@ export default function Footer() {
             </p>
             <div className="footer-contact">
               <a href="mailto:hello@vinechms.com" className="footer-contact-link">
-                <Mail className="footer-contact-icon" />
+                <MdEmail className="footer-contact-icon" />
                 hello@vinechms.com
               </a>
               <a href="tel:+1888555CHMS" className="footer-contact-link">
-                <Phone className="footer-contact-icon" />
+                <MdPhone className="footer-contact-icon" />
                 +1 (888) 555-CHMS
               </a>
               <span className="footer-contact-link">
-                <MapPin className="footer-contact-icon" />
+                <MdLocationPin className="footer-contact-icon" />
                 Atlanta, GA
               </span>
+            </div>
+            <div className="footer-subscribe">
+              <p className="footer-subscribe-text">Subscribe to our newsletter</p>
+              <form className="footer-subscribe-form" onSubmit={(e) => e.preventDefault()}>
+                <input
+                  type="email"
+                  placeholder="Your email"
+                  className="footer-subscribe-input"
+                  required
+                />
+                <button type="submit" className="footer-subscribe-btn">
+                  <MdSend className="footer-subscribe-btn-icon" />
+                </button>
+              </form>
             </div>
           </div>
 
@@ -66,7 +100,7 @@ export default function Footer() {
                 {SOLUTIONS.map((s) => (
                   <li key={s}>
                     <a href="#" className="footer-column-link">
-                      <ChevronRight className="footer-column-link-icon" />
+                      <MdChevronRight className="footer-column-link-icon" />
                       {s}
                     </a>
                   </li>
@@ -80,7 +114,7 @@ export default function Footer() {
                 {HIERARCHIES.map((h) => (
                   <li key={h}>
                     <a href="#hierarchy" className="footer-column-link">
-                      <ChevronRight className="footer-column-link-icon" />
+                      <MdChevronRight className="footer-column-link-icon" />
                       {h}
                     </a>
                   </li>
@@ -94,7 +128,7 @@ export default function Footer() {
                 {RESOURCES.map((r) => (
                   <li key={r}>
                     <a href="#" className="footer-column-link">
-                      <ChevronRight className="footer-column-link-icon" />
+                      <MdChevronRight className="footer-column-link-icon" />
                       {r}
                     </a>
                   </li>
@@ -110,6 +144,16 @@ export default function Footer() {
           <p className="footer-copyright">
             &copy; {new Date().getFullYear()} VineChMS. All rights reserved.
           </p>
+          <div className="footer-social">
+            {SOCIAL_LINKS.map((social, index) => {
+              const Icon = social.icon;
+              return (
+                <a key={index} href={social.href} className="footer-social-link">
+                  <Icon className="footer-social-icon" />
+                </a>
+              );
+            })}
+          </div>
           <div className="footer-legal">
             <a href="#" className="footer-legal-link">Privacy Policy</a>
             <a href="#" className="footer-legal-link">Terms of Service</a>
