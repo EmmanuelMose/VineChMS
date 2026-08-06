@@ -36,11 +36,10 @@ export default function ForgotPassword() {
         <div className="forgot-container">
           <div className="forgot-card">
             <div className="forgot-success">
-              <div className="forgot-success-icon">📧</div>
-              <h2>Reset Code Sent!</h2>
+              <h2 className="forgot-success-title">Reset Code Sent!</h2>
               <p>A password reset code has been sent to your email.</p>
               <p className="forgot-success-sub">Please check your inbox and enter the code.</p>
-              <Link to="/auth/verify-reset-code" className="forgot-success-btn">
+              <Link to="/auth/verify-reset-code" className="btn-primary">
                 Enter Reset Code
               </Link>
             </div>
@@ -56,7 +55,6 @@ export default function ForgotPassword() {
         <div className="forgot-card">
           <div className="forgot-header">
             <div className="forgot-logo">
-              <span className="forgot-logo-icon">⛪</span>
               <span className="forgot-logo-text">
                 Vine<span className="forgot-logo-highlight">ChMS</span>
               </span>
@@ -73,14 +71,14 @@ export default function ForgotPassword() {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@church.com"
+                placeholder="Enter your email address"
                 required
               />
             </div>
 
             {error && <div className="forgot-error">{error}</div>}
 
-            <button type="submit" className="forgot-button" disabled={loading}>
+            <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? "Sending..." : "Send Reset Code"}
             </button>
 

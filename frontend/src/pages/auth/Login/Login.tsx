@@ -35,9 +35,12 @@ export default function Login() {
     <div className="login-page">
       <div className="login-container">
         <div className="login-card">
+          <button onClick={() => navigate("/")} className="back-btn">
+            Back to Home
+          </button>
+
           <div className="login-header">
             <div className="login-logo">
-              <span className="login-logo-icon">⛪</span>
               <span className="login-logo-text">
                 Vine<span className="login-logo-highlight">ChMS</span>
               </span>
@@ -54,7 +57,7 @@ export default function Login() {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@church.com"
+                placeholder="Enter your email address"
                 required
                 className={error ? "login-input-error" : ""}
               />
@@ -85,7 +88,7 @@ export default function Login() {
 
             {error && <div className="login-error">{error}</div>}
 
-            <button type="submit" className="login-button" disabled={loading}>
+            <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
             </button>
 

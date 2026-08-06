@@ -61,8 +61,7 @@ export default function VerifyUser() {
         <div className="verify-container">
           <div className="verify-card">
             <div className="verify-success">
-              <div className="verify-success-icon">✅</div>
-              <h2>Email Verified!</h2>
+              <h2 className="verify-success-title">Email Verified!</h2>
               <p>Your account has been successfully verified.</p>
               <p className="verify-success-sub">Redirecting to login...</p>
             </div>
@@ -78,7 +77,6 @@ export default function VerifyUser() {
         <div className="verify-card">
           <div className="verify-header">
             <div className="verify-logo">
-              <span className="verify-logo-icon">⛪</span>
               <span className="verify-logo-text">
                 Vine<span className="verify-logo-highlight">ChMS</span>
               </span>
@@ -95,7 +93,7 @@ export default function VerifyUser() {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@church.com"
+                placeholder="Enter your email address"
                 required
               />
             </div>
@@ -121,7 +119,7 @@ export default function VerifyUser() {
               </div>
             )}
 
-            <button type="submit" className="verify-button" disabled={loading}>
+            <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? "Verifying..." : "Verify Account"}
             </button>
 

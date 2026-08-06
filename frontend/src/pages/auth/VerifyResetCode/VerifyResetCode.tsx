@@ -37,8 +37,7 @@ export default function VerifyResetCode() {
         <div className="verifyreset-container">
           <div className="verifyreset-card">
             <div className="verifyreset-success">
-              <div className="verifyreset-success-icon">✅</div>
-              <h2>Code Verified!</h2>
+              <h2 className="verifyreset-success-title">Code Verified!</h2>
               <p>Your reset code has been verified.</p>
               <p className="verifyreset-success-sub">Redirecting to reset password...</p>
             </div>
@@ -54,7 +53,6 @@ export default function VerifyResetCode() {
         <div className="verifyreset-card">
           <div className="verifyreset-header">
             <div className="verifyreset-logo">
-              <span className="verifyreset-logo-icon">⛪</span>
               <span className="verifyreset-logo-text">
                 Vine<span className="verifyreset-logo-highlight">ChMS</span>
               </span>
@@ -71,7 +69,7 @@ export default function VerifyResetCode() {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@church.com"
+                placeholder="Enter your email address"
                 required
               />
             </div>
@@ -92,7 +90,7 @@ export default function VerifyResetCode() {
 
             {error && <div className="verifyreset-error">{error}</div>}
 
-            <button type="submit" className="verifyreset-button" disabled={loading}>
+            <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? "Verifying..." : "Verify Code"}
             </button>
 
