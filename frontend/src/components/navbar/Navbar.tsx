@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Menu, X, Church } from "lucide-react";
 import "./Navbar.css";
 
@@ -34,14 +35,14 @@ export default function Navbar() {
   return (
     <header className={`navbar ${scrolled ? "navbar-glass" : "navbar-transparent"}`}>
       <div className="navbar-container">
-        <a href="#" className="navbar-logo">
+        <Link to="/" className="navbar-logo">
           <div className="logo-icon-wrapper">
             <Church className="logo-icon" />
           </div>
           <span className="logo-text">
             Vine<span className="logo-highlight">ChMS</span>
           </span>
-        </a>
+        </Link>
 
         <nav className="navbar-desktop">
           {NAV_LINKS.map((link) => (
@@ -56,13 +57,9 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <a
-          href="#contact"
-          onClick={(e) => handleNav(e, "#contact")}
-          className="btn-get-started"
-        >
+        <Link to="/auth/login" className="btn-get-started">
           Get Started
-        </a>
+        </Link>
 
         <button
           onClick={() => setOpen(!open)}
@@ -85,13 +82,13 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
-          <a
-            href="#contact"
-            onClick={(e) => handleNav(e, "#contact")}
+          <Link
+            to="/auth/login"
+            onClick={() => setOpen(false)}
             className="mobile-btn-get-started"
           >
             Get Started
-          </a>
+          </Link>
         </div>
       </div>
     </header>
