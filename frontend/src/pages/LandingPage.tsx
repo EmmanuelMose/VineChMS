@@ -12,8 +12,8 @@ export default function LandingPage() {
       <Navbar />
       <Hero />
       <About />
-      <Services />
       <InfoFeatures />
+      <Services />
       <CTA />
       <Footer />
     </div>

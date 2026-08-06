@@ -1,4 +1,4 @@
-import { ArrowRight, Shield, Check, Mail, Phone, MapPin, Send } from "lucide-react";
+import { Shield, Check, Mail, Phone, MapPin, Send } from "lucide-react";
 import "./CTA.css";
 
 export default function CTA() {
