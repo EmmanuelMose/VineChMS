@@ -17,7 +17,9 @@ export default function About() {
 
         <div className="about-grid">
           <div className="about-card">
-            <div className="about-card-icon">🏛️</div>
+            <div className="about-card-icon">
+              <span className="about-card-dot"></span>
+            </div>
             <h3>Large Organization</h3>
             <p className="about-card-sub">Diocese / Synod / District</p>
             <ul className="about-card-list">
@@ -29,7 +31,9 @@ export default function About() {
           </div>
 
           <div className="about-card">
-            <div className="about-card-icon">📋</div>
+            <div className="about-card-icon">
+              <span className="about-card-dot"></span>
+            </div>
             <h3>Organization</h3>
             <p className="about-card-sub">Regional Administration</p>
             <ul className="about-card-list">
@@ -41,7 +45,9 @@ export default function About() {
           </div>
 
           <div className="about-card">
-            <div className="about-card-icon">⛪</div>
+            <div className="about-card-icon">
+              <span className="about-card-dot"></span>
+            </div>
             <h3>Church</h3>
             <p className="about-card-sub">Local Congregation</p>
             <ul className="about-card-list">
@@ -53,7 +59,9 @@ export default function About() {
           </div>
 
           <div className="about-card">
-            <div className="about-card-icon">👤</div>
+            <div className="about-card-icon">
+              <span className="about-card-dot"></span>
+            </div>
             <h3>Members</h3>
             <p className="about-card-sub">Individual Profiles</p>
             <ul className="about-card-list">
