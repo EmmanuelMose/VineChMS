@@ -63,11 +63,10 @@ export default function Register() {
         <div className="register-container">
           <div className="register-card">
             <div className="register-success">
-              <div className="register-success-icon">✅</div>
-              <h2>Registration Successful!</h2>
+              <h2 className="register-success-title">Registration Successful!</h2>
               <p>A verification code has been sent to your email.</p>
               <p className="register-success-sub">Please check your inbox and verify your account.</p>
-              <Link to="/auth/verify-user" className="register-success-btn">
+              <Link to="/auth/verify-user" className="btn-primary">
                 Verify Account
               </Link>
             </div>
@@ -83,7 +82,6 @@ export default function Register() {
         <div className="register-card">
           <div className="register-header">
             <div className="register-logo">
-              <span className="register-logo-icon">⛪</span>
               <span className="register-logo-text">
                 Vine<span className="register-logo-highlight">ChMS</span>
               </span>
@@ -101,7 +99,7 @@ export default function Register() {
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
-                placeholder="John Doe"
+                placeholder="Enter your full name"
                 required
               />
             </div>
@@ -114,7 +112,7 @@ export default function Register() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="john@church.com"
+                placeholder="Enter your email address"
                 required
               />
             </div>
@@ -141,7 +139,7 @@ export default function Register() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Min 6 characters"
+                placeholder="Minimum 6 characters"
                 required
               />
             </div>
@@ -161,7 +159,7 @@ export default function Register() {
 
             {error && <div className="register-error">{error}</div>}
 
-            <button type="submit" className="register-button" disabled={loading}>
+            <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? "Creating Account..." : "Create Account"}
             </button>
 

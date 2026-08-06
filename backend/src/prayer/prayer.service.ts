@@ -10,7 +10,16 @@ export const createPrayerRequestService = async (data: any) => {
   return result;
 };
 
-export const getPrayerRequestsService = async () => {
+export const getPrayerRequestByIdService = async (id: number) => {
+  const [result] = await db
+    .select()
+    .from(prayerRequests)
+    .where(eq(prayerRequests.prayerRequestId, id));
+  if (!result) throw new Error("Prayer request not found");
+  return result;
+};
+
+export const getPrayerRequestsByChurchService = async (churchId: number) => {
   return await db
     .select({
       prayerRequestId: prayerRequests.prayerRequestId,
@@ -25,22 +34,6 @@ export const getPrayerRequestsService = async () => {
     .from(prayerRequests)
     .leftJoin(members, eq(prayerRequests.memberId, members.memberId))
     .leftJoin(users, eq(members.userId, users.userId))
-    .orderBy(desc(prayerRequests.createdAt));
-};
-
-export const getPrayerRequestByIdService = async (id: number) => {
-  const [result] = await db
-    .select()
-    .from(prayerRequests)
-    .where(eq(prayerRequests.prayerRequestId, id));
-  if (!result) throw new Error("Prayer request not found");
-  return result;
-};
-
-export const getPrayerRequestsByChurchService = async (churchId: number) => {
-  return await db
-    .select()
-    .from(prayerRequests)
     .where(eq(prayerRequests.churchId, churchId))
     .orderBy(desc(prayerRequests.createdAt));
 };

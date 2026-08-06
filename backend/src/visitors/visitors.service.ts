@@ -42,28 +42,7 @@ export const createVisitorService = async (data: any) => {
   return result.rows[0];
 };
 
-export const getVisitorsService = async () => {
-  return await db
-    .select({
-      visitorId: visitors.visitorId,
-      fullName: visitors.fullName,
-      email: visitors.email,
-      phone: visitors.phone,
-      visitedDate: visitors.visitedDate,
-      serviceName: services.name,
-      isMember: visitors.isMember,
-      notes: visitors.notes,
-      createdAt: visitors.createdAt,
-    })
-    .from(visitors)
-    .leftJoin(services, eq(visitors.serviceId, services.serviceId))
-    .orderBy(desc(visitors.visitedDate));
-};
-
 export const getVisitorByIdService = async (id: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid visitor ID");
-  }
   const [result] = await db
     .select()
     .from(visitors)
@@ -73,9 +52,6 @@ export const getVisitorByIdService = async (id: number) => {
 };
 
 export const getVisitorsByChurchService = async (churchId: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
   return await db
     .select()
     .from(visitors)
@@ -84,9 +60,6 @@ export const getVisitorsByChurchService = async (churchId: number) => {
 };
 
 export const getVisitorsByServiceService = async (serviceId: number) => {
-  if (!serviceId || isNaN(serviceId)) {
-    throw new Error("Invalid service ID");
-  }
   return await db
     .select()
     .from(visitors)
@@ -95,9 +68,6 @@ export const getVisitorsByServiceService = async (serviceId: number) => {
 };
 
 export const getVisitorsByDateRangeService = async (churchId: number, startDate: string, endDate: string) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
   const pool = db.$client;
   
   const query = `
@@ -114,10 +84,6 @@ export const getVisitorsByDateRangeService = async (churchId: number, startDate:
 };
 
 export const updateVisitorService = async (id: number, data: any) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid visitor ID");
-  }
-  
   const pool = db.$client;
   const updates: string[] = [];
   const values: any[] = [];
@@ -192,9 +158,6 @@ export const updateVisitorService = async (id: number, data: any) => {
 };
 
 export const deleteVisitorService = async (id: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid visitor ID");
-  }
   const [result] = await db
     .delete(visitors)
     .where(eq(visitors.visitorId, id))
@@ -204,10 +167,6 @@ export const deleteVisitorService = async (id: number) => {
 };
 
 export const convertVisitorToMemberService = async (id: number, data: any) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid visitor ID");
-  }
-  
   const pool = db.$client;
   
   const visitorResult = await pool.query(

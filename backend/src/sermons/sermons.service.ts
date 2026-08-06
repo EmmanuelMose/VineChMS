@@ -44,13 +44,6 @@ export const createSermonService = async (data: any) => {
   return result.rows[0];
 };
 
-export const getSermonsService = async () => {
-  return await db
-    .select()
-    .from(sermons)
-    .orderBy(desc(sermons.preachedAt));
-};
-
 export const getSermonByIdService = async (id: number) => {
   const [result] = await db
     .select()

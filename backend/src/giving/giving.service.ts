@@ -32,10 +32,11 @@ export const createGivingCategoryService = async (data: any) => {
   return result.rows[0];
 };
 
-export const getGivingCategoriesService = async () => {
+export const getGivingCategoriesByChurchService = async (churchId: number) => {
   return await db
     .select()
     .from(givingCategories)
+    .where(eq(givingCategories.churchId, churchId))
     .orderBy(desc(givingCategories.createdAt));
 };
 
@@ -46,14 +47,6 @@ export const getGivingCategoryByIdService = async (id: number) => {
     .where(eq(givingCategories.categoryId, id));
   if (!result) throw new Error("Giving category not found");
   return result;
-};
-
-export const getGivingCategoriesByChurchService = async (churchId: number) => {
-  return await db
-    .select()
-    .from(givingCategories)
-    .where(eq(givingCategories.churchId, churchId))
-    .orderBy(desc(givingCategories.createdAt));
 };
 
 export const updateGivingCategoryService = async (id: number, data: any) => {
@@ -158,28 +151,6 @@ export const createGivingService = async (data: any) => {
   return result.rows[0];
 };
 
-export const getGivingService = async () => {
-  return await db
-    .select({
-      givingId: giving.givingId,
-      memberId: giving.memberId,
-      fullName: users.fullName,
-      categoryName: givingCategories.name,
-      amount: giving.amount,
-      currency: giving.currency,
-      type: giving.type,
-      date: giving.date,
-      status: giving.status,
-      paymentMethod: giving.paymentMethod,
-      isAnonymous: giving.isAnonymous,
-    })
-    .from(giving)
-    .leftJoin(members, eq(giving.memberId, members.memberId))
-    .leftJoin(users, eq(members.userId, users.userId))
-    .leftJoin(givingCategories, eq(giving.categoryId, givingCategories.categoryId))
-    .orderBy(desc(giving.date));
-};
-
 export const getGivingByIdService = async (id: number) => {
   const [result] = await db
     .select()
@@ -189,19 +160,19 @@ export const getGivingByIdService = async (id: number) => {
   return result;
 };
 
-export const getGivingByMemberService = async (memberId: number) => {
-  return await db
-    .select()
-    .from(giving)
-    .where(eq(giving.memberId, memberId))
-    .orderBy(desc(giving.date));
-};
-
 export const getGivingByChurchService = async (churchId: number) => {
   return await db
     .select()
     .from(giving)
     .where(eq(giving.churchId, churchId))
+    .orderBy(desc(giving.date));
+};
+
+export const getGivingByMemberService = async (memberId: number) => {
+  return await db
+    .select()
+    .from(giving)
+    .where(eq(giving.memberId, memberId))
     .orderBy(desc(giving.date));
 };
 

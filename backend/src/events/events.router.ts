@@ -5,7 +5,6 @@ import {
   getEventById,
   updateEvent,
   deleteEvent,
-  getEventsByChurch,
   getPublishedEvents,
   registerForEvent,
   getEventRegistrations,
@@ -23,11 +22,10 @@ eventsRouter.get("/published", authenticate, getPublishedEvents);
 eventsRouter.get("/:id", authenticate, getEventById);
 eventsRouter.put("/:id", authenticate, updateEvent);
 eventsRouter.delete("/:id", authenticate, deleteEvent);
-eventsRouter.get("/church/:churchId", authenticate, getEventsByChurch);
 eventsRouter.post("/register", authenticate, registerForEvent);
 eventsRouter.get("/:eventId/registrations", authenticate, getEventRegistrations);
-eventsRouter.get("/member/:memberId/registrations", authenticate, getMemberEventRegistrations);
 eventsRouter.put("/registration/:id", authenticate, updateEventRegistration);
 eventsRouter.delete("/registration/:id", authenticate, deleteEventRegistration);
+eventsRouter.get("/member/:memberId/registrations", authenticate, getMemberEventRegistrations);
 
 export default eventsRouter;

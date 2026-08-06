@@ -2,17 +2,7 @@ import db from "../Drizzle/db";
 import { departments, departmentMembers, members, positions } from "../Drizzle/schema";
 import { eq, desc, and } from "drizzle-orm";
 
-export const createDepartmentService = async (data: {
-  name: string;
-  description?: string | null;
-  type: "large_org_department" | "org_department" | "church_department";
-  largeOrganizationId?: number | null;
-  organizationId?: number | null;
-  churchId?: number | null;
-  parentDepartmentId?: number | null;
-  leaderId?: number | null;
-  isActive?: boolean;
-}) => {
+export const createDepartmentService = async (data: any) => {
   const [result] = await db
     .insert(departments)
     .values({
@@ -30,13 +20,6 @@ export const createDepartmentService = async (data: {
   return result;
 };
 
-export const getDepartmentsService = async () => {
-  return await db
-    .select()
-    .from(departments)
-    .orderBy(desc(departments.createdAt));
-};
-
 export const getDepartmentByIdService = async (id: number) => {
   const [result] = await db
     .select()
@@ -46,11 +29,11 @@ export const getDepartmentByIdService = async (id: number) => {
   return result;
 };
 
-export const getDepartmentsByLargeOrganizationService = async (largeOrganizationId: number) => {
+export const getDepartmentsByChurchService = async (churchId: number) => {
   return await db
     .select()
     .from(departments)
-    .where(eq(departments.largeOrganizationId, largeOrganizationId))
+    .where(eq(departments.churchId, churchId))
     .orderBy(desc(departments.createdAt));
 };
 
@@ -62,11 +45,11 @@ export const getDepartmentsByOrganizationService = async (organizationId: number
     .orderBy(desc(departments.createdAt));
 };
 
-export const getDepartmentsByChurchService = async (churchId: number) => {
+export const getDepartmentsByLargeOrganizationService = async (largeOrganizationId: number) => {
   return await db
     .select()
     .from(departments)
-    .where(eq(departments.churchId, churchId))
+    .where(eq(departments.largeOrganizationId, largeOrganizationId))
     .orderBy(desc(departments.createdAt));
 };
 
@@ -97,13 +80,7 @@ export const deleteDepartmentService = async (id: number) => {
   return result;
 };
 
-export const addMemberToDepartmentService = async (data: {
-  departmentId: number;
-  memberId: number;
-  positionId?: number | null;
-  role?: string | null;
-  isActive?: boolean;
-}) => {
+export const addMemberToDepartmentService = async (data: any) => {
   const existing = await db
     .select()
     .from(departmentMembers)

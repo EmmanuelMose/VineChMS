@@ -3,7 +3,6 @@ import {
   createGivingCategory,
   getGivingCategories,
   getGivingCategoryById,
-  getGivingCategoriesByChurch,
   updateGivingCategory,
   deleteGivingCategory,
   createGiving,
@@ -12,7 +11,6 @@ import {
   updateGiving,
   deleteGiving,
   getGivingByMember,
-  getGivingByChurch,
   getGivingByType,
   getGivingSummary,
   getGivingTotal,
@@ -25,7 +23,6 @@ const givingRouter = Router();
 givingRouter.post("/categories", authenticate, createGivingCategory);
 givingRouter.get("/categories", authenticate, getGivingCategories);
 givingRouter.get("/categories/:id", authenticate, getGivingCategoryById);
-givingRouter.get("/categories/church/:churchId", authenticate, getGivingCategoriesByChurch);
 givingRouter.put("/categories/:id", authenticate, updateGivingCategory);
 givingRouter.delete("/categories/:id", authenticate, deleteGivingCategory);
 
@@ -35,7 +32,6 @@ givingRouter.get("/:id", authenticate, getGivingById);
 givingRouter.put("/:id", authenticate, updateGiving);
 givingRouter.delete("/:id", authenticate, deleteGiving);
 givingRouter.get("/member/:memberId", authenticate, getGivingByMember);
-givingRouter.get("/church/:churchId", authenticate, getGivingByChurch);
 givingRouter.get("/type/:churchId/:type", authenticate, getGivingByType);
 givingRouter.get("/summary/:churchId", authenticate, getGivingSummary);
 givingRouter.get("/total/:churchId", authenticate, getGivingTotal);

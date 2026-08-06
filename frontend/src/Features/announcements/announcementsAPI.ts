@@ -33,14 +33,7 @@ export interface NewAnnouncement {
 const API_URL = `${ApiDomain}/announcements`;
 
 export const fetchAnnouncements = async (token: string): Promise<Announcement[]> => {
-  const response = await axios.get(`${API_URL}/published`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return response.data.data;
-};
-
-export const fetchAllAnnouncements = async (token: string): Promise<Announcement[]> => {
-  const response = await axios.get(`${API_URL}/all`, {
+  const response = await axios.get(`${API_URL}`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return response.data.data;
@@ -48,27 +41,6 @@ export const fetchAllAnnouncements = async (token: string): Promise<Announcement
 
 export const fetchAnnouncementById = async (id: number, token: string): Promise<Announcement> => {
   const response = await axios.get(`${API_URL}/${id}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return response.data.data;
-};
-
-export const fetchAnnouncementsByChurch = async (churchId: number, token: string): Promise<Announcement[]> => {
-  const response = await axios.get(`${API_URL}/church/${churchId}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return response.data.data;
-};
-
-export const fetchPublishedAnnouncementsByChurch = async (churchId: number, token: string): Promise<Announcement[]> => {
-  const response = await axios.get(`${API_URL}/church/${churchId}/published`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return response.data.data;
-};
-
-export const fetchActiveAnnouncements = async (token: string): Promise<Announcement[]> => {
-  const response = await axios.get(`${API_URL}/active`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return response.data.data;

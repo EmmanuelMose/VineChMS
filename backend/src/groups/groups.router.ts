@@ -5,7 +5,6 @@ import {
   getGroupById,
   updateGroup,
   deleteGroup,
-  getGroupsByChurch,
   getActiveGroups,
   addMemberToGroup,
   getGroupMembers,
@@ -23,7 +22,6 @@ groupsRouter.get("/active", authenticate, getActiveGroups);
 groupsRouter.get("/:id", authenticate, getGroupById);
 groupsRouter.put("/:id", authenticate, updateGroup);
 groupsRouter.delete("/:id", authenticate, deleteGroup);
-groupsRouter.get("/church/:churchId", authenticate, getGroupsByChurch);
 groupsRouter.post("/member", authenticate, addMemberToGroup);
 groupsRouter.get("/:groupId/members", authenticate, getGroupMembers);
 groupsRouter.get("/member/:memberId/groups", authenticate, getMemberGroups);

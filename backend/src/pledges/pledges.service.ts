@@ -40,11 +40,55 @@ export const createPledgeService = async (data: any) => {
   return result.rows[0];
 };
 
-export const getPledgesService = async () => {
+export const getPledgeByIdService = async (id: number) => {
+  if (!id || isNaN(id)) {
+    throw new Error("Invalid pledge ID");
+  }
+  const [result] = await db
+    .select()
+    .from(pledges)
+    .where(eq(pledges.pledgeId, id));
+  if (!result) throw new Error("Pledge not found");
+  return result;
+};
+
+export const getPledgesByChurchService = async (churchId: number) => {
+  if (!churchId || isNaN(churchId)) {
+    throw new Error("Invalid church ID");
+  }
   return await db
     .select({
       pledgeId: pledges.pledgeId,
       memberId: pledges.memberId,
+      fullName: users.fullName,
+      categoryName: givingCategories.name,
+      amount: pledges.amount,
+      currency: pledges.currency,
+      startDate: pledges.startDate,
+      endDate: pledges.endDate,
+      frequency: pledges.frequency,
+      isFulfilled: pledges.isFulfilled,
+      notes: pledges.notes,
+      createdAt: pledges.createdAt,
+      churchId: pledges.churchId,
+    })
+    .from(pledges)
+    .leftJoin(members, eq(pledges.memberId, members.memberId))
+    .leftJoin(users, eq(members.userId, users.userId))
+    .leftJoin(givingCategories, eq(pledges.categoryId, givingCategories.categoryId))
+    .where(eq(pledges.churchId, churchId))
+    .orderBy(desc(pledges.createdAt));
+};
+
+export const getPledgesByMemberService = async (memberId: number) => {
+  if (!memberId || isNaN(memberId)) {
+    throw new Error("Invalid member ID");
+  }
+  return await db
+    .select({
+      pledgeId: pledges.pledgeId,
+      memberId: pledges.memberId,
+      churchId: pledges.churchId,
       fullName: users.fullName,
       categoryName: givingCategories.name,
       amount: pledges.amount,
@@ -60,40 +104,7 @@ export const getPledgesService = async () => {
     .leftJoin(members, eq(pledges.memberId, members.memberId))
     .leftJoin(users, eq(members.userId, users.userId))
     .leftJoin(givingCategories, eq(pledges.categoryId, givingCategories.categoryId))
-    .orderBy(desc(pledges.createdAt));
-};
-
-export const getPledgeByIdService = async (id: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid pledge ID");
-  }
-  const [result] = await db
-    .select()
-    .from(pledges)
-    .where(eq(pledges.pledgeId, id));
-  if (!result) throw new Error("Pledge not found");
-  return result;
-};
-
-export const getPledgesByMemberService = async (memberId: number) => {
-  if (!memberId || isNaN(memberId)) {
-    throw new Error("Invalid member ID");
-  }
-  return await db
-    .select()
-    .from(pledges)
     .where(eq(pledges.memberId, memberId))
-    .orderBy(desc(pledges.createdAt));
-};
-
-export const getPledgesByChurchService = async (churchId: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
-  return await db
-    .select()
-    .from(pledges)
-    .where(eq(pledges.churchId, churchId))
     .orderBy(desc(pledges.createdAt));
 };
 
@@ -102,8 +113,25 @@ export const getPledgesByCategoryService = async (categoryId: number) => {
     throw new Error("Invalid category ID");
   }
   return await db
-    .select()
+    .select({
+      pledgeId: pledges.pledgeId,
+      memberId: pledges.memberId,
+      churchId: pledges.churchId,
+      fullName: users.fullName,
+      categoryName: givingCategories.name,
+      amount: pledges.amount,
+      currency: pledges.currency,
+      startDate: pledges.startDate,
+      endDate: pledges.endDate,
+      frequency: pledges.frequency,
+      isFulfilled: pledges.isFulfilled,
+      notes: pledges.notes,
+      createdAt: pledges.createdAt,
+    })
     .from(pledges)
+    .leftJoin(members, eq(pledges.memberId, members.memberId))
+    .leftJoin(users, eq(members.userId, users.userId))
+    .leftJoin(givingCategories, eq(pledges.categoryId, givingCategories.categoryId))
     .where(eq(pledges.categoryId, categoryId))
     .orderBy(desc(pledges.createdAt));
 };

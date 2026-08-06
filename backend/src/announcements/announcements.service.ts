@@ -40,21 +40,6 @@ export const createAnnouncementService = async (data: any) => {
   return result.rows[0];
 };
 
-export const getAnnouncementsService = async () => {
-  return await db
-    .select()
-    .from(announcements)
-    .where(eq(announcements.isPublished, true))
-    .orderBy(desc(announcements.createdAt));
-};
-
-export const getAllAnnouncementsService = async () => {
-  return await db
-    .select()
-    .from(announcements)
-    .orderBy(desc(announcements.createdAt));
-};
-
 export const getAnnouncementByIdService = async (id: number) => {
   if (!id || isNaN(id)) {
     throw new Error("Invalid announcement ID");
@@ -215,10 +200,13 @@ export const getPublishedAnnouncementsByChurchService = async (churchId: number)
     .orderBy(desc(announcements.createdAt));
 };
 
-export const getActiveAnnouncementsService = async () => {
+export const getActiveAnnouncementsService = async (churchId: number) => {
+  if (!churchId || isNaN(churchId)) {
+    throw new Error("Invalid church ID");
+  }
   return await db
     .select()
     .from(announcements)
-    .where(eq(announcements.isPublished, true))
+    .where(and(eq(announcements.isPublished, true), eq(announcements.churchId, churchId)))
     .orderBy(desc(announcements.createdAt));
 };

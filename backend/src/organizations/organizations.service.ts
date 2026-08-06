@@ -2,6 +2,7 @@ import db from "../Drizzle/db";
 import { largeOrganizations, organizations } from "../Drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 
+// LARGE ORGANIZATIONS
 export const createLargeOrganizationService = async (userId: number, data: any) => {
   const [result] = await db
     .insert(largeOrganizations)
@@ -10,11 +11,17 @@ export const createLargeOrganizationService = async (userId: number, data: any) 
   return result;
 };
 
-export const getLargeOrganizationsService = async (userId: number) => {
+export const getLargeOrganizationsService = async (userId?: number) => {
+  if (userId) {
+    return await db
+      .select()
+      .from(largeOrganizations)
+      .where(eq(largeOrganizations.createdBy, userId))
+      .orderBy(desc(largeOrganizations.createdAt));
+  }
   return await db
     .select()
     .from(largeOrganizations)
-    .where(eq(largeOrganizations.createdBy, userId))
     .orderBy(desc(largeOrganizations.createdAt));
 };
 
@@ -46,6 +53,7 @@ export const deleteLargeOrganizationService = async (id: number) => {
   return result;
 };
 
+// SMALL ORGANIZATIONS
 export const createOrganizationService = async (userId: number, data: any) => {
   const [result] = await db
     .insert(organizations)
@@ -59,6 +67,14 @@ export const getOrganizationsService = async (userId: number) => {
     .select()
     .from(organizations)
     .where(eq(organizations.createdBy, userId))
+    .orderBy(desc(organizations.createdAt));
+};
+
+export const getOrganizationsByLargeOrganizationService = async (largeOrganizationId: number) => {
+  return await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.largeOrganizationId, largeOrganizationId))
     .orderBy(desc(organizations.createdAt));
 };
 

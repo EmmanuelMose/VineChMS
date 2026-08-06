@@ -54,6 +54,7 @@ export interface ChurchMember {
   isActive: boolean;
   isBaptized: boolean;
   isLeader: boolean;
+  role?: string;
 }
 
 const API_URL = `${ApiDomain}/churches`;

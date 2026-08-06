@@ -2,14 +2,7 @@ import db from "../Drizzle/db";
 import { positions } from "../Drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 
-export const createPositionService = async (data: {
-  name: string;
-  description?: string | null;
-  churchId?: number | null;
-  organizationId?: number | null;
-  largeOrganizationId?: number | null;
-  isActive?: boolean;
-}) => {
+export const createPositionService = async (data: any) => {
   const [result] = await db
     .insert(positions)
     .values({
@@ -22,13 +15,6 @@ export const createPositionService = async (data: {
     })
     .returning();
   return result;
-};
-
-export const getPositionsService = async () => {
-  return await db
-    .select()
-    .from(positions)
-    .orderBy(desc(positions.createdAt));
 };
 
 export const getPositionByIdService = async (id: number) => {

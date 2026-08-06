@@ -3,13 +3,12 @@ import {
   createPledge,
   getPledges,
   getPledgeById,
+  updatePledge,
+  deletePledge,
   getPledgesByMember,
-  getPledgesByChurch,
   getPledgesByCategory,
   getFulfilledPledges,
   getUnfulfilledPledges,
-  updatePledge,
-  deletePledge,
   fulfillPledge,
   getPledgesSummary,
 } from "./pledges.controller";
@@ -23,7 +22,6 @@ pledgesRouter.get("/:id", authenticate, getPledgeById);
 pledgesRouter.put("/:id", authenticate, updatePledge);
 pledgesRouter.delete("/:id", authenticate, deletePledge);
 pledgesRouter.get("/member/:memberId", authenticate, getPledgesByMember);
-pledgesRouter.get("/church/:churchId", authenticate, getPledgesByChurch);
 pledgesRouter.get("/category/:categoryId", authenticate, getPledgesByCategory);
 pledgesRouter.get("/fulfilled/:churchId", authenticate, getFulfilledPledges);
 pledgesRouter.get("/unfulfilled/:churchId", authenticate, getUnfulfilledPledges);

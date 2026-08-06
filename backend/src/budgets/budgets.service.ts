@@ -40,17 +40,7 @@ export const createBudgetService = async (data: any) => {
   return result.rows[0];
 };
 
-export const getBudgetsService = async () => {
-  return await db
-    .select()
-    .from(budgets)
-    .orderBy(desc(budgets.createdAt));
-};
-
 export const getBudgetByIdService = async (id: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid budget ID");
-  }
   const [result] = await db
     .select()
     .from(budgets)
@@ -60,9 +50,6 @@ export const getBudgetByIdService = async (id: number) => {
 };
 
 export const getBudgetsByChurchService = async (churchId: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
   return await db
     .select()
     .from(budgets)
@@ -70,24 +57,7 @@ export const getBudgetsByChurchService = async (churchId: number) => {
     .orderBy(desc(budgets.createdAt));
 };
 
-export const getBudgetsByYearService = async (year: number) => {
-  if (!year || isNaN(year)) {
-    throw new Error("Invalid year");
-  }
-  return await db
-    .select()
-    .from(budgets)
-    .where(eq(budgets.year, year))
-    .orderBy(desc(budgets.createdAt));
-};
-
 export const getBudgetsByChurchAndYearService = async (churchId: number, year: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
-  if (!year || isNaN(year)) {
-    throw new Error("Invalid year");
-  }
   return await db
     .select()
     .from(budgets)
@@ -96,9 +66,6 @@ export const getBudgetsByChurchAndYearService = async (churchId: number, year: n
 };
 
 export const getAnnualBudgetsService = async (churchId: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
   return await db
     .select()
     .from(budgets)
@@ -107,9 +74,6 @@ export const getAnnualBudgetsService = async (churchId: number) => {
 };
 
 export const getMonthlyBudgetsService = async (churchId: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
   return await db
     .select()
     .from(budgets)
@@ -118,10 +82,6 @@ export const getMonthlyBudgetsService = async (churchId: number) => {
 };
 
 export const updateBudgetService = async (id: number, data: any) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid budget ID");
-  }
-  
   const pool = db.$client;
   const updates: string[] = [];
   const values: any[] = [];
@@ -191,9 +151,6 @@ export const updateBudgetService = async (id: number, data: any) => {
 };
 
 export const deleteBudgetService = async (id: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid budget ID");
-  }
   const [result] = await db
     .delete(budgets)
     .where(eq(budgets.budgetId, id))
@@ -203,12 +160,6 @@ export const deleteBudgetService = async (id: number) => {
 };
 
 export const getBudgetsTotalService = async (churchId: number, year: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
-  if (!year || isNaN(year)) {
-    throw new Error("Invalid year");
-  }
   const pool = db.$client;
   
   const query = `
@@ -224,15 +175,6 @@ export const getBudgetsTotalService = async (churchId: number, year: number) => 
 };
 
 export const getBudgetsByMonthService = async (churchId: number, year: number, month: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
-  if (!year || isNaN(year)) {
-    throw new Error("Invalid year");
-  }
-  if (!month || isNaN(month)) {
-    throw new Error("Invalid month");
-  }
   return await db
     .select()
     .from(budgets)
@@ -241,15 +183,6 @@ export const getBudgetsByMonthService = async (churchId: number, year: number, m
 };
 
 export const getBudgetsByDateRangeService = async (churchId: number, startYear: number, endYear: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
-  if (!startYear || isNaN(startYear)) {
-    throw new Error("Invalid start year");
-  }
-  if (!endYear || isNaN(endYear)) {
-    throw new Error("Invalid end year");
-  }
   const pool = db.$client;
   
   const query = `

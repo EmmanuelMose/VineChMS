@@ -38,17 +38,7 @@ export const createGroupService = async (data: any) => {
   return result.rows[0];
 };
 
-export const getGroupsService = async () => {
-  return await db
-    .select()
-    .from(groups)
-    .orderBy(desc(groups.createdAt));
-};
-
 export const getGroupByIdService = async (id: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid group ID");
-  }
   const [result] = await db
     .select()
     .from(groups)
@@ -58,9 +48,6 @@ export const getGroupByIdService = async (id: number) => {
 };
 
 export const getGroupsByChurchService = async (churchId: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
   return await db
     .select()
     .from(groups)
@@ -68,19 +55,15 @@ export const getGroupsByChurchService = async (churchId: number) => {
     .orderBy(desc(groups.createdAt));
 };
 
-export const getActiveGroupsService = async () => {
+export const getActiveGroupsService = async (churchId: number) => {
   return await db
     .select()
     .from(groups)
-    .where(eq(groups.isActive, true))
+    .where(and(eq(groups.isActive, true), eq(groups.churchId, churchId)))
     .orderBy(desc(groups.createdAt));
 };
 
 export const updateGroupService = async (id: number, data: any) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid group ID");
-  }
-  
   const pool = db.$client;
   const updates: string[] = [];
   const values: any[] = [];
@@ -145,9 +128,6 @@ export const updateGroupService = async (id: number, data: any) => {
 };
 
 export const deleteGroupService = async (id: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid group ID");
-  }
   const [result] = await db
     .delete(groups)
     .where(eq(groups.groupId, id))
@@ -157,43 +137,10 @@ export const deleteGroupService = async (id: number) => {
 };
 
 export const addMemberToGroupService = async (data: any) => {
-  console.log('📥 addMemberToGroupService - Received data:', JSON.stringify(data, null, 2));
-  
   const groupId = Number(data.groupId);
   const memberId = Number(data.memberId);
   
-  console.log('📥 Converted - groupId:', groupId, 'memberId:', memberId);
-  
-  if (isNaN(groupId) || groupId <= 0) {
-    throw new Error("Invalid group ID: " + data.groupId);
-  }
-  if (isNaN(memberId) || memberId <= 0) {
-    throw new Error("Invalid member ID: " + data.memberId);
-  }
-  
   const pool = db.$client;
-  
-  const groupCheck = await pool.query(
-    'SELECT group_id FROM groups WHERE group_id = $1',
-    [groupId]
-  );
-  
-  console.log('📊 Group exists:', groupCheck.rows.length > 0);
-  
-  if (groupCheck.rows.length === 0) {
-    throw new Error("Group with ID " + groupId + " not found");
-  }
-  
-  const memberCheck = await pool.query(
-    'SELECT member_id FROM members WHERE member_id = $1',
-    [memberId]
-  );
-  
-  console.log('📊 Member exists:', memberCheck.rows.length > 0);
-  
-  if (memberCheck.rows.length === 0) {
-    throw new Error("Member with ID " + memberId + " not found");
-  }
   
   const existingCheck = await pool.query(
     'SELECT group_member_id FROM group_members WHERE group_id = $1 AND member_id = $2',
@@ -223,16 +170,11 @@ export const addMemberToGroupService = async (data: any) => {
     data.isActive !== undefined ? Boolean(data.isActive) : true
   ];
 
-  console.log('📝 Inserting with values:', values);
-
   const result = await pool.query(query, values);
   return result.rows[0];
 };
 
 export const getGroupMembersService = async (groupId: number) => {
-  if (!groupId || isNaN(groupId)) {
-    throw new Error("Invalid group ID");
-  }
   return await db
     .select({
       groupMemberId: groupMembers.groupMemberId,
@@ -251,9 +193,6 @@ export const getGroupMembersService = async (groupId: number) => {
 };
 
 export const getMemberGroupsService = async (memberId: number) => {
-  if (!memberId || isNaN(memberId)) {
-    throw new Error("Invalid member ID");
-  }
   return await db
     .select({
       groupMemberId: groupMembers.groupMemberId,
@@ -271,10 +210,6 @@ export const getMemberGroupsService = async (memberId: number) => {
 };
 
 export const updateGroupMemberService = async (id: number, data: any) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid group member ID");
-  }
-  
   const pool = db.$client;
   const updates: string[] = [];
   const values: any[] = [];
@@ -309,9 +244,6 @@ export const updateGroupMemberService = async (id: number, data: any) => {
 };
 
 export const removeMemberFromGroupService = async (id: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid group member ID");
-  }
   const [result] = await db
     .delete(groupMembers)
     .where(eq(groupMembers.groupMemberId, id))

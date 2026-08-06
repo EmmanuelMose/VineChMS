@@ -5,7 +5,6 @@ import {
   getSermonById,
   updateSermon,
   deleteSermon,
-  getSermonsByChurch,
 } from "./sermons.controller";
 import { authenticate } from "../middleware/auth.middleware";
 
@@ -16,6 +15,5 @@ sermonsRouter.get("/", authenticate, getSermons);
 sermonsRouter.get("/:id", authenticate, getSermonById);
 sermonsRouter.put("/:id", authenticate, updateSermon);
 sermonsRouter.delete("/:id", authenticate, deleteSermon);
-sermonsRouter.get("/church/:churchId", authenticate, getSermonsByChurch);
 
 export default sermonsRouter;

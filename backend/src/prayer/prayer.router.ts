@@ -5,7 +5,6 @@ import {
   getPrayerRequestById,
   updatePrayerRequest,
   deletePrayerRequest,
-  getPrayerRequestsByChurch,
   prayForRequest,
   getPrayerInteractions,
 } from "./prayer.controller";
@@ -18,7 +17,6 @@ prayerRouter.get("/", authenticate, getPrayerRequests);
 prayerRouter.get("/:id", authenticate, getPrayerRequestById);
 prayerRouter.put("/:id", authenticate, updatePrayerRequest);
 prayerRouter.delete("/:id", authenticate, deletePrayerRequest);
-prayerRouter.get("/church/:churchId", authenticate, getPrayerRequestsByChurch);
 prayerRouter.post("/:id/pray", authenticate, prayForRequest);
 prayerRouter.get("/:id/interactions", authenticate, getPrayerInteractions);
 

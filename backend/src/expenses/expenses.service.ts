@@ -1,6 +1,6 @@
 import db from "../Drizzle/db";
 import { expenses, expenseCategories } from "../Drizzle/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 export const createExpenseCategoryService = async (data: any) => {
   const pool = db.$client;
@@ -30,17 +30,15 @@ export const createExpenseCategoryService = async (data: any) => {
   return result.rows[0];
 };
 
-export const getExpenseCategoriesService = async () => {
+export const getExpenseCategoriesByChurchService = async (churchId: number) => {
   return await db
     .select()
     .from(expenseCategories)
+    .where(eq(expenseCategories.churchId, churchId))
     .orderBy(desc(expenseCategories.createdAt));
 };
 
 export const getExpenseCategoryByIdService = async (id: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid category ID");
-  }
   const [result] = await db
     .select()
     .from(expenseCategories)
@@ -49,22 +47,7 @@ export const getExpenseCategoryByIdService = async (id: number) => {
   return result;
 };
 
-export const getExpenseCategoriesByChurchService = async (churchId: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
-  return await db
-    .select()
-    .from(expenseCategories)
-    .where(eq(expenseCategories.churchId, churchId))
-    .orderBy(desc(expenseCategories.createdAt));
-};
-
 export const updateExpenseCategoryService = async (id: number, data: any) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid category ID");
-  }
-  
   const pool = db.$client;
   const updates: string[] = [];
   const values: any[] = [];
@@ -109,9 +92,6 @@ export const updateExpenseCategoryService = async (id: number, data: any) => {
 };
 
 export const deleteExpenseCategoryService = async (id: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid category ID");
-  }
   const [result] = await db
     .delete(expenseCategories)
     .where(eq(expenseCategories.categoryId, id))
@@ -156,39 +136,16 @@ export const createExpenseService = async (data: any) => {
   return result.rows[0];
 };
 
-export const getExpensesService = async () => {
-  return await db
-    .select({
-      expenseId: expenses.expenseId,
-      categoryName: expenseCategories.name,
-      amount: expenses.amount,
-      currency: expenses.currency,
-      description: expenses.description,
-      date: expenses.date,
-      status: expenses.status,
-      notes: expenses.notes,
-    })
-    .from(expenses)
-    .leftJoin(expenseCategories, eq(expenses.categoryId, expenseCategories.categoryId))
-    .orderBy(desc(expenses.date));
-};
-
 export const getExpenseByIdService = async (id: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid expense ID");
-  }
   const [result] = await db
     .select()
     .from(expenses)
     .where(eq(expenses.expenseId, id));
-  if (!result) throw new Error("Expense record not found");
+  if (!result) throw new Error("Expense not found");
   return result;
 };
 
 export const getExpensesByChurchService = async (churchId: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
   return await db
     .select()
     .from(expenses)
@@ -197,9 +154,6 @@ export const getExpensesByChurchService = async (churchId: number) => {
 };
 
 export const getExpensesByCategoryService = async (categoryId: number) => {
-  if (!categoryId || isNaN(categoryId)) {
-    throw new Error("Invalid category ID");
-  }
   return await db
     .select()
     .from(expenses)
@@ -207,18 +161,15 @@ export const getExpensesByCategoryService = async (categoryId: number) => {
     .orderBy(desc(expenses.date));
 };
 
-export const getExpensesByStatusService = async (status: string) => {
+export const getExpensesByStatusService = async (status: string, churchId: number) => {
   return await db
     .select()
     .from(expenses)
-    .where(eq(expenses.status, status as any))
+    .where(and(eq(expenses.status, status as any), eq(expenses.churchId, churchId)))
     .orderBy(desc(expenses.date));
 };
 
 export const getExpensesSummaryService = async (churchId: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
   const pool = db.$client;
   
   const query = `
@@ -236,9 +187,6 @@ export const getExpensesSummaryService = async (churchId: number) => {
 };
 
 export const getExpensesTotalService = async (churchId: number) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
   const pool = db.$client;
   
   const query = `
@@ -253,10 +201,6 @@ export const getExpensesTotalService = async (churchId: number) => {
 };
 
 export const updateExpenseService = async (id: number, data: any) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid expense ID");
-  }
-  
   const pool = db.$client;
   const updates: string[] = [];
   const values: any[] = [];
@@ -316,26 +260,20 @@ export const updateExpenseService = async (id: number, data: any) => {
   `;
 
   const result = await pool.query(query, values);
-  if (!result.rows[0]) throw new Error("Expense record not found");
+  if (!result.rows[0]) throw new Error("Expense not found");
   return result.rows[0];
 };
 
 export const deleteExpenseService = async (id: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid expense ID");
-  }
   const [result] = await db
     .delete(expenses)
     .where(eq(expenses.expenseId, id))
     .returning({ id: expenses.expenseId });
-  if (!result) throw new Error("Expense record not found");
+  if (!result) throw new Error("Expense not found");
   return result;
 };
 
 export const approveExpenseService = async (id: number, userId: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid expense ID");
-  }
   const pool = db.$client;
   
   const query = `
@@ -350,14 +288,11 @@ export const approveExpenseService = async (id: number, userId: number) => {
   `;
   
   const result = await pool.query(query, [userId, id]);
-  if (!result.rows[0]) throw new Error("Expense record not found");
+  if (!result.rows[0]) throw new Error("Expense not found");
   return result.rows[0];
 };
 
 export const rejectExpenseService = async (id: number, userId: number) => {
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid expense ID");
-  }
   const pool = db.$client;
   
   const query = `
@@ -372,14 +307,11 @@ export const rejectExpenseService = async (id: number, userId: number) => {
   `;
   
   const result = await pool.query(query, [userId, id]);
-  if (!result.rows[0]) throw new Error("Expense record not found");
+  if (!result.rows[0]) throw new Error("Expense not found");
   return result.rows[0];
 };
 
 export const getExpensesByDateRangeService = async (churchId: number, startDate: string, endDate: string) => {
-  if (!churchId || isNaN(churchId)) {
-    throw new Error("Invalid church ID");
-  }
   const pool = db.$client;
   
   const query = `

@@ -52,8 +52,7 @@ export default function ResetPassword() {
         <div className="reset-container">
           <div className="reset-card">
             <div className="reset-success">
-              <div className="reset-success-icon">✅</div>
-              <h2>Password Reset Successful!</h2>
+              <h2 className="reset-success-title">Password Reset Successful!</h2>
               <p>Your password has been successfully reset.</p>
               <p className="reset-success-sub">Redirecting to login...</p>
             </div>
@@ -69,7 +68,6 @@ export default function ResetPassword() {
         <div className="reset-card">
           <div className="reset-header">
             <div className="reset-logo">
-              <span className="reset-logo-icon">⛪</span>
               <span className="reset-logo-text">
                 Vine<span className="reset-logo-highlight">ChMS</span>
               </span>
@@ -86,7 +84,7 @@ export default function ResetPassword() {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@church.com"
+                placeholder="Enter your email address"
                 required
                 disabled={!!emailFromState}
               />
@@ -99,7 +97,7 @@ export default function ResetPassword() {
                 id="newPassword"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Min 6 characters"
+                placeholder="Minimum 6 characters"
                 required
               />
             </div>
@@ -118,7 +116,7 @@ export default function ResetPassword() {
 
             {error && <div className="reset-error">{error}</div>}
 
-            <button type="submit" className="reset-button" disabled={loading}>
+            <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? "Resetting..." : "Reset Password"}
             </button>
 

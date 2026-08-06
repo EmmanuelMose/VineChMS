@@ -1,6 +1,6 @@
 import db from "../Drizzle/db";
 import { churches, members, users } from "../Drizzle/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 
 export const createChurchService = async (userId: number, data: any) => {
   const [result] = await db
@@ -10,11 +10,36 @@ export const createChurchService = async (userId: number, data: any) => {
   return result;
 };
 
-export const getChurchesService = async (userId: number) => {
+export const getChurchesService = async (userId?: number) => {
+  if (userId) {
+    return await db
+      .select()
+      .from(churches)
+      .where(eq(churches.createdBy, userId))
+      .orderBy(desc(churches.createdAt));
+  }
   return await db
     .select()
     .from(churches)
-    .where(eq(churches.createdBy, userId))
+    .orderBy(desc(churches.createdAt));
+};
+
+export const getChurchesByOrganizationService = async (organizationId: number) => {
+  return await db
+    .select()
+    .from(churches)
+    .where(eq(churches.organizationId, organizationId))
+    .orderBy(desc(churches.createdAt));
+};
+
+export const getChurchesByOrganizationIdsService = async (organizationIds: number[]) => {
+  if (organizationIds.length === 0) {
+    return [];
+  }
+  return await db
+    .select()
+    .from(churches)
+    .where(inArray(churches.organizationId, organizationIds))
     .orderBy(desc(churches.createdAt));
 };
 
@@ -57,8 +82,11 @@ export const getChurchMembersService = async (churchId: number) => {
       isActive: members.isActive,
       isBaptized: members.isBaptized,
       isLeader: members.isLeader,
+      role: members.role,
+      createdAt: members.createdAt,
     })
     .from(members)
     .leftJoin(users, eq(members.userId, users.userId))
-    .where(eq(members.churchId, churchId));
+    .where(eq(members.churchId, churchId))
+    .orderBy(desc(members.createdAt));
 };

@@ -1,6 +1,6 @@
 import db from "../Drizzle/db";
 import { events, eventRegistrations, members, users } from "../Drizzle/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 export const createEventService = async (data: any) => {
   const pool = db.$client;
@@ -50,13 +50,6 @@ export const createEventService = async (data: any) => {
   return result.rows[0];
 };
 
-export const getEventsService = async () => {
-  return await db
-    .select()
-    .from(events)
-    .orderBy(desc(events.startDate));
-};
-
 export const getEventByIdService = async (id: number) => {
   if (!id || isNaN(id)) {
     throw new Error("Invalid event ID");
@@ -80,11 +73,14 @@ export const getEventsByChurchService = async (churchId: number) => {
     .orderBy(desc(events.startDate));
 };
 
-export const getPublishedEventsService = async () => {
+export const getPublishedEventsService = async (churchId: number) => {
+  if (!churchId || isNaN(churchId)) {
+    throw new Error("Invalid church ID");
+  }
   return await db
     .select()
     .from(events)
-    .where(eq(events.status, "published"))
+    .where(and(eq(events.status, "published"), eq(events.churchId, churchId)))
     .orderBy(desc(events.startDate));
 };
 
