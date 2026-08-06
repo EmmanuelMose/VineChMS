@@ -90,56 +90,62 @@ export default function InfoFeatures() {
   return (
     <section className="info-features" id="features">
       <div className="info-features-container">
-        <div className="info-features-header">
-          <span className="info-features-tag">Core Services</span>
-          <h2 className="info-features-title">
-            Everything You Need to
-            <br />
-            <span className="info-features-title-highlight">Manage Your Church</span>
-          </h2>
-          <p className="info-features-subtitle">
-            Five integrated service pillars designed to streamline every aspect
-            of church operations.
-          </p>
-        </div>
+        <div className="info-features-grid">
+          {/* Left Column - Header */}
+          <div className="info-features-header">
+            <span className="info-features-tag">Core Services</span>
+            <h2 className="info-features-title">
+              Everything You Need to
+              <br />
+              <span className="info-features-title-highlight">Manage Your Church</span>
+            </h2>
+            <p className="info-features-subtitle">
+              Five integrated service pillars designed to streamline every aspect
+              of church operations.
+            </p>
+          </div>
 
-        <div className="info-features-tabs">
-          {FEATURES.map((feature) => {
-            const isActive = activeTab === feature.id;
-            return (
-              <button
-                key={feature.id}
-                onClick={() => setActiveTab(feature.id)}
-                className={`info-tab ${isActive ? "info-tab-active" : ""}`}
-                style={{
-                  borderColor: isActive ? feature.color : "#e5e7eb",
-                  color: isActive ? feature.color : "#4b5563",
-                  background: isActive ? "rgba(255,255,255,0.9)" : "#f9fafb",
-                }}
-              >
-                {feature.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="info-feature-card">
-          <div className="info-feature-card-content">
-            <div className="info-feature-card-left">
-              <div className="info-feature-card-dot" style={{ background: activeFeature.color }}></div>
-              <h3 className="info-feature-card-title">{activeFeature.title}</h3>
-              <p className="info-feature-card-desc">{activeFeature.description}</p>
+          {/* Right Column - Tabs + Card */}
+          <div className="info-features-right">
+            <div className="info-features-tabs">
+              {FEATURES.map((feature) => {
+                const isActive = activeTab === feature.id;
+                return (
+                  <button
+                    key={feature.id}
+                    onClick={() => setActiveTab(feature.id)}
+                    className={`info-tab ${isActive ? "info-tab-active" : ""}`}
+                    style={{
+                      borderColor: isActive ? "#FFC107" : "#e5e7eb",
+                      color: isActive ? "#FFC107" : "#4b5563",
+                      background: isActive ? "rgba(255,193,7,0.08)" : "#f9fafb",
+                    }}
+                  >
+                    {feature.label}
+                  </button>
+                );
+              })}
             </div>
-            <div className="info-feature-card-right">
-              <h4 className="info-feature-card-benefits-title">Key Benefits</h4>
-              <ul className="info-feature-card-benefits-list">
-                {activeFeature.benefits.map((b) => (
-                  <li key={b} className="info-feature-card-benefit">
-                    <span className="info-feature-card-benefit-dot" style={{ background: activeFeature.color }} />
-                    {b}
-                  </li>
-                ))}
-              </ul>
+
+            <div className="info-feature-card">
+              <div className="info-feature-card-content">
+                <div className="info-feature-card-left">
+                  <div className="info-feature-card-dot" style={{ background: activeFeature.color }}></div>
+                  <h3 className="info-feature-card-title">{activeFeature.title}</h3>
+                  <p className="info-feature-card-desc">{activeFeature.description}</p>
+                </div>
+                <div className="info-feature-card-right">
+                  <h4 className="info-feature-card-benefits-title">Key Benefits</h4>
+                  <ul className="info-feature-card-benefits-list">
+                    {activeFeature.benefits.map((b) => (
+                      <li key={b} className="info-feature-card-benefit">
+                        <span className="info-feature-card-benefit-dot" style={{ background: activeFeature.color }} />
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
