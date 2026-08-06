@@ -1,0 +1,215 @@
+.church-dashboard {
+  min-height: 100vh;
+  background: #f1f5f9;
+}
+
+.church-dashboard-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.church-dashboard-layout {
+  display: flex;
+  gap: 1rem;
+  min-height: calc(100vh - 2rem);
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.church-dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 2rem);
+  overflow: hidden;
+}
+
+.church-dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 2rem;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.church-dashboard-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.church-dashboard-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.church-dashboard-menu-btn:hover {
+  background: #f3f4f6;
+  border-color: #2E7D32;
+  color: #2E7D32;
+}
+
+.church-dashboard-header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.church-dashboard-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.church-dashboard-subtitle {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.church-dashboard-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.church-dashboard-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 1rem 0.4rem 0.4rem;
+  border-radius: 50px;
+  background: #f8faf8;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.church-dashboard-profile:hover {
+  border-color: #2E7D32;
+  box-shadow: 0 2px 12px rgba(46, 125, 50, 0.08);
+}
+
+.church-dashboard-profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2E7D32, #1565C0);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.church-dashboard-profile-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.church-dashboard-profile-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.church-dashboard-profile-role {
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.church-dashboard-content {
+  flex: 1;
+  padding: 2rem;
+  background: #f8faf8;
+  overflow-y: auto;
+  animation: churchDashboardFadeIn 0.4s ease;
+}
+
+@keyframes churchDashboardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.church-dashboard-footer {
+  padding: 1rem 2rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  border-top: 1px solid #e5e7eb;
+  background: white;
+}
+
+@media (max-width: 768px) {
+  .church-dashboard-container {
+    padding: 0.5rem;
+  }
+  .church-dashboard-layout {
+    border-radius: 16px;
+    min-height: calc(100vh - 1rem);
+  }
+  .church-dashboard-header {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .church-dashboard-header-left {
+    width: 100%;
+  }
+  .church-dashboard-header-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .church-dashboard-title {
+    font-size: 1rem;
+  }
+  .church-dashboard-content {
+    padding: 1rem;
+  }
+  .church-dashboard-profile {
+    padding: 0.3rem 0.75rem 0.3rem 0.3rem;
+  }
+  .church-dashboard-profile-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.7rem;
+  }
+  .church-dashboard-profile-info {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .church-dashboard-header {
+    padding: 0.75rem;
+  }
+  .church-dashboard-content {
+    padding: 0.75rem;
+  }
+  .church-dashboard-menu-btn {
+    padding: 0.35rem;
+  }
+}
