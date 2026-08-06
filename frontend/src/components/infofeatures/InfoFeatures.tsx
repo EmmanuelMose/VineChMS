@@ -1,59 +1,145 @@
-import './InfoFeatures.css';
+import { useState } from "react";
+import { Users, Wallet, Calendar, Mic, MessageSquare } from "lucide-react";
+import "./InfoFeatures.css";
 
-const InfoFeatures = () => {
+const FEATURES = [
+  {
+    id: "directory",
+    icon: Users,
+    label: "Directory",
+    title: "Member Directory & Directory Management",
+    description:
+      "Comprehensive member profiles with contact details, family groups, attendance history, and role-based access controls.",
+    benefits: [
+      "Centralized member database",
+      "Family grouping & relationships",
+      "Attendance & engagement tracking",
+      "Role-based permissions",
+    ],
+    gradient: "from-blue-900 to-blue-600",
+  },
+  {
+    id: "giving",
+    icon: Wallet,
+    label: "Giving",
+    title: "Giving & Financial Management",
+    description:
+      "Online giving, pledge tracking, expense management, and real-time financial reporting across all entities.",
+    benefits: [
+      "Online donations & recurring giving",
+      "Pledge & campaign tracking",
+      "Expense approval workflows",
+      "Multi-entity financial reports",
+    ],
+    gradient: "from-emerald-600 to-emerald-400",
+  },
+  {
+    id: "events",
+    icon: Calendar,
+    label: "Events",
+    title: "Event & Service Scheduling",
+    description:
+      "Schedule services, events, and meetings with resource management, volunteer coordination, and calendar sync.",
+    benefits: [
+      "Service planning & liturgy builder",
+      "Resource & room scheduling",
+      "Volunteer sign-ups & coordination",
+      "Calendar sync & reminders",
+    ],
+    gradient: "from-blue-700 to-blue-500",
+  },
+  {
+    id: "media",
+    icon: Mic,
+    label: "Media",
+    title: "Sermon & Media Archives",
+    description:
+      "Upload, organize, and stream sermons, worship sets, and media content with searchable archives.",
+    benefits: [
+      "Sermon recording & uploading",
+      "Series & topic organization",
+      "Multi-format media support",
+      "Embedded player & sharing",
+    ],
+    gradient: "from-emerald-500 to-green-400",
+  },
+  {
+    id: "comms",
+    icon: MessageSquare,
+    label: "Communications",
+    title: "Communications & SMS Broadcast",
+    description:
+      "Engage your congregation with email newsletters, SMS broadcasts, push notifications, and in-app messaging.",
+    benefits: [
+      "Email & newsletter campaigns",
+      "SMS text broadcasting",
+      "Push notifications",
+      "Segment-based targeting",
+    ],
+    gradient: "from-blue-800 to-blue-600",
+  },
+];
+
+export default function InfoFeatures() {
+  const [activeTab, setActiveTab] = useState(FEATURES[0].id);
+  const activeFeature = FEATURES.find((f) => f.id === activeTab) || FEATURES[0];
+
   return (
     <section className="info-features" id="features">
       <div className="info-features-container">
         <div className="info-features-header">
-          <span className="info-features-tag">CORE MODULES</span>
+          <span className="info-features-tag">Core Services</span>
           <h2 className="info-features-title">
-            Everything You Need to Manage Your Church
+            Everything You Need to
+            <br />
+            <span className="info-features-title-highlight">Manage Your Church</span>
           </h2>
           <p className="info-features-subtitle">
-            From member check-ins to financial reporting, VineChMS provides every tool your ministry needs to thrive.
+            Five integrated service pillars designed to streamline every aspect
+            of church operations.
           </p>
         </div>
 
-        <div className="info-features-grid">
-          <div className="info-feature-card">
-            <div className="info-feature-icon">👥</div>
-            <h3>Member Management</h3>
-            <p>Comprehensive member profiles with role-based access, attendance tracking, and group management.</p>
-          </div>
+        <div className="info-features-tabs">
+          {FEATURES.map((feature) => {
+            const Icon = feature.icon;
+            const isActive = activeTab === feature.id;
+            return (
+              <button
+                key={feature.id}
+                onClick={() => setActiveTab(feature.id)}
+                className={`info-tab ${isActive ? "info-tab-active" : ""}`}
+              >
+                <Icon className="info-tab-icon" />
+                {feature.label}
+              </button>
+            );
+          })}
+        </div>
 
-          <div className="info-feature-card">
-            <div className="info-feature-icon">💰</div>
-            <h3>Giving & Finances</h3>
-            <p>Track tithes, offerings, pledges, and generate detailed financial reports for full transparency.</p>
-          </div>
-
-          <div className="info-feature-card">
-            <div className="info-feature-icon">📅</div>
-            <h3>Event Registration</h3>
-            <p>Create, promote, and manage church events with online registration and automated reminders.</p>
-          </div>
-
-          <div className="info-feature-card">
-            <div className="info-feature-icon">🎙️</div>
-            <h3>Sermon Archives</h3>
-            <p>Upload, organize, and stream sermon recordings with searchable transcripts and notes.</p>
-          </div>
-
-          <div className="info-feature-card">
-            <div className="info-feature-icon">✅</div>
-            <h3>Governance & Approvals</h3>
-            <p>Streamline decision-making with role-based approval workflows and meeting management.</p>
-          </div>
-
-          <div className="info-feature-card">
-            <div className="info-feature-icon">📊</div>
-            <h3>Attendance Tracking</h3>
-            <p>Real-time check-in system for services, small groups, and special events with analytics.</p>
+        <div className="info-feature-card">
+          <div className="info-feature-card-content">
+            <div className="info-feature-card-left">
+              <div className={`info-feature-card-icon ${activeFeature.gradient}`}>
+                <activeFeature.icon className="info-feature-card-icon-svg" />
+              </div>
+              <h3 className="info-feature-card-title">{activeFeature.title}</h3>
+              <p className="info-feature-card-desc">{activeFeature.description}</p>
+            </div>
+            <div className="info-feature-card-right">
+              <h4 className="info-feature-card-benefits-title">Key Benefits</h4>
+              <ul className="info-feature-card-benefits-list">
+                {activeFeature.benefits.map((b) => (
+                  <li key={b} className="info-feature-card-benefit">
+                    <span className="info-feature-card-benefit-dot" />
+                    {b}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </div>
     </section>
   );
-};
-
-export default InfoFeatures;
+}

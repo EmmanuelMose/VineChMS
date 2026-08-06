@@ -1,14 +1,12 @@
-import './About.css';
+import "./About.css";
 
-const About = () => {
+export default function About() {
   return (
     <section className="about" id="hierarchy">
       <div className="about-container">
         <div className="about-header">
           <span className="about-tag">MULTI-TENANT ARCHITECTURE</span>
-          <h2 className="about-title">
-            Built for Every Level of Church Governance
-          </h2>
+          <h2 className="about-title">Built for Every Level of Church Governance</h2>
           <p className="about-subtitle">
             A hierarchical platform that scales from individual members to global dioceses,
             with role-based access at every level.
@@ -67,6 +65,4 @@ const About = () => {
       </div>
     </section>
   );
-};
-
-export default About;
+}

@@ -1,42 +1,93 @@
-import { useState } from 'react';
-import './Navbar.css';
+import { useState, useEffect } from "react";
+import { Menu, X, Church } from "lucide-react";
+import "./Navbar.css";
 
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const NAV_LINKS = [
+  { label: "Features", href: "#features" },
+  { label: "Services", href: "#services" },
+  { label: "Hierarchy", href: "#hierarchy" },
+  { label: "Contact", href: "#contact" },
+];
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
+export default function Navbar() {
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  const closeMenu = () => {
-    setIsOpen(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const handleNav = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    setOpen(false);
+    const el = document.querySelector(href);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <nav className="navbar">
+    <header className={`navbar ${scrolled ? "navbar-glass" : ""}`}>
       <div className="navbar-container">
-        <div className="navbar-logo">
-          <span className="logo-text">Vine<span className="logo-highlight">ChMS</span></span>
-        </div>
+        <a href="#" className="navbar-logo">
+          <div className="logo-icon-wrapper">
+            <Church className="logo-icon" />
+          </div>
+          <span className="logo-text">
+            Vine<span className="logo-highlight">ChMS</span>
+          </span>
+        </a>
 
-        <div className={`navbar-menu ${isOpen ? 'active' : ''}`}>
-          <ul className="navbar-links">
-            <li><a href="#features" className="nav-link" onClick={closeMenu}>Features</a></li>
-            <li><a href="#services" className="nav-link" onClick={closeMenu}>Services</a></li>
-            <li><a href="#hierarchy" className="nav-link" onClick={closeMenu}>Hierarchy</a></li>
-            <li><a href="#contact" className="nav-link" onClick={closeMenu}>Contact</a></li>
-          </ul>
-          <button className="btn-get-started" onClick={closeMenu}>Get Started</button>
-        </div>
+        <nav className="navbar-desktop">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={(e) => handleNav(e, link.href)}
+              className="nav-link"
+            >
+              {link.label}
+            </a>
+          ))}
+          <a
+            href="#contact"
+            onClick={(e) => handleNav(e, "#contact")}
+            className="btn-get-started"
+          >
+            Get Started
+          </a>
+        </nav>
 
-        <div className="navbar-toggle" onClick={toggleMenu}>
-          <span className={`hamburger ${isOpen ? 'active' : ''}`}></span>
-          <span className={`hamburger ${isOpen ? 'active' : ''}`}></span>
-          <span className={`hamburger ${isOpen ? 'active' : ''}`}></span>
+        <button
+          onClick={() => setOpen(!open)}
+          className="navbar-toggle"
+          aria-label={open ? "Close menu" : "Open menu"}
+        >
+          {open ? <X className="toggle-icon" /> : <Menu className="toggle-icon" />}
+        </button>
+      </div>
+
+      <div className={`mobile-menu ${open ? "mobile-menu-open" : ""}`}>
+        <div className="mobile-menu-content">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={(e) => handleNav(e, link.href)}
+              className="mobile-nav-link"
+            >
+              {link.label}
+            </a>
+          ))}
+          <a
+            href="#contact"
+            onClick={(e) => handleNav(e, "#contact")}
+            className="mobile-btn-get-started"
+          >
+            Get Started
+          </a>
         </div>
       </div>
-    </nav>
+    </header>
   );
-};
-
-export default Navbar;
+}

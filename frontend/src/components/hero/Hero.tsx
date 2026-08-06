@@ -1,55 +1,68 @@
-import './Hero.css';
+import { ArrowRight, Shield } from "lucide-react";
+import "./Hero.css";
 
-const Hero = () => {
+const STATS = [
+  { value: "12+", label: "Dioceses" },
+  { value: "340+", label: "Churches" },
+  { value: "99.9%", label: "Uptime" },
+  { value: "$4.2M", label: "Giving Tracked" },
+];
+
+export default function Hero() {
+  const scrollTo = (href: string) => {
+    const el = document.querySelector(href);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <section className="hero">
+      <div className="hero-bg-blob top-right" />
+      <div className="hero-bg-blob bottom-left" />
+
       <div className="hero-container">
-        <div className="hero-badge">
-          <span className="badge-dot"></span>
-          Trusted by 340+ Churches
-        </div>
-
-        <h1 className="hero-title">
-          Empowering{' '}
-          <span className="hero-highlight">Church</span>
-          <br />
-          Governance &amp; Dioceses
-        </h1>
-
-        <p className="hero-subtitle">
-          From local congregations to global dioceses — VineChMS unifies
-          member management, giving, events, and governance in one powerful platform.
-        </p>
-
-        <div className="hero-buttons">
-          <button className="btn-primary">Start Free Trial →</button>
-          <button className="btn-secondary">Explore Hierarchy</button>
-        </div>
-
-        <div className="hero-stats">
-          <div className="stat-item">
-            <span className="stat-number">12+</span>
-            <span className="stat-label">Dioceses</span>
+        <div className="hero-content">
+          <div className="hero-badge">
+            <Shield className="hero-badge-icon" />
+            <span>Trusted by 340+ Churches Worldwide</span>
           </div>
-          <div className="stat-divider"></div>
-          <div className="stat-item">
-            <span className="stat-number">340+</span>
-            <span className="stat-label">Churches</span>
+
+          <h1 className="hero-title">
+            Empowering Church
+            <br />
+            <span className="hero-title-gradient">Governance &amp; Dioceses</span>
+          </h1>
+
+          <p className="hero-subtitle">
+            All-in-one SaaS platform for church administration, member management,
+            giving, and multi-tenant hierarchy across dioceses and congregations.
+          </p>
+
+          <div className="hero-buttons">
+            <button
+              onClick={() => scrollTo("#contact")}
+              className="btn-primary"
+            >
+              Start Free Trial
+              <ArrowRight className="btn-icon" />
+            </button>
+            <button
+              onClick={() => scrollTo("#hierarchy")}
+              className="btn-secondary"
+            >
+              Explore Hierarchy
+            </button>
           </div>
-          <div className="stat-divider"></div>
-          <div className="stat-item">
-            <span className="stat-number">99.9%</span>
-            <span className="stat-label">Uptime</span>
-          </div>
-          <div className="stat-divider"></div>
-          <div className="stat-item">
-            <span className="stat-number">$4.2M</span>
-            <span className="stat-label">Giving Tracked</span>
+
+          <div className="hero-stats">
+            {STATS.map((stat) => (
+              <div key={stat.label} className="stat-item">
+                <span className="stat-number">{stat.value}</span>
+                <span className="stat-label">{stat.label}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
     </section>
   );
-};
-
-export default Hero;
+}

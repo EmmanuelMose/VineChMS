@@ -1,65 +1,122 @@
-import './Footer.css';
+import { Church, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
+import "./Footer.css";
 
-const Footer = () => {
+const SOLUTIONS = [
+  "Member Management",
+  "Giving & Finance",
+  "Event Scheduling",
+  "Media Archive",
+  "Communications",
+];
+
+const HIERARCHIES = [
+  "Diocese / Synod",
+  "Regional Admin",
+  "Local Church",
+  "Members",
+  "Multi-Tenant",
+];
+
+const RESOURCES = [
+  "Documentation",
+  "API Reference",
+  "Support Center",
+  "Community",
+  "Blog",
+];
+
+export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer-container">
         <div className="footer-top">
           <div className="footer-brand">
-            <span className="footer-logo">Vine<span>ChMS</span></span>
+            <a href="#" className="footer-logo-link">
+              <div className="footer-logo-icon">
+                <Church className="footer-logo-svg" />
+              </div>
+              <span className="footer-logo-text">
+                Vine<span className="footer-logo-highlight">ChMS</span>
+              </span>
+            </a>
             <p className="footer-description">
-              The comprehensive multi-tenant SaaS platform for church governance and management — serving churches, dioceses, and large organizations worldwide.
+              The all-in-one church management platform serving dioceses,
+              regional administrations, and local congregations worldwide.
             </p>
+            <div className="footer-contact">
+              <a href="mailto:hello@vinechms.com" className="footer-contact-link">
+                <Mail className="footer-contact-icon" />
+                hello@vinechms.com
+              </a>
+              <a href="tel:+1888555CHMS" className="footer-contact-link">
+                <Phone className="footer-contact-icon" />
+                +1 (888) 555-CHMS
+              </a>
+              <span className="footer-contact-link">
+                <MapPin className="footer-contact-icon" />
+                Atlanta, GA
+              </span>
+            </div>
           </div>
 
           <div className="footer-links">
             <div className="footer-column">
-              <h4>Solutions</h4>
-              <ul>
-                <li><a href="#">Member Management</a></li>
-                <li><a href="#">Giving & Finances</a></li>
-                <li><a href="#">Event Management</a></li>
-                <li><a href="#">Sermon Archives</a></li>
+              <h4 className="footer-column-title">Solutions</h4>
+              <ul className="footer-column-list">
+                {SOLUTIONS.map((s) => (
+                  <li key={s}>
+                    <a href="#" className="footer-column-link">
+                      <ChevronRight className="footer-column-link-icon" />
+                      {s}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
 
             <div className="footer-column">
-              <h4>Hierarchies</h4>
-              <ul>
-                <li><a href="#">Dioceses</a></li>
-                <li><a href="#">Organizations</a></li>
-                <li><a href="#">Churches</a></li>
-                <li><a href="#">Members</a></li>
+              <h4 className="footer-column-title">Hierarchies</h4>
+              <ul className="footer-column-list">
+                {HIERARCHIES.map((h) => (
+                  <li key={h}>
+                    <a href="#hierarchy" className="footer-column-link">
+                      <ChevronRight className="footer-column-link-icon" />
+                      {h}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
 
             <div className="footer-column">
-              <h4>Resources</h4>
-              <ul>
-                <li><a href="#">Documentation</a></li>
-                <li><a href="#">API Reference</a></li>
-                <li><a href="#">Support Center</a></li>
-                <li><a href="#">Community</a></li>
+              <h4 className="footer-column-title">Resources</h4>
+              <ul className="footer-column-list">
+                {RESOURCES.map((r) => (
+                  <li key={r}>
+                    <a href="#" className="footer-column-link">
+                      <ChevronRight className="footer-column-link-icon" />
+                      {r}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
         </div>
 
+        <div className="footer-divider" />
+
         <div className="footer-bottom">
-          <div className="footer-contact">
-            <span>hello@vinechms.com</span>
-            <span className="footer-divider">|</span>
-            <span>+1 (888) 555-CHMS</span>
-            <span className="footer-divider">|</span>
-            <span>Atlanta, GA</span>
-          </div>
-          <div className="footer-copy">
-            &copy; 2026 VineChMS. All rights reserved.
+          <p className="footer-copyright">
+            &copy; {new Date().getFullYear()} VineChMS. All rights reserved.
+          </p>
+          <div className="footer-legal">
+            <a href="#" className="footer-legal-link">Privacy Policy</a>
+            <a href="#" className="footer-legal-link">Terms of Service</a>
+            <a href="#" className="footer-legal-link">Cookie Policy</a>
           </div>
         </div>
       </div>
     </footer>
   );
-};
-
-export default Footer;
+}

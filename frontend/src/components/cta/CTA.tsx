@@ -1,27 +1,47 @@
-import './CTA.css';
+import { ArrowRight, Shield, Check } from "lucide-react";
+import "./CTA.css";
 
-const CTA = () => {
+export default function CTA() {
   return (
-    <section className="cta" id="pricing">
+    <section className="cta" id="contact">
+      <div className="cta-gradient" />
+      <div className="cta-blob top-right" />
+      <div className="cta-blob bottom-left" />
+
       <div className="cta-container">
-        <div className="cta-content">
-          <h2 className="cta-title">
-            Get Started Today
-          </h2>
-          <p className="cta-subtitle">
-            Ready to Transform Your Church Management?
-          </p>
-          <p className="cta-description">
-            Join 340+ churches already using VineChMS. Start your free trial today — no credit card required.
-          </p>
-          <div className="cta-buttons">
-            <button className="cta-btn-primary">Start Free Trial →</button>
-            <button className="cta-btn-secondary">Watch Demo</button>
-          </div>
+        <h2 className="cta-title">
+          Ready to Transform Your
+          <br />
+          <span className="cta-title-highlight">Church Management?</span>
+        </h2>
+        <p className="cta-subtitle">
+          Join 340+ churches already using VineChMS to streamline operations,
+          engage members, and grow their community.
+        </p>
+
+        <div className="cta-form">
+          <input type="email" placeholder="Enter your email" className="cta-input" />
+          <button className="cta-button">
+            Start Free Trial
+            <ArrowRight className="cta-button-icon" />
+          </button>
+        </div>
+
+        <div className="cta-trust-badges">
+          <span className="cta-badge">
+            <Shield className="cta-badge-icon" />
+            SOC 2 Compliant
+          </span>
+          <span className="cta-badge">
+            <Check className="cta-badge-icon" />
+            No credit card required
+          </span>
+          <span className="cta-badge">
+            <Check className="cta-badge-icon" />
+            14-day free trial
+          </span>
         </div>
       </div>
     </section>
   );
-};
-
-export default CTA;
+}

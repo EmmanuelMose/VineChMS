@@ -15,8 +15,8 @@
 
 .about-tag {
   display: inline-block;
-  background: rgba(79, 70, 229, 0.1);
-  color: #4f46e5;
+  background: rgba(46, 125, 50, 0.08);
+  color: #2E7D32;
   padding: 0.4rem 1.2rem;
   border-radius: 50px;
   font-size: 0.8rem;
@@ -52,13 +52,13 @@
   padding: 2rem 1.5rem;
   border-radius: 16px;
   transition: all 0.4s ease;
-  border: 1px solid rgba(79, 70, 229, 0.06);
+  border: 1px solid rgba(46, 125, 50, 0.06);
 }
 
 .about-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 60px rgba(79, 70, 229, 0.12);
-  border-color: rgba(79, 70, 229, 0.15);
+  box-shadow: 0 20px 60px rgba(46, 125, 50, 0.12);
+  border-color: rgba(46, 125, 50, 0.15);
 }
 
 .about-card-icon {
@@ -74,7 +74,7 @@
 
 .about-card-sub {
   font-size: 0.85rem;
-  color: #4f46e5;
+  color: #2E7D32;
   font-weight: 500;
   margin-bottom: 1rem;
 }
@@ -97,7 +97,7 @@
   content: '✓';
   position: absolute;
   left: 0;
-  color: #4f46e5;
+  color: #2E7D32;
   font-weight: 700;
 }
 
