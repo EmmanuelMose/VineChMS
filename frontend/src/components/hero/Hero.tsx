@@ -30,23 +30,25 @@ export default function Hero() {
 
       <div className="hero-container">
         <div className="hero-content">
-          <div className="hero-badge animate-fade-up">
-            <Shield className="hero-badge-icon" />
-            <span>Trusted by 340+ Churches Worldwide</span>
+          <div className="hero-badge-wrapper">
+            <div className="hero-badge">
+              <Shield className="hero-badge-icon" />
+              <span>Trusted by 340+ Churches Worldwide</span>
+            </div>
           </div>
 
-          <h1 className="hero-title animate-fade-up-delay">
+          <h1 className="hero-title">
             Empowering Church
             <br />
             <span className="hero-title-gradient">Governance &amp; Dioceses</span>
           </h1>
 
-          <p className="hero-subtitle animate-fade-up-delay-2">
+          <p className="hero-subtitle">
             All-in-one SaaS platform for church administration, member management,
             giving, and multi-tenant hierarchy across dioceses and congregations.
           </p>
 
-          <div className="hero-buttons animate-fade-up-delay-3">
+          <div className="hero-buttons">
             <button onClick={() => scrollTo("#contact")} className="btn-primary">
               Start Free Trial
               <ArrowRight className="btn-icon" />
@@ -56,7 +58,7 @@ export default function Hero() {
             </button>
           </div>
 
-          <div className="hero-stats animate-fade-up-delay-4">
+          <div className="hero-stats">
             {STATS.map((stat) => (
               <div key={stat.label} className="stat-item">
                 <span className="stat-number">{stat.value}</span>
