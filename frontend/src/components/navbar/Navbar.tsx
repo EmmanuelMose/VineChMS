@@ -54,14 +54,15 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
-          <a
-            href="#contact"
-            onClick={(e) => handleNav(e, "#contact")}
-            className="btn-get-started"
-          >
-            Get Started
-          </a>
         </nav>
+
+        <a
+          href="#contact"
+          onClick={(e) => handleNav(e, "#contact")}
+          className="btn-get-started"
+        >
+          Get Started
+        </a>
 
         <button
           onClick={() => setOpen(!open)}

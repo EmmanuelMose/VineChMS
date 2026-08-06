@@ -38,6 +38,7 @@
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
+  margin-left: 5px;
 }
 
 .logo-icon-wrapper {
@@ -86,6 +87,9 @@
   display: none;
   align-items: center;
   gap: 1.5rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .nav-link {
@@ -142,6 +146,7 @@
   letter-spacing: 0.02em;
   border: none;
   cursor: pointer;
+  margin-right: 5px;
 }
 
 .btn-get-started:hover {
@@ -242,6 +247,9 @@
 @media (min-width: 768px) {
   .navbar-desktop {
     display: flex;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
   }
   .navbar-toggle {
     display: none;
@@ -251,6 +259,7 @@
   }
   .navbar-container {
     height: 60px;
+    position: relative;
   }
 }
 
