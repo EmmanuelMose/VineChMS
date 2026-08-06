@@ -5,8 +5,10 @@ export default function Services() {
     <section className="services" id="services">
       <div className="services-container">
         <div className="services-header">
-          <span className="services-tag">WHAT WE OFFER</span>
-          <h2 className="services-title">Comprehensive Church Management Services</h2>
+          <span className="services-tag">What We Offer</span>
+          <h2 className="services-title">
+            Comprehensive <span className="services-title-highlight">Church Management</span> Services
+          </h2>
           <p className="services-subtitle">
             VineChMS provides everything you need to manage your church efficiently and effectively.
           </p>

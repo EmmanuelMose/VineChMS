@@ -1,4 +1,4 @@
-import { ArrowRight, Shield, Check } from "lucide-react";
+import { ArrowRight, Shield, Check, Sparkles } from "lucide-react";
 import "./CTA.css";
 
 export default function CTA() {
@@ -9,6 +9,11 @@ export default function CTA() {
       <div className="cta-blob bottom-left" />
 
       <div className="cta-container">
+        <div className="cta-badge animate-cta">
+          <Sparkles className="cta-badge-icon" />
+          <span>Start your 14-day free trial</span>
+        </div>
+
         <h2 className="cta-title">
           Ready to Transform Your
           <br />

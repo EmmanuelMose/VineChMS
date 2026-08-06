@@ -1,13 +1,23 @@
 import { useState } from "react";
-import { Users, Wallet, Calendar, Mic, MessageSquare } from "lucide-react";
+import { Users, Wallet, Calendar, Mic, MessageSquare, type LucideIcon } from "lucide-react";
 import "./InfoFeatures.css";
 
-const FEATURES = [
+interface Feature {
+  id: string;
+  icon: LucideIcon;
+  label: string;
+  title: string;
+  description: string;
+  benefits: string[];
+  color: string;
+}
+
+const FEATURES: Feature[] = [
   {
     id: "directory",
     icon: Users,
     label: "Directory",
-    title: "Member Directory & Directory Management",
+    title: "Member Directory & Management",
     description:
       "Comprehensive member profiles with contact details, family groups, attendance history, and role-based access controls.",
     benefits: [
@@ -16,7 +26,7 @@ const FEATURES = [
       "Attendance & engagement tracking",
       "Role-based permissions",
     ],
-    gradient: "from-blue-900 to-blue-600",
+    color: "#1565C0",
   },
   {
     id: "giving",
@@ -31,7 +41,7 @@ const FEATURES = [
       "Expense approval workflows",
       "Multi-entity financial reports",
     ],
-    gradient: "from-emerald-600 to-emerald-400",
+    color: "#2E7D32",
   },
   {
     id: "events",
@@ -46,7 +56,7 @@ const FEATURES = [
       "Volunteer sign-ups & coordination",
       "Calendar sync & reminders",
     ],
-    gradient: "from-blue-700 to-blue-500",
+    color: "#1565C0",
   },
   {
     id: "media",
@@ -61,12 +71,12 @@ const FEATURES = [
       "Multi-format media support",
       "Embedded player & sharing",
     ],
-    gradient: "from-emerald-500 to-green-400",
+    color: "#2E7D32",
   },
   {
     id: "comms",
     icon: MessageSquare,
-    label: "Communications",
+    label: "Comms",
     title: "Communications & SMS Broadcast",
     description:
       "Engage your congregation with email newsletters, SMS broadcasts, push notifications, and in-app messaging.",
@@ -76,12 +86,12 @@ const FEATURES = [
       "Push notifications",
       "Segment-based targeting",
     ],
-    gradient: "from-blue-800 to-blue-600",
+    color: "#1565C0",
   },
 ];
 
 export default function InfoFeatures() {
-  const [activeTab, setActiveTab] = useState(FEATURES[0].id);
+  const [activeTab, setActiveTab] = useState<string>(FEATURES[0].id);
   const activeFeature = FEATURES.find((f) => f.id === activeTab) || FEATURES[0];
 
   return (
@@ -109,8 +119,9 @@ export default function InfoFeatures() {
                 key={feature.id}
                 onClick={() => setActiveTab(feature.id)}
                 className={`info-tab ${isActive ? "info-tab-active" : ""}`}
+                style={isActive ? { borderColor: feature.color, color: feature.color } : {}}
               >
-                <Icon className="info-tab-icon" />
+                <Icon className="info-tab-icon" style={isActive ? { color: feature.color } : {}} />
                 {feature.label}
               </button>
             );
@@ -120,7 +131,10 @@ export default function InfoFeatures() {
         <div className="info-feature-card">
           <div className="info-feature-card-content">
             <div className="info-feature-card-left">
-              <div className={`info-feature-card-icon ${activeFeature.gradient}`}>
+              <div
+                className="info-feature-card-icon"
+                style={{ background: `linear-gradient(135deg, ${activeFeature.color}, ${activeFeature.color}dd)` }}
+              >
                 <activeFeature.icon className="info-feature-card-icon-svg" />
               </div>
               <h3 className="info-feature-card-title">{activeFeature.title}</h3>
@@ -131,7 +145,7 @@ export default function InfoFeatures() {
               <ul className="info-feature-card-benefits-list">
                 {activeFeature.benefits.map((b) => (
                   <li key={b} className="info-feature-card-benefit">
-                    <span className="info-feature-card-benefit-dot" />
+                    <span className="info-feature-card-benefit-dot" style={{ background: activeFeature.color }} />
                     {b}
                   </li>
                 ))}

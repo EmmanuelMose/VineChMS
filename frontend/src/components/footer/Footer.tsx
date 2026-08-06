@@ -1,7 +1,7 @@
 import { Church, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
 import "./Footer.css";
 
-const SOLUTIONS = [
+const SOLUTIONS: string[] = [
   "Member Management",
   "Giving & Finance",
   "Event Scheduling",
@@ -9,7 +9,7 @@ const SOLUTIONS = [
   "Communications",
 ];
 
-const HIERARCHIES = [
+const HIERARCHIES: string[] = [
   "Diocese / Synod",
   "Regional Admin",
   "Local Church",
@@ -17,7 +17,7 @@ const HIERARCHIES = [
   "Multi-Tenant",
 ];
 
-const RESOURCES = [
+const RESOURCES: string[] = [
   "Documentation",
   "API Reference",
   "Support Center",

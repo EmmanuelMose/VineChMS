@@ -1,82 +1,115 @@
 .about {
-  padding: 5rem 2rem;
-  background: #ffffff;
+  padding: 5rem 1.5rem;
+  background: #fafcfa;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.about::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -20%;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: rgba(46, 125, 50, 0.03);
+  filter: blur(60px);
+  pointer-events: none;
 }
 
 .about-container {
   max-width: 1200px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .about-header {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 3.5rem;
 }
 
 .about-tag {
   display: inline-block;
   background: rgba(46, 125, 50, 0.08);
   color: #2E7D32;
-  padding: 0.4rem 1.2rem;
+  padding: 0.3rem 1.1rem;
   border-radius: 50px;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid rgba(46, 125, 50, 0.1);
 }
 
 .about-title {
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1.8rem, 3.6vw, 2.8rem);
   font-weight: 700;
-  color: #1a1a2e;
-  margin-bottom: 1rem;
+  color: #111827;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.about-title-highlight {
+  color: #2E7D32;
 }
 
 .about-subtitle {
-  font-size: 1.1rem;
-  color: #4a4a6a;
-  max-width: 650px;
+  font-size: 1.05rem;
+  color: #4b5563;
+  max-width: 640px;
   margin: 0 auto;
   line-height: 1.7;
 }
 
 .about-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
 }
 
 .about-card {
-  background: #f8faff;
-  padding: 2rem 1.5rem;
+  background: #ffffff;
+  padding: 1.75rem 1.5rem;
   border-radius: 16px;
-  transition: all 0.4s ease;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid rgba(46, 125, 50, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
 }
 
 .about-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 60px rgba(46, 125, 50, 0.12);
-  border-color: rgba(46, 125, 50, 0.15);
+  box-shadow: 0 20px 48px rgba(46, 125, 50, 0.12), 0 4px 16px rgba(46, 125, 50, 0.04);
+  border-color: rgba(46, 125, 50, 0.12);
 }
 
 .about-card-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2.2rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.about-card:hover .about-card-icon {
+  transform: scale(1.08) rotate(-2deg);
 }
 
 .about-card h3 {
-  font-size: 1.2rem;
-  color: #1a1a2e;
-  margin-bottom: 0.2rem;
+  font-size: 1.1rem;
+  color: #111827;
+  margin-bottom: 0.1rem;
+  font-weight: 600;
 }
 
 .about-card-sub {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: #2E7D32;
   font-weight: 500;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.02em;
 }
 
 .about-card-list {
@@ -86,11 +119,12 @@
 }
 
 .about-card-list li {
-  padding: 0.4rem 0;
-  color: #4a4a6a;
-  font-size: 0.95rem;
+  padding: 0.3rem 0;
+  color: #4b5563;
+  font-size: 0.9rem;
   position: relative;
-  padding-left: 1.5rem;
+  padding-left: 1.4rem;
+  transition: color 0.2s;
 }
 
 .about-card-list li::before {
@@ -99,14 +133,27 @@
   left: 0;
   color: #2E7D32;
   font-weight: 700;
+  font-size: 0.85rem;
+  transition: transform 0.2s;
+}
+
+.about-card:hover .about-card-list li::before {
+  transform: scale(1.2);
+}
+
+.about-card:hover .about-card-list li {
+  color: #1f2937;
 }
 
 @media (max-width: 768px) {
   .about {
-    padding: 3rem 1.5rem;
+    padding: 3rem 1rem;
   }
-
   .about-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .about-card {
+    padding: 1.5rem 1.25rem;
   }
 }

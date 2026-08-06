@@ -5,8 +5,10 @@ export default function About() {
     <section className="about" id="hierarchy">
       <div className="about-container">
         <div className="about-header">
-          <span className="about-tag">MULTI-TENANT ARCHITECTURE</span>
-          <h2 className="about-title">Built for Every Level of Church Governance</h2>
+          <span className="about-tag">Multi-Tenant Architecture</span>
+          <h2 className="about-title">
+            Built for Every Level of <span className="about-title-highlight">Church Governance</span>
+          </h2>
           <p className="about-subtitle">
             A hierarchical platform that scales from individual members to global dioceses,
             with role-based access at every level.
