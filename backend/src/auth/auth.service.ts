@@ -68,7 +68,7 @@ export const createMemberAndInviteService = async (
   const invitationToken = generateCode() + generateCode() + generateCode();
   const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-  if (memberRoles.includes(role) && churchId) {
+  if (churchId) {
     const membershipNumber = generateMembershipNumber(churchId);
     
     const memberData = {
@@ -202,7 +202,7 @@ export const registerService = async (
     userId = newUser.userId;
   }
 
-  if (memberRoles.includes(unregisteredUser.role) && unregisteredUser.churchId) {
+  if (unregisteredUser.churchId) {
     const membershipNumber = generateMembershipNumber(unregisteredUser.churchId);
     
     const existingMember = await db.query.members.findFirst({

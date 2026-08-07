@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { FiX } from "react-icons/fi";
 import { updatePrayerRequest, type PrayerRequest } from "../../../../Features/prayer/PrayerAPI";
-import { type Member } from "../../../../Features/members/membersAPI";
 import "./UpdatePrayerRequest.css";
 
 interface UpdatePrayerRequestProps {
@@ -10,7 +9,6 @@ interface UpdatePrayerRequestProps {
   onClose: () => void;
   onSuccess: () => void;
   prayer: PrayerRequest;
-  members: Member[];
 }
 
 export default function UpdatePrayerRequest({ isOpen, onClose, onSuccess, prayer }: UpdatePrayerRequestProps) {

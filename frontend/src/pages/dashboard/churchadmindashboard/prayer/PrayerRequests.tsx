@@ -36,8 +36,7 @@ export default function PrayerRequests() {
         fetchPrayerRequests(token),
         fetchMembers(token),
       ]);
-      const filtered = prayersData.filter(p => p.churchId === churchId);
-      setPrayerRequests(filtered);
+      setPrayerRequests(prayersData);
       setMembers(membersData);
     } catch (error) {
       console.error("Failed to load data:", error);
@@ -314,7 +313,6 @@ export default function PrayerRequests() {
         onClose={() => setCreateModalOpen(false)}
         onSuccess={handleSuccess}
         churchId={churchId}
-        members={members}
       />
 
       {selectedPrayer && (
@@ -326,7 +324,6 @@ export default function PrayerRequests() {
           }}
           onSuccess={handleSuccess}
           prayer={selectedPrayer}
-          members={members}
         />
       )}
     </div>

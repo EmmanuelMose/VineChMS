@@ -1,6 +1,35 @@
 import db from "../Drizzle/db";
 import { prayerRequests, prayerInteractions, members, users } from "../Drizzle/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and } from "drizzle-orm";
+
+export const getOrCreateMember = async (userId: number, churchId: number): Promise<number> => {
+  const [existing] = await db
+    .select({ memberId: members.memberId })
+    .from(members)
+    .where(and(eq(members.userId, userId), eq(members.churchId, churchId)));
+
+  if (existing) return existing.memberId;
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.userId, userId),
+  });
+
+  if (!user) throw new Error("User not found");
+
+  const [newMember] = await db
+    .insert(members)
+    .values({
+      userId: user.userId,
+      email: user.email,
+      fullName: user.fullName,
+      churchId: churchId,
+      role: user.role,
+      isActive: true,
+    })
+    .returning({ memberId: members.memberId });
+
+  return newMember.memberId;
+};
 
 export const createPrayerRequestService = async (data: any) => {
   const [result] = await db
@@ -23,6 +52,8 @@ export const getPrayerRequestsByChurchService = async (churchId: number) => {
   return await db
     .select({
       prayerRequestId: prayerRequests.prayerRequestId,
+      churchId: prayerRequests.churchId,
+      memberId: prayerRequests.memberId,
       title: prayerRequests.title,
       description: prayerRequests.description,
       fullName: users.fullName,

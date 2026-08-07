@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useSelector } from "react-redux";
 import { FiX } from "react-icons/fi";
 import { createPrayerRequest } from "../../../../Features/prayer/PrayerAPI";
-import { type Member } from "../../../../Features/members/membersAPI";
 import "./CreatePrayerRequest.css";
 
 interface CreatePrayerRequestProps {
@@ -10,12 +9,10 @@ interface CreatePrayerRequestProps {
   onClose: () => void;
   onSuccess: () => void;
   churchId?: number;
-  members: Member[];
 }
 
 export default function CreatePrayerRequest({ isOpen, onClose, onSuccess, churchId }: CreatePrayerRequestProps) {
   const token = useSelector((state: any) => state.user.token);
-  const userId = useSelector((state: any) => state.user.user?.userId);
   
   const [formData, setFormData] = useState({
     title: "",
@@ -34,13 +31,13 @@ export default function CreatePrayerRequest({ isOpen, onClose, onSuccess, church
 
     try {
       await createPrayerRequest({
-        churchId: Number(churchId),
-        memberId: Number(userId),
-        title: formData.title,
-        description: formData.description,
-        status: formData.status,
-        visibility: formData.visibility,
-        image: formData.image || undefined,
+          churchId: Number(churchId),
+          title: formData.title,
+          description: formData.description,
+          status: formData.status,
+          visibility: formData.visibility,
+          image: formData.image || undefined,
+          memberId: 0
       }, token);
       
       setFormData({
