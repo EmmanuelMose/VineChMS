@@ -14,6 +14,7 @@ import Leaders from './pages/dashboard/churchadmindashboard/leaders/Leaders';
 import Services from './pages/dashboard/churchadmindashboard/services/Services';
 import Attendance from './pages/dashboard/churchadmindashboard/attendance/Attandance';
 import Events from './pages/dashboard/churchadmindashboard/events/Events';
+import Announcements from './pages/dashboard/churchadmindashboard/announcements/Announcements';
 import Settings from './pages/dashboard/churchadmindashboard/settings/Settings';
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
           <Route path="services" element={<Services />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="events" element={<Events />} />
+          <Route path="announcements" element={<Announcements />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 
