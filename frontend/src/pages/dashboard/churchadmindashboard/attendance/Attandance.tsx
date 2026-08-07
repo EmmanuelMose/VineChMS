@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { FiSearch, FiX, FiPlus, FiEdit2, FiTrash2, FiCheckCircle, FiXCircle, FiClock } from "react-icons/fi";
+import { FiSearch, FiX, FiPlus, FiEdit2, FiTrash2, FiCheckCircle, FiXCircle, FiCalendar, FiClock } from "react-icons/fi";
 import { fetchAttendance, deleteAttendance, type Attendance as AttendanceType } from "../../../../Features/attendance/attendanceAPI";
 import { fetchMembers, type Member } from "../../../../Features/members/membersAPI";
 import { fetchServices, type Service } from "../../../../Features/services/servicesAPI";
@@ -36,9 +36,7 @@ export default function Attendance() {
         fetchMembers(token),
         fetchServices(token),
       ]);
-      
-      const filteredAttendance = attendanceData.filter(a => a.churchId === churchId);
-      setAttendance(filteredAttendance);
+      setAttendance(attendanceData);
       setMembers(membersData);
       setServices(servicesData);
     } catch (error) {
@@ -151,8 +149,8 @@ export default function Attendance() {
         </div>
         <div className="attendance-actions">
           <button onClick={() => setCreateModalOpen(true)} className="attendance-btn-primary">
-            <FiPlus size={18} />
-            Record Attendance
+            <FiPlus size={16} />
+            Add Record
           </button>
         </div>
       </div>
@@ -263,10 +261,10 @@ export default function Attendance() {
                 <td>
                   <div className="attendance-actions-cell">
                     <button onClick={() => handleEdit(record)} className="attendance-action-btn attendance-action-edit" title="Edit">
-                      <FiEdit2 size={16} />
+                      <FiEdit2 size={15} />
                     </button>
                     <button onClick={() => handleDeleteClick(record.attendanceId)} className="attendance-action-btn attendance-action-delete" title="Delete">
-                      <FiTrash2 size={16} />
+                      <FiTrash2 size={15} />
                     </button>
                   </div>
                 </td>

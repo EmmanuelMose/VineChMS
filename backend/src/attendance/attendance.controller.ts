@@ -26,7 +26,8 @@ export const createAttendance = async (req: AuthRequest, res: Response) => {
 
 export const getAttendance = async (req: AuthRequest, res: Response) => {
   try {
-    const result = await getAttendanceService();
+    const churchId = req.user?.churchId;
+    const result = await getAttendanceService(churchId);
     res.json({ success: true, data: result });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });

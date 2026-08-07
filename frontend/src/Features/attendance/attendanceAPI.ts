@@ -2,7 +2,7 @@ import axios from "axios";
 import { ApiDomain } from "../../utils/APIDomain";
 
 export interface Attendance {
-  churchId: any;
+  churchId: number;
   attendanceId: number;
   memberId: number;
   serviceId: number;

@@ -3,7 +3,6 @@ import { attendance, members, users, services } from "../Drizzle/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 
 export const createAttendanceService = async (data: any) => {
-  // Get the raw pg pool from Drizzle
   const pool = db.$client;
   
   const query = `
@@ -38,17 +37,43 @@ export const createAttendanceService = async (data: any) => {
   return result.rows[0];
 };
 
-export const getAttendanceService = async () => {
+export const getAttendanceService = async (churchId?: number) => {
+  if (churchId) {
+    return await db
+      .select({
+        attendanceId: attendance.attendanceId,
+        memberId: attendance.memberId,
+        serviceId: attendance.serviceId,
+        date: attendance.date,
+        attended: attendance.attended,
+        checkInTime: attendance.checkInTime,
+        checkOutTime: attendance.checkOutTime,
+        notes: attendance.notes,
+        createdAt: attendance.createdAt,
+        fullName: users.fullName,
+        serviceName: services.name,
+        churchId: services.churchId,
+      })
+      .from(attendance)
+      .leftJoin(members, eq(attendance.memberId, members.memberId))
+      .leftJoin(users, eq(members.userId, users.userId))
+      .leftJoin(services, eq(attendance.serviceId, services.serviceId))
+      .where(eq(services.churchId, churchId))
+      .orderBy(desc(attendance.date));
+  }
   return await db
     .select({
       attendanceId: attendance.attendanceId,
       memberId: attendance.memberId,
-      fullName: users.fullName,
-      serviceName: services.name,
+      serviceId: attendance.serviceId,
       date: attendance.date,
       attended: attendance.attended,
       checkInTime: attendance.checkInTime,
       checkOutTime: attendance.checkOutTime,
+      notes: attendance.notes,
+      createdAt: attendance.createdAt,
+      fullName: users.fullName,
+      serviceName: services.name,
     })
     .from(attendance)
     .leftJoin(members, eq(attendance.memberId, members.memberId))
