@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { FiSearch, FiX, FiPlus, FiEdit2, FiTrash2, FiFilter } from "react-icons/fi";
 import { fetchGiving, deleteGiving, type Giving } from "../../../../Features/giving/givingAPI";
+import { fetchGivingCategories, type GivingCategory } from "../../../../Features/giving/givingAPI";
 import { fetchMembers, type Member } from "../../../../Features/members/membersAPI";
 import CreateGiving from "./CreateGiving";
 import UpdateGiving from "./UpdateGiving";
@@ -13,13 +14,14 @@ export default function Giving() {
   const churchId = useSelector((state: any) => state.user.user?.churchId);
   
   const [giving, setGiving] = useState<Giving[]>([]);
+  const [categories, setCategories] = useState<GivingCategory[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [selectedGiving, setSelectedGiving] = useState<Giving | null>(null);
-  const [filterType, setFilterType] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
@@ -32,12 +34,15 @@ export default function Giving() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [givingData, membersData] = await Promise.all([
+      const [givingData, categoriesData, membersData] = await Promise.all([
         fetchGiving(token),
+        fetchGivingCategories(token),
         fetchMembers(token),
       ]);
       const filteredGiving = givingData.filter(g => g.churchId === churchId);
+      const filteredCategories = categoriesData.filter(c => c.churchId === churchId);
       setGiving(filteredGiving);
+      setCategories(filteredCategories);
       setMembers(membersData);
     } catch (error) {
       console.error("Failed to load data:", error);
@@ -81,6 +86,12 @@ export default function Giving() {
     return member ? member.fullName : "Unknown";
   };
 
+  const getCategoryName = (categoryId?: number) => {
+    if (!categoryId) return "Uncategorized";
+    const cat = categories.find(c => c.categoryId === categoryId);
+    return cat ? cat.name : "Unknown";
+  };
+
   const formatCurrency = (amount: string) => {
     const num = parseFloat(amount);
     if (isNaN(num)) return "$0.00";
@@ -89,23 +100,26 @@ export default function Giving() {
 
   const filteredGiving = giving.filter(record => {
     const memberName = getMemberName(record.memberId).toLowerCase();
+    const categoryName = getCategoryName(record.categoryId).toLowerCase();
     const matchesSearch = 
       memberName.includes(searchTerm.toLowerCase()) ||
+      categoryName.includes(searchTerm.toLowerCase()) ||
       (record.notes || "").toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesType = filterType === "all" || record.type === filterType;
+    const matchesCategory = filterCategory === "all" || record.categoryId === parseInt(filterCategory);
     const matchesStatus = filterStatus === "all" || record.status === filterStatus;
     
-    return matchesSearch && matchesType && matchesStatus;
+    return matchesSearch && matchesCategory && matchesStatus;
   });
 
   const stats = {
     total: giving.reduce((sum, g) => sum + parseFloat(g.amount), 0),
-    tithes: giving.filter(g => g.type === "tithe").reduce((sum, g) => sum + parseFloat(g.amount), 0),
-    offerings: giving.filter(g => g.type === "offering").reduce((sum, g) => sum + parseFloat(g.amount), 0),
-    donations: giving.filter(g => g.type === "donation").reduce((sum, g) => sum + parseFloat(g.amount), 0),
-    special: giving.filter(g => g.type === "special").reduce((sum, g) => sum + parseFloat(g.amount), 0),
     count: giving.length,
+    categoryBreakdown: categories.map(cat => ({
+      name: cat.name,
+      total: giving.filter(g => g.categoryId === cat.categoryId).reduce((sum, g) => sum + parseFloat(g.amount), 0),
+      count: giving.filter(g => g.categoryId === cat.categoryId).length,
+    })),
   };
 
   if (loading) {
@@ -176,26 +190,16 @@ export default function Giving() {
           <span className="giving-stat-value">{formatCurrency(stats.total.toString())}</span>
           <span className="giving-stat-label">Total Giving</span>
         </div>
-        <div className="giving-stat-card stat-tithe">
-          <span className="giving-stat-value">{formatCurrency(stats.tithes.toString())}</span>
-          <span className="giving-stat-label">Tithes</span>
-        </div>
-        <div className="giving-stat-card stat-offering">
-          <span className="giving-stat-value">{formatCurrency(stats.offerings.toString())}</span>
-          <span className="giving-stat-label">Offerings</span>
-        </div>
-        <div className="giving-stat-card stat-donation">
-          <span className="giving-stat-value">{formatCurrency(stats.donations.toString())}</span>
-          <span className="giving-stat-label">Donations</span>
-        </div>
-        <div className="giving-stat-card stat-special">
-          <span className="giving-stat-value">{formatCurrency(stats.special.toString())}</span>
-          <span className="giving-stat-label">Special</span>
-        </div>
         <div className="giving-stat-card stat-count">
           <span className="giving-stat-value">{stats.count}</span>
           <span className="giving-stat-label">Total Records</span>
         </div>
+        {stats.categoryBreakdown.slice(0, 4).map((cat) => (
+          <div key={cat.name} className="giving-stat-card stat-category">
+            <span className="giving-stat-value">{formatCurrency(cat.total.toString())}</span>
+            <span className="giving-stat-label">{cat.name}</span>
+          </div>
+        ))}
       </div>
 
       <div className="giving-toolbar">
@@ -203,7 +207,7 @@ export default function Giving() {
           <FiSearch className="giving-search-icon" />
           <input
             type="text"
-            placeholder="Search by member or notes..."
+            placeholder="Search by member, category, or notes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="giving-search-input"
@@ -216,16 +220,16 @@ export default function Giving() {
         </div>
         <div className="giving-filters">
           <select 
-            value={filterType} 
-            onChange={(e) => setFilterType(e.target.value)}
+            value={filterCategory} 
+            onChange={(e) => setFilterCategory(e.target.value)}
             className="giving-filter-select"
           >
-            <option value="all">All Types</option>
-            <option value="tithe">Tithe</option>
-            <option value="offering">Offering</option>
-            <option value="donation">Donation</option>
-            <option value="special">Special</option>
-            <option value="pledge">Pledge</option>
+            <option value="all">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat.categoryId} value={cat.categoryId}>
+                {cat.name}
+              </option>
+            ))}
           </select>
           <select 
             value={filterStatus} 
@@ -246,7 +250,7 @@ export default function Giving() {
           <thead>
             <tr>
               <th>Member</th>
-              <th>Type</th>
+              <th>Category</th>
               <th>Amount</th>
               <th>Date</th>
               <th>Status</th>
@@ -266,8 +270,8 @@ export default function Giving() {
                   </div>
                 </td>
                 <td>
-                  <span className="giving-type-badge">
-                    {record.type}
+                  <span className="giving-category-badge">
+                    {getCategoryName(record.categoryId)}
                   </span>
                 </td>
                 <td className="giving-amount">{formatCurrency(record.amount)}</td>
@@ -307,6 +311,7 @@ export default function Giving() {
         onSuccess={handleSuccess}
         churchId={churchId}
         members={members}
+        categories={categories}
       />
 
       {selectedGiving && (
@@ -319,6 +324,7 @@ export default function Giving() {
           onSuccess={handleSuccess}
           giving={selectedGiving}
           members={members}
+          categories={categories}
         />
       )}
     </div>

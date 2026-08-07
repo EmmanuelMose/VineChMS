@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { FiX } from "react-icons/fi";
 import { updateGiving, type Giving } from "../../../../Features/giving/givingAPI";
 import { type Member } from "../../../../Features/members/membersAPI";
+import { type GivingCategory } from "../../../../Features/giving/givingAPI";
 import "./UpdateGiving.css";
 
 interface UpdateGivingProps {
@@ -11,14 +12,15 @@ interface UpdateGivingProps {
   onSuccess: () => void;
   giving: Giving;
   members: Member[];
+  categories: GivingCategory[];
 }
 
-export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, members }: UpdateGivingProps) {
+export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, members, categories }: UpdateGivingProps) {
   const token = useSelector((state: any) => state.user.token);
   
   const [formData, setFormData] = useState({
     memberId: "",
-    type: "offering",
+    categoryId: "",
     amount: "",
     date: "",
     paymentMethod: "",
@@ -34,7 +36,7 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
     if (giving) {
       setFormData({
         memberId: giving.memberId.toString(),
-        type: giving.type,
+        categoryId: giving.categoryId?.toString() || "",
         amount: giving.amount,
         date: giving.date.split("T")[0],
         paymentMethod: giving.paymentMethod || "",
@@ -54,7 +56,7 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
     try {
       await updateGiving(giving.givingId, {
         memberId: parseInt(formData.memberId),
-        type: formData.type,
+        categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
         amount: formData.amount,
         date: new Date(formData.date).toISOString(),
         paymentMethod: formData.paymentMethod || undefined,
@@ -72,6 +74,8 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
   };
 
   if (!isOpen) return null;
+
+  const availableCategories = categories.filter(c => c.isActive);
 
   return (
     <div className="update-giving-overlay" onClick={onClose}>
@@ -101,17 +105,18 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
 
           <div className="update-giving-row">
             <div className="update-giving-group">
-              <label>Type *</label>
+              <label>Category *</label>
               <select
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                value={formData.categoryId}
+                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                 required
               >
-                <option value="tithe">Tithe</option>
-                <option value="offering">Offering</option>
-                <option value="donation">Donation</option>
-                <option value="special">Special</option>
-                <option value="pledge">Pledge</option>
+                <option value="">Select category</option>
+                {availableCategories.map((cat) => (
+                  <option key={cat.categoryId} value={cat.categoryId}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="update-giving-group">

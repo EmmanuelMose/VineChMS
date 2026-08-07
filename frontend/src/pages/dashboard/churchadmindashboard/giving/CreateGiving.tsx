@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { FiX } from "react-icons/fi";
 import { createGiving } from "../../../../Features/giving/givingAPI";
 import { type Member } from "../../../../Features/members/membersAPI";
+import { type GivingCategory } from "../../../../Features/giving/givingAPI";
 import "./CreateGiving.css";
 
 interface CreateGivingProps {
@@ -11,14 +12,15 @@ interface CreateGivingProps {
   onSuccess: () => void;
   churchId?: number;
   members: Member[];
+  categories: GivingCategory[];
 }
 
-export default function CreateGiving({ isOpen, onClose, onSuccess, churchId, members }: CreateGivingProps) {
+export default function CreateGiving({ isOpen, onClose, onSuccess, churchId, members, categories }: CreateGivingProps) {
   const token = useSelector((state: any) => state.user.token);
   
   const [formData, setFormData] = useState({
     memberId: "",
-    type: "offering",
+    categoryId: "",
     amount: "",
     date: new Date().toISOString().split("T")[0],
     paymentMethod: "",
@@ -37,21 +39,22 @@ export default function CreateGiving({ isOpen, onClose, onSuccess, churchId, mem
 
     try {
       await createGiving({
-        memberId: parseInt(formData.memberId),
-        churchId: Number(churchId),
-        type: formData.type,
-        amount: formData.amount,
-        date: new Date(formData.date).toISOString(),
-        paymentMethod: formData.paymentMethod || undefined,
-        status: formData.status,
-        notes: formData.notes || undefined,
-        isAnonymous: formData.isAnonymous,
-        receiptNumber: formData.receiptNumber || undefined,
+          memberId: parseInt(formData.memberId),
+          churchId: Number(churchId),
+          categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
+          amount: formData.amount,
+          date: new Date(formData.date).toISOString(),
+          paymentMethod: formData.paymentMethod || undefined,
+          status: formData.status,
+          notes: formData.notes || undefined,
+          isAnonymous: formData.isAnonymous,
+          receiptNumber: formData.receiptNumber || undefined,
+          type: ""
       }, token);
       
       setFormData({
         memberId: "",
-        type: "offering",
+        categoryId: "",
         amount: "",
         date: new Date().toISOString().split("T")[0],
         paymentMethod: "",
@@ -71,6 +74,7 @@ export default function CreateGiving({ isOpen, onClose, onSuccess, churchId, mem
   if (!isOpen) return null;
 
   const availableMembers = members.filter(m => m.isActive && m.churchId === churchId);
+  const availableCategories = categories.filter(c => c.isActive);
 
   return (
     <div className="create-giving-overlay" onClick={onClose}>
@@ -100,17 +104,18 @@ export default function CreateGiving({ isOpen, onClose, onSuccess, churchId, mem
 
           <div className="create-giving-row">
             <div className="create-giving-group">
-              <label>Type *</label>
+              <label>Category *</label>
               <select
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                value={formData.categoryId}
+                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                 required
               >
-                <option value="tithe">Tithe</option>
-                <option value="offering">Offering</option>
-                <option value="donation">Donation</option>
-                <option value="special">Special</option>
-                <option value="pledge">Pledge</option>
+                <option value="">Select category</option>
+                {availableCategories.map((cat) => (
+                  <option key={cat.categoryId} value={cat.categoryId}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="create-giving-group">
