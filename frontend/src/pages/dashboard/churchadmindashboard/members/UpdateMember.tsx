@@ -32,7 +32,7 @@ export default function UpdateMember({ isOpen, onClose, onSuccess, member }: Upd
       setFormData({
         fullName: member.fullName,
         email: member.email,
-        role: member.role,
+        role: member.role === "church_admin" ? "church_member" : member.role,
         isActive: member.isActive,
         isBaptized: member.isBaptized || false,
         isConfirmed: member.isConfirmed || false,
@@ -99,7 +99,6 @@ export default function UpdateMember({ isOpen, onClose, onSuccess, member }: Upd
                 <option value="elder">Elder</option>
                 <option value="treasurer">Treasurer</option>
                 <option value="secretary">Secretary</option>
-                <option value="church_admin">Church Admin</option>
               </select>
             </div>
             <div className="update-member-group">
