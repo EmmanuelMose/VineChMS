@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import ChurchAdminDrawer from "./aside/ChurchAdminDrawer";
-import { FiMenu, FiX, FiUser, FiChevronDown, FiLogOut, FiSettings } from "react-icons/fi";
+import { FiMenu, FiX, FiUser, FiChevronDown, FiLogOut, FiSettings, FiAlertCircle } from "react-icons/fi";
 import { clearUser } from "../../../Features/userSlice";
 import "./ChurchAdminDashboard.css";
 
@@ -10,6 +10,7 @@ export default function ChurchAdminDashboard() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -24,11 +25,11 @@ export default function ChurchAdminDashboard() {
 
   const handleLogout = () => {
     dispatch(clearUser());
-    navigate("/auth/login");
+    navigate("/");
+    setShowLogoutModal(false);
   };
 
   const handleProfileClick = () => {
-    // Navigate to settings or profile page
     navigate("/dashboard/church-admin/settings");
     setIsProfileOpen(false);
   };
@@ -141,10 +142,10 @@ export default function ChurchAdminDashboard() {
                       setIsProfileOpen(false);
                     }}>
                       <FiSettings size={16} />
-                      <span>Settings</span>
+                      <span>Church Settings</span>
                     </div>
                     <div className="church-dashboard-dropdown-divider"></div>
-                    <div className="church-dashboard-dropdown-item logout-item" onClick={handleLogout}>
+                    <div className="church-dashboard-dropdown-item logout-item" onClick={() => setShowLogoutModal(true)}>
                       <FiLogOut size={16} />
                       <span>Log Out</span>
                     </div>
@@ -165,6 +166,32 @@ export default function ChurchAdminDashboard() {
           </div>
         </div>
       </div>
+
+      {showLogoutModal && (
+        <div className="logout-modal-overlay" onClick={() => setShowLogoutModal(false)}>
+          <div className="logout-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="logout-modal-icon">
+              <FiAlertCircle />
+            </div>
+            <h3>Are you sure you want to logout?</h3>
+            <p>You will be redirected to the home page. Any unsaved changes will be lost.</p>
+            <div className="logout-modal-actions">
+              <button 
+                className="logout-modal-cancel" 
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="logout-modal-confirm" 
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -21,10 +21,7 @@ import {
   type Member 
 } from "../../../../Features/members/membersAPI";
 import { 
-  fetchGivingTotal,
-  fetchGivingSummary,
-  type GivingSummary 
-} from "../../../../Features/giving/givingAPI";
+  fetchGivingTotal} from "../../../../Features/giving/givingAPI";
 import { 
   fetchLeadersSummary,
   fetchLeaders,
@@ -42,6 +39,7 @@ import {
   fetchChurches,
   type Church 
 } from "../../../../Features/churches/churchesAPI";
+import { fetchAttendance } from "../../../../Features/attendance/attendanceAPI";
 import "./ChurchAdminDashboardOverview.css";
 
 interface DashboardStats {
@@ -62,6 +60,8 @@ interface DashboardStats {
   totalEvents: number;
   upcomingEvents: number;
   memberGrowthRate: number;
+  totalServices: number;
+  activeServices: number;
 }
 
 export default function ChurchAdminDashboardOverview() {
@@ -88,12 +88,13 @@ export default function ChurchAdminDashboardOverview() {
     totalEvents: 0,
     upcomingEvents: 0,
     memberGrowthRate: 0,
+    totalServices: 0,
+    activeServices: 0,
   });
   const [recentMembers, setRecentMembers] = useState<Member[]>([]);
   const [recentLeaders, setRecentLeaders] = useState<Leader[]>([]);
   const [recentPrayerRequests, setRecentPrayerRequests] = useState<PrayerRequest[]>([]);
   const [upcomingEventsList, setUpcomingEventsList] = useState<Event[]>([]);
-  const [givingSummary, setGivingSummary] = useState<GivingSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState("");
 
@@ -116,19 +117,19 @@ export default function ChurchAdminDashboardOverview() {
           leaders,
           leadersSummary,
           givingTotal,
-          givingSummaryData,
           prayerRequests,
           events,
-          churchData
+          churchData,
+          attendanceData
         ] = await Promise.all([
           fetchMembers(token),
           fetchLeaders(token),
           fetchLeadersSummary(token),
           fetchGivingTotal(churchId, token),
-          fetchGivingSummary(churchId, token),
           fetchPrayerRequests(token),
           fetchEvents(token),
           fetchChurches(token),
+          fetchAttendance(token),
         ]);
 
         const activeMembers = members.filter((m) => m.isActive).length;
@@ -149,6 +150,8 @@ export default function ChurchAdminDashboardOverview() {
         const memberGrowthRate = members.length > 0 ? Math.round((newMembersThisMonth / members.length) * 100) : 0;
 
         const churchInfo = churchData.find((c) => c.churchId === churchId);
+        const totalServices = attendanceData.length;
+        const activeServices = attendanceData.filter(a => a.attended).length;
 
         setChurch(churchInfo || null);
         setStats({
@@ -169,13 +172,14 @@ export default function ChurchAdminDashboardOverview() {
           totalEvents: events.length,
           upcomingEvents,
           memberGrowthRate,
+          totalServices,
+          activeServices,
         });
 
         setRecentMembers(members.slice(0, 5));
         setRecentLeaders(leaders.slice(0, 5));
         setRecentPrayerRequests(prayerRequests.filter(p => p.status === "pending").slice(0, 5));
         setUpcomingEventsList(events.filter(e => new Date(e.startDate) > new Date()).slice(0, 5));
-        setGivingSummary(givingSummaryData);
 
       } catch (error) {
         console.error("Failed to load dashboard data:", error);
@@ -210,7 +214,7 @@ export default function ChurchAdminDashboardOverview() {
       icon: FiDollarSign,
       color: "green",
       trend: stats.givingGrowth,
-      detail: `${givingSummary.length} giving categories`,
+      detail: "Church finances",
     },
     {
       title: "Attendance Rate",
@@ -219,7 +223,7 @@ export default function ChurchAdminDashboardOverview() {
       icon: FiCalendar,
       color: "yellow",
       trend: 5,
-      detail: "Average attendance",
+      detail: `${stats.totalServices} services total`,
     },
     {
       title: "Leadership",
@@ -489,6 +493,10 @@ export default function ChurchAdminDashboardOverview() {
               <span className="dashboard-overview-stat-value">{stats.activeMembers}</span>
             </div>
             <div className="dashboard-overview-stat">
+              <span className="dashboard-overview-stat-label">Inactive Members</span>
+              <span className="dashboard-overview-stat-value">{stats.inactiveMembers}</span>
+            </div>
+            <div className="dashboard-overview-stat">
               <span className="dashboard-overview-stat-label">Leaders</span>
               <span className="dashboard-overview-stat-value">{stats.totalLeaders}</span>
             </div>
@@ -518,7 +526,7 @@ export default function ChurchAdminDashboardOverview() {
         <div className="dashboard-quick-stats">
           <div className="dashboard-quick-stat">
             <span className="dashboard-quick-stat-value">{stats.newMembersThisMonth}</span>
-            <span className="dashboard-quick-stat-label">New Members This Month</span>
+            <span className="dashboard-quick-stat-label">New Members</span>
           </div>
           <div className="dashboard-quick-stat">
             <span className="dashboard-quick-stat-value">{stats.upcomingEvents}</span>

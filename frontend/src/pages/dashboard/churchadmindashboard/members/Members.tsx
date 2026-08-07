@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { FiSearch, FiX, FiUserPlus } from "react-icons/fi";
-import { fetchMembers, deleteMember, type Member } from "../../../../Features/members/membersAPI";
+import { FiSearch, FiX, FiUserPlus, FiEdit2, FiTrash2, FiCheckCircle, FiXCircle } from "react-icons/fi";
+import { fetchMembers, deleteMember, updateMember, type Member } from "../../../../Features/members/membersAPI";
 import CreateMember from "./CreateMember";
 import UpdateMember from "./UpdateMember";
 import "./Members.css";
@@ -15,6 +15,10 @@ export default function Members() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusTarget, setStatusTarget] = useState<{ id: number; currentStatus: boolean } | null>(null);
 
   useEffect(() => {
     loadMembers();
@@ -32,13 +36,38 @@ export default function Members() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm("Are you sure you want to delete this member?")) {
+  const handleDeleteClick = (id: number) => {
+    setDeleteTargetId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteTargetId) {
       try {
-        await deleteMember(id, token);
+        await deleteMember(deleteTargetId, token);
         await loadMembers();
+        setShowDeleteModal(false);
+        setDeleteTargetId(null);
       } catch (error) {
         console.error("Failed to delete member:", error);
+      }
+    }
+  };
+
+  const handleToggleStatus = (member: Member) => {
+    setStatusTarget({ id: member.memberId, currentStatus: member.isActive });
+    setShowStatusModal(true);
+  };
+
+  const confirmStatusToggle = async () => {
+    if (statusTarget) {
+      try {
+        await updateMember(statusTarget.id, { isActive: !statusTarget.currentStatus }, token);
+        await loadMembers();
+        setShowStatusModal(false);
+        setStatusTarget(null);
+      } catch (error) {
+        console.error("Failed to update member status:", error);
       }
     }
   };
@@ -72,6 +101,60 @@ export default function Members() {
 
   return (
     <div className="members-page">
+      {showDeleteModal && (
+        <div className="members-modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="members-modal members-modal-confirm" onClick={(e) => e.stopPropagation()}>
+            <div className="members-modal-header">
+              <h3>Delete Member</h3>
+              <button onClick={() => setShowDeleteModal(false)} className="members-modal-close">
+                <FiX size={20} />
+              </button>
+            </div>
+            <div className="members-modal-body">
+              <p>Are you sure you want to permanently delete this member?</p>
+              <p className="members-modal-warning">This action cannot be undone. All associated data will be removed.</p>
+            </div>
+            <div className="members-modal-actions">
+              <button onClick={() => setShowDeleteModal(false)} className="members-btn-cancel">
+                Cancel
+              </button>
+              <button onClick={confirmDelete} className="members-btn-danger">
+                Delete Permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showStatusModal && (
+        <div className="members-modal-overlay" onClick={() => setShowStatusModal(false)}>
+          <div className="members-modal members-modal-confirm" onClick={(e) => e.stopPropagation()}>
+            <div className="members-modal-header">
+              <h3>{statusTarget?.currentStatus ? "Deactivate" : "Activate"} Member</h3>
+              <button onClick={() => setShowStatusModal(false)} className="members-modal-close">
+                <FiX size={20} />
+              </button>
+            </div>
+            <div className="members-modal-body">
+              <p>Are you sure you want to {statusTarget?.currentStatus ? "deactivate" : "activate"} this member?</p>
+              <p className="members-modal-info">
+                {statusTarget?.currentStatus 
+                  ? "Deactivated members will not be able to access the system until reactivated."
+                  : "Activated members will have full access to the system."}
+              </p>
+            </div>
+            <div className="members-modal-actions">
+              <button onClick={() => setShowStatusModal(false)} className="members-btn-cancel">
+                Cancel
+              </button>
+              <button onClick={confirmStatusToggle} className={`members-btn-${statusTarget?.currentStatus ? "warning" : "success"}`}>
+                {statusTarget?.currentStatus ? "Deactivate" : "Activate"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="members-header">
         <div>
           <h2 className="members-title">Members</h2>
@@ -104,6 +187,7 @@ export default function Members() {
         <div className="members-stats">
           <span>Total: {members.length}</span>
           <span>Active: {members.filter(m => m.isActive).length}</span>
+          <span>Inactive: {members.filter(m => !m.isActive).length}</span>
         </div>
       </div>
 
@@ -149,11 +233,14 @@ export default function Members() {
                 </td>
                 <td>
                   <div className="members-actions-cell">
-                    <button onClick={() => handleEdit(member)} className="members-action-btn members-action-edit">
-                      Edit
+                    <button onClick={() => handleEdit(member)} className="members-action-btn members-action-edit" title="Edit">
+                      <FiEdit2 size={16} />
                     </button>
-                    <button onClick={() => handleDelete(member.memberId)} className="members-action-btn members-action-delete">
-                      Delete
+                    <button onClick={() => handleToggleStatus(member)} className={`members-action-btn ${member.isActive ? "members-action-warning" : "members-action-success"}`} title={member.isActive ? "Deactivate" : "Activate"}>
+                      {member.isActive ? <FiXCircle size={16} /> : <FiCheckCircle size={16} />}
+                    </button>
+                    <button onClick={() => handleDeleteClick(member.memberId)} className="members-action-btn members-action-delete" title="Delete Permanently">
+                      <FiTrash2 size={16} />
                     </button>
                   </div>
                 </td>

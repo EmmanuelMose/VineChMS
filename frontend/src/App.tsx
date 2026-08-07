@@ -12,6 +12,7 @@ import ChurchAdminDashboardOverview from './pages/dashboard/churchadmindashboard
 import Members from './pages/dashboard/churchadmindashboard/members/Members';
 import Leaders from './pages/dashboard/churchadmindashboard/leaders/Leaders';
 import Services from './pages/dashboard/churchadmindashboard/services/Services';
+import Settings from './pages/dashboard/churchadmindashboard/settings/Settings';
 
 function App() {
   const token = useSelector((state: any) => state.user.token);
@@ -39,6 +40,7 @@ function App() {
           <Route path="members" element={<Members />} />
           <Route path="leaders" element={<Leaders />} />
           <Route path="services" element={<Services />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
