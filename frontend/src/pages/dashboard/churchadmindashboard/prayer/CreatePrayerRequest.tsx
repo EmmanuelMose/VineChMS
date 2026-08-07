@@ -1,0 +1,140 @@
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import { FiX } from "react-icons/fi";
+import { createPrayerRequest } from "../../../../Features/prayer/PrayerAPI";
+import { type Member } from "../../../../Features/members/membersAPI";
+import "./CreatePrayerRequest.css";
+
+interface CreatePrayerRequestProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  churchId?: number;
+  members: Member[];
+}
+
+export default function CreatePrayerRequest({ isOpen, onClose, onSuccess, churchId }: CreatePrayerRequestProps) {
+  const token = useSelector((state: any) => state.user.token);
+  const userId = useSelector((state: any) => state.user.user?.userId);
+  
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    status: "pending",
+    visibility: "public",
+    image: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      await createPrayerRequest({
+        churchId: Number(churchId),
+        memberId: Number(userId),
+        title: formData.title,
+        description: formData.description,
+        status: formData.status,
+        visibility: formData.visibility,
+        image: formData.image || undefined,
+      }, token);
+      
+      setFormData({
+        title: "",
+        description: "",
+        status: "pending",
+        visibility: "public",
+        image: "",
+      });
+      onSuccess();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to create prayer request");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="create-prayer-overlay" onClick={onClose}>
+      <div className="create-prayer-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="create-prayer-header">
+          <h3>New Prayer Request</h3>
+          <button onClick={onClose} className="create-prayer-close">
+            <FiX size={20} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="create-prayer-form">
+          <div className="create-prayer-group">
+            <label>Title *</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="Enter prayer request title"
+              required
+            />
+          </div>
+          <div className="create-prayer-group">
+            <label>Description *</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Describe the prayer request"
+              rows={4}
+              required
+            />
+          </div>
+          <div className="create-prayer-row">
+            <div className="create-prayer-group">
+              <label>Status</label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              >
+                <option value="pending">Pending</option>
+                <option value="praying">Praying</option>
+                <option value="answered">Answered</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+            <div className="create-prayer-group">
+              <label>Visibility</label>
+              <select
+                value={formData.visibility}
+                onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
+              >
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+                <option value="confidential">Confidential</option>
+              </select>
+            </div>
+          </div>
+          <div className="create-prayer-group">
+            <label>Image URL (Optional)</label>
+            <input
+              type="url"
+              value={formData.image}
+              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+              placeholder="https://example.com/image.jpg"
+            />
+          </div>
+          {error && <div className="create-prayer-error">{error}</div>}
+          <div className="create-prayer-actions">
+            <button type="button" onClick={onClose} className="create-prayer-cancel">
+              Cancel
+            </button>
+            <button type="submit" className="create-prayer-save" disabled={loading}>
+              {loading ? "Creating..." : "Create Prayer Request"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
