@@ -67,7 +67,6 @@ export default function UpdateLeader({ isOpen, onClose, onSuccess, leader, posit
 
   if (!isOpen) return null;
 
-
   return (
     <div className="update-leader-overlay" onClick={onClose}>
       <div className="update-leader-modal" onClick={(e) => e.stopPropagation()}>

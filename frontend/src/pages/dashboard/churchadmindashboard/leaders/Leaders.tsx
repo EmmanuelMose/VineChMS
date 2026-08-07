@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { FiSearch, FiX, FiUserPlus, FiCheckCircle, FiXCircle } from "react-icons/fi";
-import { fetchLeaders, deleteLeader, approveLeader, revokeLeaderApproval, type Leader } from "../../../../Features/leaders/leadersAPI";
+import { FiSearch, FiX, FiUserPlus, FiCheckCircle, FiXCircle, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { fetchLeaders, deleteLeader, approveLeader, revokeLeaderApproval, type Leader, updateLeader } from "../../../../Features/leaders/leadersAPI";
 import { fetchPositions, type Position } from "../../../../Features/positions/positionsAPI";
 import { fetchMembers, type Member } from "../../../../Features/members/membersAPI";
 import CreateLeader from "./CreateLeader";
@@ -20,6 +20,10 @@ export default function Leaders() {
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [selectedLeader, setSelectedLeader] = useState<Leader | null>(null);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusTarget, setStatusTarget] = useState<{ id: number; currentStatus: boolean } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -43,13 +47,38 @@ export default function Leaders() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm("Are you sure you want to delete this leader?")) {
+  const handleDeleteClick = (id: number) => {
+    setDeleteTargetId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteTargetId) {
       try {
-        await deleteLeader(id, token);
+        await deleteLeader(deleteTargetId, token);
         await loadData();
+        setShowDeleteModal(false);
+        setDeleteTargetId(null);
       } catch (error) {
         console.error("Failed to delete leader:", error);
+      }
+    }
+  };
+
+  const handleToggleStatus = (leader: Leader) => {
+    setStatusTarget({ id: leader.leaderId, currentStatus: leader.isActive });
+    setShowStatusModal(true);
+  };
+
+  const confirmStatusToggle = async () => {
+    if (statusTarget) {
+      try {
+        await updateLeader(statusTarget.id, { isActive: !statusTarget.currentStatus }, token);
+        await loadData();
+        setShowStatusModal(false);
+        setStatusTarget(null);
+      } catch (error) {
+        console.error("Failed to update leader status:", error);
       }
     }
   };
@@ -105,7 +134,6 @@ export default function Leaders() {
     return position ? position.name : "Unknown";
   };
 
-
   if (loading) {
     return (
       <div className="leaders-loading">
@@ -117,6 +145,60 @@ export default function Leaders() {
 
   return (
     <div className="leaders-page">
+      {showDeleteModal && (
+        <div className="leaders-modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="leaders-modal leaders-modal-confirm" onClick={(e) => e.stopPropagation()}>
+            <div className="leaders-modal-header">
+              <h3>Delete Leader</h3>
+              <button onClick={() => setShowDeleteModal(false)} className="leaders-modal-close">
+                <FiX size={20} />
+              </button>
+            </div>
+            <div className="leaders-modal-body">
+              <p>Are you sure you want to permanently delete this leader?</p>
+              <p className="leaders-modal-warning">This action cannot be undone. All associated data will be removed.</p>
+            </div>
+            <div className="leaders-modal-actions">
+              <button onClick={() => setShowDeleteModal(false)} className="leaders-btn-cancel">
+                Cancel
+              </button>
+              <button onClick={confirmDelete} className="leaders-btn-danger">
+                Delete Permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showStatusModal && (
+        <div className="leaders-modal-overlay" onClick={() => setShowStatusModal(false)}>
+          <div className="leaders-modal leaders-modal-confirm" onClick={(e) => e.stopPropagation()}>
+            <div className="leaders-modal-header">
+              <h3>{statusTarget?.currentStatus ? "Deactivate" : "Activate"} Leader</h3>
+              <button onClick={() => setShowStatusModal(false)} className="leaders-modal-close">
+                <FiX size={20} />
+              </button>
+            </div>
+            <div className="leaders-modal-body">
+              <p>Are you sure you want to {statusTarget?.currentStatus ? "deactivate" : "activate"} this leader?</p>
+              <p className="leaders-modal-info">
+                {statusTarget?.currentStatus 
+                  ? "Deactivated leaders will not be able to access leadership roles until reactivated."
+                  : "Activated leaders will have full access to their leadership roles."}
+              </p>
+            </div>
+            <div className="leaders-modal-actions">
+              <button onClick={() => setShowStatusModal(false)} className="leaders-btn-cancel">
+                Cancel
+              </button>
+              <button onClick={confirmStatusToggle} className={`leaders-btn-${statusTarget?.currentStatus ? "warning" : "success"}`}>
+                {statusTarget?.currentStatus ? "Deactivate" : "Activate"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="leaders-header">
         <div>
           <h2 className="leaders-title">Leaders</h2>
@@ -202,20 +284,23 @@ export default function Leaders() {
                 <td>
                   <div className="leaders-actions-cell">
                     {!leader.isApproved && leader.isActive && (
-                      <button onClick={() => handleApprove(leader.leaderId)} className="leaders-action-btn leaders-action-approve">
+                      <button onClick={() => handleApprove(leader.leaderId)} className="leaders-action-btn leaders-action-approve" title="Approve">
                         <FiCheckCircle size={16} />
                       </button>
                     )}
                     {leader.isApproved && (
-                      <button onClick={() => handleRevoke(leader.leaderId)} className="leaders-action-btn leaders-action-revoke">
+                      <button onClick={() => handleRevoke(leader.leaderId)} className="leaders-action-btn leaders-action-revoke" title="Revoke Approval">
                         <FiXCircle size={16} />
                       </button>
                     )}
-                    <button onClick={() => handleEdit(leader)} className="leaders-action-btn leaders-action-edit">
-                      Edit
+                    <button onClick={() => handleEdit(leader)} className="leaders-action-btn leaders-action-edit" title="Edit">
+                      <FiEdit2 size={16} />
                     </button>
-                    <button onClick={() => handleDelete(leader.leaderId)} className="leaders-action-btn leaders-action-delete">
-                      Delete
+                    <button onClick={() => handleToggleStatus(leader)} className={`leaders-action-btn ${leader.isActive ? "leaders-action-warning" : "leaders-action-success"}`} title={leader.isActive ? "Deactivate" : "Activate"}>
+                      {leader.isActive ? <FiXCircle size={16} /> : <FiCheckCircle size={16} />}
+                    </button>
+                    <button onClick={() => handleDeleteClick(leader.leaderId)} className="leaders-action-btn leaders-action-delete" title="Delete Permanently">
+                      <FiTrash2 size={16} />
                     </button>
                   </div>
                 </td>

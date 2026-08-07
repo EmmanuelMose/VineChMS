@@ -8,7 +8,6 @@ import {
   getLeadersByChurch,
   updateLeader,
   deleteLeader,
-  hardDeleteLeader,
   approveLeader,
   revokeApproval,
   getActiveLeaders,
@@ -24,7 +23,6 @@ leadersRouter.get("/", authenticate, getLeaders);
 leadersRouter.get("/:id", authenticate, getLeaderById);
 leadersRouter.put("/:id", authenticate, updateLeader);
 leadersRouter.delete("/:id", authenticate, deleteLeader);
-leadersRouter.delete("/:id/permanent", authenticate, authorize("super_admin", "large_org_admin"), hardDeleteLeader);
 
 leadersRouter.get("/member/:memberId", authenticate, getLeadersByMember);
 leadersRouter.get("/position/:positionId", authenticate, getLeadersByPosition);

@@ -199,23 +199,6 @@ export const updateLeaderService = async (id: number, data: any) => {
 
 export const deleteLeaderService = async (id: number) => {
   const [result] = await db
-    .update(leaders)
-    .set({
-      isActive: false,
-      updatedAt: new Date(),
-    })
-    .where(eq(leaders.leaderId, id))
-    .returning({ id: leaders.leaderId });
-
-  if (!result) {
-    throw new Error("Leader not found");
-  }
-
-  return result;
-};
-
-export const hardDeleteLeaderService = async (id: number) => {
-  const [result] = await db
     .delete(leaders)
     .where(eq(leaders.leaderId, id))
     .returning({ id: leaders.leaderId });

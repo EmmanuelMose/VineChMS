@@ -8,7 +8,6 @@ import {
   getLeadersByChurchService,
   updateLeaderService,
   deleteLeaderService,
-  hardDeleteLeaderService,
   approveLeaderService,
   revokeApprovalService,
   getActiveLeadersService,
@@ -89,17 +88,7 @@ export const deleteLeader = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     await deleteLeaderService(id);
-    res.json({ success: true, message: "Leader deactivated successfully" });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-};
-
-export const hardDeleteLeader = async (req: Request, res: Response) => {
-  try {
-    const id = parseInt(req.params.id);
-    await hardDeleteLeaderService(id);
-    res.json({ success: true, message: "Leader permanently deleted" });
+    res.json({ success: true, message: "Leader deleted successfully" });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
