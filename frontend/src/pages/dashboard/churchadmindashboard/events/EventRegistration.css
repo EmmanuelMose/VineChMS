@@ -1,0 +1,255 @@
+.registrations-page {
+  animation: fadeIn 0.4s ease;
+}
+
+.registrations-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.registrations-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.registrations-back-btn:hover {
+  background: #e5e7eb;
+}
+
+.registrations-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  flex: 1;
+}
+
+.registrations-count {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.registrations-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.registrations-search {
+  flex: 1;
+  max-width: 400px;
+}
+
+.registrations-search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.registrations-search-input:focus {
+  border-color: #2E7D32;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.registrations-filters {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.registrations-filter-select {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.85rem;
+  background: white;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.registrations-filter-select:focus {
+  border-color: #2E7D32;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.registrations-table-wrapper {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.registrations-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.registrations-table th {
+  padding: 0.6rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  background: #f8faf8;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.registrations-table td {
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.registrations-table tr:hover td {
+  background: #fafdfa;
+}
+
+.registrations-cell-member {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.registrations-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2E7D32, #1565C0);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.registrations-status-badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.status-attended {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.status-not-attended {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.registrations-actions-cell {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.registrations-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.registrations-action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.registrations-action-mark {
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.08);
+}
+
+.registrations-action-mark:hover {
+  background: rgba(22, 163, 74, 0.15);
+}
+
+.registrations-action-unmark {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.08);
+}
+
+.registrations-action-unmark:hover {
+  background: rgba(217, 119, 6, 0.15);
+}
+
+.registrations-action-delete {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.registrations-action-delete:hover {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.registrations-empty {
+  text-align: center;
+  padding: 3rem !important;
+  color: #9ca3af;
+}
+
+.registrations-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: 1rem;
+}
+
+.registrations-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid #e5e7eb;
+  border-top-color: #2E7D32;
+  animation: spin 0.8s linear infinite;
+}
+
+@media (max-width: 768px) {
+  .registrations-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .registrations-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .registrations-search {
+    max-width: none;
+  }
+  .registrations-table-wrapper {
+    overflow-x: auto;
+  }
+}

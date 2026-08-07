@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { FiSearch, FiX, FiPlus, FiEdit2, FiTrash2, FiCheckCircle, FiXCircle, FiCalendar, FiClock } from "react-icons/fi";
+import { FiSearch, FiX, FiPlus, FiEdit2, FiTrash2, FiCheckCircle, FiXCircle, FiClock } from "react-icons/fi";
 import { fetchAttendance, deleteAttendance, type Attendance as AttendanceType } from "../../../../Features/attendance/attendanceAPI";
 import { fetchMembers, type Member } from "../../../../Features/members/membersAPI";
 import { fetchServices, type Service } from "../../../../Features/services/servicesAPI";
@@ -10,7 +10,6 @@ import "./Attendance.css";
 
 export default function Attendance() {
   const token = useSelector((state: any) => state.user.token);
-  const churchId = useSelector((state: any) => state.user.user?.churchId);
   
   const [attendance, setAttendance] = useState<AttendanceType[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
