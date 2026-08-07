@@ -17,6 +17,7 @@ import Events from './pages/dashboard/churchadmindashboard/events/Events';
 import Announcements from './pages/dashboard/churchadmindashboard/announcements/Announcements';
 import PrayerRequests from './pages/dashboard/churchadmindashboard/prayer/PrayerRequests';
 import Giving from './pages/dashboard/churchadmindashboard/giving/Giving';
+import Expenses from './pages/dashboard/churchadmindashboard/expenses/Expenses';
 import Settings from './pages/dashboard/churchadmindashboard/settings/Settings';
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
           <Route path="announcements" element={<Announcements />} />
           <Route path="prayer" element={<PrayerRequests />} />
           <Route path="giving" element={<Giving />} />
+          <Route path="expenses" element={<Expenses />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 
