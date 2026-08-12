@@ -1,0 +1,607 @@
+.member-attendance-page {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.member-attendance-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.member-attendance-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.member-attendance-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0 0;
+}
+
+.member-attendance-add-btn {
+  padding: 0.6rem 1.5rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2E7D32, #1b5e20);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.2);
+}
+
+.member-attendance-add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(46, 125, 50, 0.3);
+}
+
+.member-attendance-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.member-attendance-stat {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+}
+
+.member-attendance-stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.member-attendance-stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.1rem;
+}
+
+.member-attendance-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: #f3f4f6;
+  padding: 0.25rem;
+  border-radius: 10px;
+}
+
+.member-attendance-tab {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.member-attendance-tab:hover {
+  color: #374151;
+}
+
+.member-attendance-tab.active {
+  background: white;
+  color: #2E7D32;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.member-attendance-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+}
+
+.member-attendance-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1 1 140px;
+  min-width: 120px;
+}
+
+.member-attendance-filter-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.member-attendance-filter-group input,
+.member-attendance-filter-group select {
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.9rem;
+  background: #fafbfa;
+  transition: all 0.3s ease;
+  outline: none;
+  width: 100%;
+}
+
+.member-attendance-filter-group input:focus,
+.member-attendance-filter-group select:focus {
+  border-color: #2E7D32;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.08);
+  background: white;
+}
+
+.member-attendance-clear-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.member-attendance-clear-btn:hover {
+  background: #e5e7eb;
+}
+
+.member-attendance-table-wrapper {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.member-attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.member-attendance-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  background: #f8faf8;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.member-attendance-table td {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.member-attendance-table tr:hover td {
+  background: #fafdfa;
+}
+
+.member-attendance-status {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-present {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.status-absent {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.member-attendance-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.member-attendance-action-edit {
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: rgba(21, 101, 192, 0.08);
+  color: #1565C0;
+  transition: all 0.3s ease;
+}
+
+.member-attendance-action-edit:hover {
+  background: rgba(21, 101, 192, 0.15);
+}
+
+.member-attendance-action-delete {
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+  transition: all 0.3s ease;
+}
+
+.member-attendance-action-delete:hover {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.member-attendance-action-toggle {
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.member-attendance-action-toggle.toggle-attended {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.member-attendance-action-toggle.toggle-attended:hover:not(:disabled) {
+  background: #bbf7d0;
+}
+
+.member-attendance-action-toggle.toggle-not-attended {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.member-attendance-action-toggle.toggle-not-attended:hover:not(:disabled) {
+  background: #fecaca;
+}
+
+.member-attendance-action-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.member-attendance-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: #9ca3af;
+}
+
+.member-attendance-empty span {
+  font-size: 0.9rem;
+}
+
+.member-attendance-count {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.member-attendance-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 1rem;
+}
+
+.member-attendance-loading-spinner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 4px solid #e5e7eb;
+  border-top-color: #2E7D32;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.member-attendance-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.member-attendance-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.member-attendance-modal-small {
+  max-width: 420px;
+}
+
+.member-attendance-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.member-attendance-modal-header h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.member-attendance-modal-close {
+  padding: 0.3rem 0.8rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  background: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.member-attendance-modal-close:hover {
+  background: #f3f4f6;
+}
+
+.member-attendance-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.member-attendance-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.member-attendance-form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.member-attendance-form-group input,
+.member-attendance-form-group select,
+.member-attendance-form-group textarea {
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.9rem;
+  background: #fafbfa;
+  transition: all 0.3s ease;
+  outline: none;
+  font-family: inherit;
+}
+
+.member-attendance-form-group input:focus,
+.member-attendance-form-group select:focus,
+.member-attendance-form-group textarea:focus {
+  border-color: #2E7D32;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.08);
+  background: white;
+}
+
+.member-attendance-form-group textarea {
+  resize: vertical;
+}
+
+.member-attendance-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.member-attendance-checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.3rem 0;
+}
+
+.member-attendance-checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+.member-attendance-checkbox-group input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #2E7D32;
+  cursor: pointer;
+}
+
+.member-attendance-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.member-attendance-modal-cancel {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  background: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.member-attendance-modal-cancel:hover {
+  background: #f3f4f6;
+}
+
+.member-attendance-modal-submit {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2E7D32, #1b5e20);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.2);
+}
+
+.member-attendance-modal-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(46, 125, 50, 0.3);
+}
+
+.member-attendance-modal-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.member-attendance-modal-danger {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.2);
+}
+
+.member-attendance-modal-danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(220, 38, 38, 0.3);
+}
+
+.member-attendance-modal-body {
+  padding: 0.5rem 0 1rem;
+}
+
+.member-attendance-modal-body p {
+  color: #4b5563;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.member-attendance-modal-warning {
+  color: #dc2626 !important;
+  font-size: 0.85rem !important;
+  background: #fef2f2;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+
+@media (max-width: 768px) {
+  .member-attendance-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .member-attendance-add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .member-attendance-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .member-attendance-filter-group {
+    min-width: 100%;
+  }
+  .member-attendance-clear-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .member-attendance-table-wrapper {
+    overflow-x: auto;
+  }
+  .member-attendance-table {
+    font-size: 0.8rem;
+  }
+  .member-attendance-table th,
+  .member-attendance-table td {
+    padding: 0.5rem 0.6rem;
+  }
+  .member-attendance-form-row {
+    grid-template-columns: 1fr;
+  }
+  .member-attendance-modal {
+    padding: 1rem;
+  }
+  .member-attendance-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .member-attendance-stats {
+    grid-template-columns: 1fr;
+  }
+  .member-attendance-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .member-attendance-action-edit,
+  .member-attendance-action-delete {
+    text-align: center;
+  }
+  .member-attendance-action-toggle {
+    width: 100%;
+    text-align: center;
+  }
+}

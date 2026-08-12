@@ -1,0 +1,319 @@
+.expense-categories-page {
+  animation: fadeIn 0.4s ease;
+}
+
+.expense-categories-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.expense-categories-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.expense-categories-back-btn:hover {
+  background: #e5e7eb;
+}
+
+.expense-categories-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  flex: 1;
+}
+
+.expense-categories-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2E7D32, #1b5e20);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.expense-categories-add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.3);
+}
+
+.expense-categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.expense-categories-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.expense-categories-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.expense-categories-card-image {
+  height: 100px;
+  overflow: hidden;
+}
+
+.expense-categories-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.expense-categories-card-content {
+  padding: 1rem;
+}
+
+.expense-categories-card-content h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.2rem 0;
+}
+
+.expense-categories-card-description {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0 0 0.5rem 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.expense-categories-card-actions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.expense-categories-card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.7rem;
+}
+
+.expense-categories-card-btn.edit {
+  background: rgba(21, 101, 192, 0.08);
+  color: #1565C0;
+}
+
+.expense-categories-card-btn.edit:hover {
+  background: rgba(21, 101, 192, 0.15);
+}
+
+.expense-categories-card-btn.delete {
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+}
+
+.expense-categories-card-btn.delete:hover {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.expense-categories-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  color: #9ca3af;
+}
+
+.expense-categories-loading {
+  text-align: center;
+  padding: 3rem;
+  color: #6b7280;
+}
+
+.expense-categories-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.expense-categories-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.expense-categories-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.expense-categories-modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.expense-categories-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.expense-categories-modal-close:hover {
+  background: #f3f4f6;
+}
+
+.expense-categories-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.expense-categories-modal-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.expense-categories-modal-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.expense-categories-modal-group input,
+.expense-categories-modal-group textarea {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  outline: none;
+  font-family: inherit;
+}
+
+.expense-categories-modal-group input:focus,
+.expense-categories-modal-group textarea:focus {
+  border-color: #2E7D32;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.expense-categories-modal-error {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 0.85rem;
+  border: 1px solid #fecaca;
+}
+
+.expense-categories-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
+
+.expense-categories-modal-cancel {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  background: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.expense-categories-modal-cancel:hover {
+  background: #f3f4f6;
+}
+
+.expense-categories-modal-save {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2E7D32, #1b5e20);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.expense-categories-modal-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.3);
+}
+
+.expense-categories-modal-save:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .expense-categories-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+  .expense-categories-modal {
+    padding: 1rem;
+    margin: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .expense-categories-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .expense-categories-add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,102 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getCurrentUserController = exports.resendVerificationController = exports.resetPasswordController = exports.verifyResetCodeController = exports.forgotPasswordController = exports.loginController = exports.verifyController = exports.registerController = void 0;
+const auth_service_1 = require("./auth.service");
+const registerController = async (req, res) => {
+    try {
+        const { fullName, email, password } = req.body;
+        await (0, auth_service_1.registerService)(fullName, email, password);
+        res.json({ success: true, message: "Verification code sent to your email" });
+    }
+    catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+exports.registerController = registerController;
+const verifyController = async (req, res) => {
+    try {
+        const { email, code } = req.body;
+        await (0, auth_service_1.verifyService)(email, code);
+        res.json({ success: true, message: "Email verified successfully" });
+    }
+    catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+exports.verifyController = verifyController;
+const loginController = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const data = await (0, auth_service_1.loginService)(email, password);
+        res.json({ success: true, ...data });
+    }
+    catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+exports.loginController = loginController;
+const forgotPasswordController = async (req, res) => {
+    try {
+        const { email } = req.body;
+        await (0, auth_service_1.forgotPasswordService)(email);
+        res.json({ success: true, message: "Password reset code sent to your email" });
+    }
+    catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+exports.forgotPasswordController = forgotPasswordController;
+const verifyResetCodeController = async (req, res) => {
+    try {
+        const { email, code } = req.body;
+        await (0, auth_service_1.verifyResetCodeService)(email, code);
+        res.json({ success: true });
+    }
+    catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+exports.verifyResetCodeController = verifyResetCodeController;
+const resetPasswordController = async (req, res) => {
+    try {
+        const { email, newPassword } = req.body;
+        await (0, auth_service_1.resetPasswordService)(email, newPassword);
+        res.json({ success: true, message: "Password reset successfully" });
+    }
+    catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+exports.resetPasswordController = resetPasswordController;
+const resendVerificationController = async (req, res) => {
+    try {
+        const { email } = req.body;
+        await (0, auth_service_1.resendVerificationService)(email);
+        res.json({ success: true, message: "Verification code resent to your email" });
+    }
+    catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+exports.resendVerificationController = resendVerificationController;
+const getCurrentUserController = async (req, res) => {
+    try {
+        const user = req.user;
+        res.json({
+            success: true,
+            data: {
+                userId: user.userId,
+                email: user.email,
+                fullName: user.fullName,
+                role: user.role,
+                churchId: user.churchId,
+                organizationId: user.organizationId,
+                largeOrganizationId: user.largeOrganizationId,
+            },
+        });
+    }
+    catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+exports.getCurrentUserController = getCurrentUserController;

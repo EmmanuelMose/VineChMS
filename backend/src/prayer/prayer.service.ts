@@ -1,0 +1,124 @@
+import db from "../Drizzle/db";
+import { prayerRequests, prayerInteractions, members, users } from "../Drizzle/schema";
+import { eq, desc, sql, and } from "drizzle-orm";
+
+export const getOrCreateMember = async (userId: number, churchId: number): Promise<number> => {
+  const [existing] = await db
+    .select({ memberId: members.memberId })
+    .from(members)
+    .where(and(eq(members.userId, userId), eq(members.churchId, churchId)));
+
+  if (existing) return existing.memberId;
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.userId, userId),
+  });
+
+  if (!user) throw new Error("User not found");
+
+  const [newMember] = await db
+    .insert(members)
+    .values({
+      userId: user.userId,
+      email: user.email,
+      fullName: user.fullName,
+      churchId: churchId,
+      role: user.role,
+      isActive: true,
+    })
+    .returning({ memberId: members.memberId });
+
+  return newMember.memberId;
+};
+
+export const createPrayerRequestService = async (data: any) => {
+  const [result] = await db
+    .insert(prayerRequests)
+    .values(data)
+    .returning();
+  return result;
+};
+
+export const getPrayerRequestByIdService = async (id: number) => {
+  const [result] = await db
+    .select()
+    .from(prayerRequests)
+    .where(eq(prayerRequests.prayerRequestId, id));
+  if (!result) throw new Error("Prayer request not found");
+  return result;
+};
+
+export const getPrayerRequestsByChurchService = async (churchId: number) => {
+  return await db
+    .select({
+      prayerRequestId: prayerRequests.prayerRequestId,
+      churchId: prayerRequests.churchId,
+      memberId: prayerRequests.memberId,
+      title: prayerRequests.title,
+      description: prayerRequests.description,
+      fullName: users.fullName,
+      status: prayerRequests.status,
+      visibility: prayerRequests.visibility,
+      prayerCount: prayerRequests.prayerCount,
+      createdAt: prayerRequests.createdAt,
+    })
+    .from(prayerRequests)
+    .leftJoin(members, eq(prayerRequests.memberId, members.memberId))
+    .leftJoin(users, eq(members.userId, users.userId))
+    .where(eq(prayerRequests.churchId, churchId))
+    .orderBy(desc(prayerRequests.createdAt));
+};
+
+export const updatePrayerRequestService = async (id: number, data: any) => {
+  const [result] = await db
+    .update(prayerRequests)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(prayerRequests.prayerRequestId, id))
+    .returning();
+  if (!result) throw new Error("Prayer request not found");
+  return result;
+};
+
+export const deletePrayerRequestService = async (id: number) => {
+  const [result] = await db
+    .delete(prayerRequests)
+    .where(eq(prayerRequests.prayerRequestId, id))
+    .returning({ id: prayerRequests.prayerRequestId });
+  if (!result) throw new Error("Prayer request not found");
+  return result;
+};
+
+export const prayForRequestService = async (prayerRequestId: number, memberId: number) => {
+  const [result] = await db
+    .insert(prayerInteractions)
+    .values({
+      prayerRequestId,
+      memberId,
+      type: "prayed",
+    })
+    .returning();
+  
+  await db
+    .update(prayerRequests)
+    .set({
+      prayerCount: sql`${prayerRequests.prayerCount} + 1`,
+    })
+    .where(eq(prayerRequests.prayerRequestId, prayerRequestId));
+  
+  return result;
+};
+
+export const getPrayerInteractionsService = async (prayerRequestId: number) => {
+  return await db
+    .select({
+      interactionId: prayerInteractions.interactionId,
+      fullName: users.fullName,
+      type: prayerInteractions.type,
+      notes: prayerInteractions.notes,
+      createdAt: prayerInteractions.createdAt,
+    })
+    .from(prayerInteractions)
+    .leftJoin(members, eq(prayerInteractions.memberId, members.memberId))
+    .leftJoin(users, eq(members.userId, users.userId))
+    .where(eq(prayerInteractions.prayerRequestId, prayerRequestId));
+};

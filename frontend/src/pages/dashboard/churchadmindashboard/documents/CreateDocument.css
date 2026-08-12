@@ -1,0 +1,278 @@
+.create-document-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.create-document-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+
+.create-document-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.create-document-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.create-document-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.create-document-close:hover {
+  background: #f3f4f6;
+}
+
+.create-document-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.create-document-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.create-document-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.create-document-group input,
+.create-document-group select,
+.create-document-group textarea {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  outline: none;
+  font-family: inherit;
+}
+
+.create-document-group input:focus,
+.create-document-group select:focus,
+.create-document-group textarea:focus {
+  border-color: #2E7D32;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.create-document-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.create-document-error {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 0.85rem;
+  border: 1px solid #fecaca;
+}
+
+.create-document-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.create-document-cancel {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  background: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.create-document-cancel:hover {
+  background: #f3f4f6;
+}
+
+.create-document-save {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2E7D32, #1b5e20);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.create-document-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.3);
+}
+
+.create-document-save:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .create-document-modal {
+    padding: 1rem;
+    margin: 1rem;
+  }
+  .create-document-row {
+    grid-template-columns: 1fr;
+  }
+}
+.create-document-file-upload-wrapper,
+.update-document-file-upload-wrapper {
+  position: relative;
+  margin: 0.25rem 0;
+}
+
+.create-document-file-input,
+.update-document-file-input {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.create-document-file-label,
+.update-document-file-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: 1.5px dashed #d1d5db;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.create-document-file-label:hover,
+.update-document-file-label:hover {
+  background: #e5e7eb;
+  border-color: #2E7D32;
+}
+
+.create-document-file-preview,
+.update-document-file-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  margin-top: 0.3rem;
+  background: #f0fdf4;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+  font-size: 0.85rem;
+  color: #16a34a;
+}
+
+.create-document-file-preview span,
+.update-document-file-preview span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.create-document-remove-file,
+.update-document-remove-file {
+  background: rgba(220, 38, 38, 0.08);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.create-document-remove-file:hover,
+.update-document-remove-file:hover {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.create-document-thumbnail-preview,
+.update-document-thumbnail-preview {
+  position: relative;
+  margin-top: 0.5rem;
+  display: inline-block;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  max-width: 120px;
+}
+
+.create-document-thumbnail-preview img,
+.update-document-thumbnail-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.create-document-thumbnail-preview .create-document-remove-file,
+.update-document-thumbnail-preview .update-document-remove-file {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+}
+
+.create-document-thumbnail-preview .create-document-remove-file:hover,
+.update-document-thumbnail-preview .update-document-remove-file:hover {
+  background: rgba(220, 38, 38, 0.8);
+}
