@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
+import { FiX, FiUpload, FiVideo, FiMusic } from "react-icons/fi";
 import { updateSermon, type Sermon } from "../../../../Features/sermons/sermonsAPI";
-import { FiX } from "react-icons/fi";
+import { uploadFileToCloudinary } from "../../../../Features/cloudinary/cloudinaryAPI";
 import "./UpdateSermon.css";
 
 interface UpdateSermonProps {
@@ -13,6 +14,8 @@ interface UpdateSermonProps {
 
 export default function UpdateSermon({ isOpen, onClose, onSuccess, sermon }: UpdateSermonProps) {
   const token = useSelector((state: any) => state.user.token);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -28,6 +31,8 @@ export default function UpdateSermon({ isOpen, onClose, onSuccess, sermon }: Upd
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
 
   useEffect(() => {
     if (sermon) {
@@ -47,6 +52,40 @@ export default function UpdateSermon({ isOpen, onClose, onSuccess, sermon }: Upd
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleFileUpload = async (file: File, type: "video" | "audio") => {
+    if (!file) return;
+    const setUploading = type === "video" ? setUploadingVideo : setUploadingAudio;
+    setUploading(true);
+    try {
+      const folder = type === "video" ? "vinechms/sermons/videos" : "vinechms/sermons/audios";
+      const result = await uploadFileToCloudinary(file, token, folder, {
+        resourceType: type === "video" ? "video" : "auto",
+        quality: 80,
+      });
+      if (type === "video") {
+        setFormData((prev) => ({ ...prev, videoUrl: result.secureUrl }));
+      } else {
+        setFormData((prev) => ({ ...prev, audioUrl: result.secureUrl }));
+      }
+    } catch (err: any) {
+      setError(err.message || `${type} upload failed`);
+    } finally {
+      setUploading(false);
+      if (type === "video" && videoInputRef.current) videoInputRef.current.value = "";
+      if (type === "audio" && audioInputRef.current) audioInputRef.current.value = "";
+    }
+  };
+
+  const removeVideo = () => {
+    setFormData((prev) => ({ ...prev, videoUrl: "" }));
+    if (videoInputRef.current) videoInputRef.current.value = "";
+  };
+
+  const removeAudio = () => {
+    setFormData((prev) => ({ ...prev, audioUrl: "" }));
+    if (audioInputRef.current) audioInputRef.current.value = "";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -142,25 +181,89 @@ export default function UpdateSermon({ isOpen, onClose, onSuccess, sermon }: Upd
             />
           </div>
 
-          <div className="sermons-form-row">
-            <div className="sermons-form-group">
-              <label>Video URL</label>
-              <input
-                type="url"
-                name="videoUrl"
-                value={formData.videoUrl}
-                onChange={handleChange}
-              />
+          <div className="sermons-media-section">
+            <p className="sermons-media-label">Media Files</p>
+
+            <div className="sermons-media-upload">
+              <div className="sermons-form-group">
+                <label>Video</label>
+                <div className="sermons-file-upload-wrapper">
+                  <input
+                    type="file"
+                    accept="video/*"
+                    ref={videoInputRef}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileUpload(file, "video");
+                    }}
+                    disabled={uploadingVideo}
+                    className="sermons-file-input"
+                    id="update-video-upload"
+                  />
+                  <label htmlFor="update-video-upload" className="sermons-file-label">
+                    <FiUpload size={16} />
+                    {uploadingVideo ? "Uploading..." : "Upload Video"}
+                  </label>
+                </div>
+                {formData.videoUrl && (
+                  <div className="sermons-file-preview">
+                    <FiVideo size={16} />
+                    <span>Video uploaded</span>
+                    <button type="button" onClick={removeVideo} className="sermons-remove-file">
+                      <FiX size={16} />
+                    </button>
+                  </div>
+                )}
+                <input
+                  type="url"
+                  name="videoUrl"
+                  value={formData.videoUrl}
+                  onChange={handleChange}
+                  placeholder="Or enter video URL"
+                  className="sermons-url-input"
+                />
+              </div>
+
+              <div className="sermons-form-group">
+                <label>Audio</label>
+                <div className="sermons-file-upload-wrapper">
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    ref={audioInputRef}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileUpload(file, "audio");
+                    }}
+                    disabled={uploadingAudio}
+                    className="sermons-file-input"
+                    id="update-audio-upload"
+                  />
+                  <label htmlFor="update-audio-upload" className="sermons-file-label">
+                    <FiUpload size={16} />
+                    {uploadingAudio ? "Uploading..." : "Upload Audio"}
+                  </label>
+                </div>
+                {formData.audioUrl && (
+                  <div className="sermons-file-preview">
+                    <FiMusic size={16} />
+                    <span>Audio uploaded</span>
+                    <button type="button" onClick={removeAudio} className="sermons-remove-file">
+                      <FiX size={16} />
+                    </button>
+                  </div>
+                )}
+                <input
+                  type="url"
+                  name="audioUrl"
+                  value={formData.audioUrl}
+                  onChange={handleChange}
+                  placeholder="Or enter audio URL"
+                  className="sermons-url-input"
+                />
+              </div>
             </div>
-            <div className="sermons-form-group">
-              <label>Audio URL</label>
-              <input
-                type="url"
-                name="audioUrl"
-                value={formData.audioUrl}
-                onChange={handleChange}
-              />
-            </div>
+            <p className="sermons-media-hint">You can upload a file or enter a URL. Uploaded files take priority.</p>
           </div>
 
           <div className="sermons-form-row">
@@ -191,7 +294,7 @@ export default function UpdateSermon({ isOpen, onClose, onSuccess, sermon }: Upd
             <button type="button" onClick={onClose} className="sermons-modal-cancel">
               Cancel
             </button>
-            <button type="submit" className="sermons-modal-submit" disabled={submitting}>
+            <button type="submit" className="sermons-modal-submit" disabled={submitting || uploadingVideo || uploadingAudio}>
               {submitting ? "Updating..." : "Update Sermon"}
             </button>
           </div>
