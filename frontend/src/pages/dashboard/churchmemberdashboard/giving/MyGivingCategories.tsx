@@ -1,15 +1,19 @@
+// File: src/pages/dashboard/churchmemberdashboard/giving/MyGivingCategories.tsx
+
 import { useState, useEffect } from "react";
 import { FiX, FiPlus, FiEdit2, FiTrash2, FiArrowLeft } from "react-icons/fi";
 import { fetchGivingCategories, createGivingCategory, updateGivingCategory, deleteGivingCategory, type GivingCategory } from "../../../../Features/giving/givingAPI";
+import { hasPermission, type UserRole } from "../../../../utils/permissions";
 import "./MyGivingCategories.css";
 
 interface MyGivingCategoriesProps {
   onBack: () => void;
   token: string;
   churchId: number;
+  userRole?: UserRole;
 }
 
-export default function MyGivingCategories({ onBack, token, churchId }: MyGivingCategoriesProps) {
+export default function MyGivingCategories({ onBack, token, churchId, userRole }: MyGivingCategoriesProps) {
   const [categories, setCategories] = useState<GivingCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -22,6 +26,8 @@ export default function MyGivingCategories({ onBack, token, churchId }: MyGiving
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const canManageCategories = userRole ? hasPermission(userRole, "manage_giving_categories") : false;
 
   useEffect(() => {
     loadCategories();
@@ -107,10 +113,12 @@ export default function MyGivingCategories({ onBack, token, churchId }: MyGiving
           Back
         </button>
         <h2 className="member-categories-title">Giving Categories</h2>
-        <button onClick={() => { setEditing(null); setFormData({ name: "", description: "", type: "offering", image: "" }); setShowModal(true); }} className="member-categories-add-btn">
-          <FiPlus size={16} />
-          Add Category
-        </button>
+        {canManageCategories && (
+          <button onClick={() => { setEditing(null); setFormData({ name: "", description: "", type: "offering", image: "" }); setShowModal(true); }} className="member-categories-add-btn">
+            <FiPlus size={16} />
+            Add Category
+          </button>
+        )}
       </div>
 
       <div className="member-categories-grid">
@@ -129,14 +137,16 @@ export default function MyGivingCategories({ onBack, token, churchId }: MyGiving
               {category.description && (
                 <p className="member-categories-card-description">{category.description}</p>
               )}
-              <div className="member-categories-card-actions">
-                <button onClick={() => handleEdit(category)} className="member-categories-card-btn edit">
-                  <FiEdit2 size={14} />
-                </button>
-                <button onClick={() => handleDelete(category.categoryId)} className="member-categories-card-btn delete">
-                  <FiTrash2 size={14} />
-                </button>
-              </div>
+              {canManageCategories && (
+                <div className="member-categories-card-actions">
+                  <button onClick={() => handleEdit(category)} className="member-categories-card-btn edit">
+                    <FiEdit2 size={14} />
+                  </button>
+                  <button onClick={() => handleDelete(category.categoryId)} className="member-categories-card-btn delete">
+                    <FiTrash2 size={14} />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -145,7 +155,7 @@ export default function MyGivingCategories({ onBack, token, churchId }: MyGiving
         )}
       </div>
 
-      {showModal && (
+      {showModal && canManageCategories && (
         <div className="member-categories-modal-overlay" onClick={() => setShowModal(false)}>
           <div className="member-categories-modal" onClick={(e) => e.stopPropagation()}>
             <div className="member-categories-modal-header">

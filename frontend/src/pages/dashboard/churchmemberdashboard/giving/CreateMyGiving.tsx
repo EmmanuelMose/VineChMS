@@ -1,3 +1,5 @@
+// File: src/pages/dashboard/churchmemberdashboard/giving/CreateMyGiving.tsx
+
 import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { FiX, FiSend, FiUpload } from "react-icons/fi";
@@ -5,6 +7,7 @@ import { createGiving } from "../../../../Features/giving/givingAPI";
 import { uploadFileToCloudinary } from "../../../../Features/cloudinary/cloudinaryAPI";
 import { type Member } from "../../../../Features/members/membersAPI";
 import { type GivingCategory } from "../../../../Features/giving/givingAPI";
+import { hasPermission, type UserRole } from "../../../../utils/permissions";
 import "./CreateMyGiving.css";
 
 interface CreateMyGivingProps {
@@ -15,6 +18,8 @@ interface CreateMyGivingProps {
   members: Member[];
   categories: GivingCategory[];
   mode?: "mpesa" | "cash";
+  currentMemberId?: number;
+  userRole?: UserRole;
 }
 
 export default function CreateMyGiving({
@@ -25,6 +30,8 @@ export default function CreateMyGiving({
   members,
   categories,
   mode = "mpesa",
+  currentMemberId,
+  userRole,
 }: CreateMyGivingProps) {
   const token = useSelector((state: any) => state.user.token);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,6 +54,17 @@ export default function CreateMyGiving({
   const [uploadingFile, setUploadingFile] = useState(false);
 
   const selectedMember = members.find((m) => m.memberId === parseInt(formData.memberId));
+
+  const canUseMpesa = userRole ? hasPermission(userRole, "create_giving_mpesa") : false;
+  const canCreateForOthers = userRole ? hasPermission(userRole, "create_giving_for_others") : false;
+  const canUseCash = userRole ? hasPermission(userRole, "create_giving_cash") : false;
+  const canCreateOwn = userRole ? hasPermission(userRole, "create_own_giving") : false;
+
+  useEffect(() => {
+    if (currentMemberId) {
+      setFormData((prev) => ({ ...prev, memberId: currentMemberId.toString() }));
+    }
+  }, [currentMemberId]);
 
   useEffect(() => {
     if (selectedMember && selectedMember.phone && mode === "mpesa") {
@@ -120,7 +138,7 @@ export default function CreateMyGiving({
       await createGiving(payload, token);
 
       setFormData({
-        memberId: "",
+        memberId: currentMemberId ? currentMemberId.toString() : "",
         categoryId: "",
         amount: "",
         currency: "KES",
@@ -141,9 +159,16 @@ export default function CreateMyGiving({
 
   if (!isOpen) return null;
 
-  const availableMembers = members.filter((m) => m.isActive && m.churchId === churchId);
+  const availableMembers = canCreateForOthers
+    ? members.filter((m) => m.isActive && m.churchId === churchId)
+    : members.filter((m) => m.isActive && m.churchId === churchId && m.memberId === currentMemberId);
+
   const availableCategories = categories.filter((c) => c.isActive);
   const isMpesaMode = mode === "mpesa";
+
+  if (!canCreateOwn && !canCreateForOthers) return null;
+  if (isMpesaMode && !canUseMpesa) return null;
+  if (!isMpesaMode && !canUseCash) return null;
 
   return (
     <div className="member-giving-modal-overlay" onClick={onClose}>
@@ -161,6 +186,7 @@ export default function CreateMyGiving({
               value={formData.memberId}
               onChange={(e) => setFormData({ ...formData, memberId: e.target.value })}
               required
+              disabled={!canCreateForOthers}
             >
               <option value="">Select a member</option>
               {availableMembers.map((member) => (

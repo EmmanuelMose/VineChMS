@@ -1,3 +1,5 @@
+// File: src/utils/permissions.ts
+
 export type UserRole = 
   | "church_member"
   | "pastor"
@@ -131,7 +133,7 @@ export const PERMISSIONS = {
     id: "view_all_attendance",
     name: "View All Attendance",
     description: "View attendance for all members",
-    roles: ["pastor", "elder", "secretary", "church_admin", "treasurer", "church_member"],
+    roles: ["pastor", "elder", "secretary", "church_admin", "treasurer"],
   },
   VIEW_OWN_ATTENDANCE: {
     id: "view_own_attendance",
@@ -151,17 +153,53 @@ export const PERMISSIONS = {
     description: "View all giving records",
     roles: ["treasurer", "church_admin", "pastor", "elder"],
   },
+  VIEW_OWN_GIVING: {
+    id: "view_own_giving",
+    name: "View Own Giving",
+    description: "View personal giving records only",
+    roles: ["church_member", "pastor", "elder", "treasurer", "secretary", "church_admin"],
+  },
   MANAGE_GIVING: {
     id: "manage_giving",
     name: "Manage Giving",
     description: "Create, update, and delete giving records",
     roles: ["treasurer", "church_admin", "pastor", "elder"],
   },
-  VIEW_OWN_GIVING: {
-    id: "view_own_giving",
-    name: "View Own Giving",
-    description: "View personal giving records",
+  CREATE_OWN_GIVING: {
+    id: "create_own_giving",
+    name: "Create Own Giving",
+    description: "Create giving records for yourself only",
     roles: ["church_member", "pastor", "elder", "treasurer", "secretary", "church_admin"],
+  },
+  CREATE_GIVING_MPESA: {
+    id: "create_giving_mpesa",
+    name: "Create Giving via M-Pesa",
+    description: "Send STK push for giving",
+    roles: ["church_member", "pastor", "elder", "treasurer", "secretary", "church_admin"],
+  },
+  CREATE_GIVING_CASH: {
+    id: "create_giving_cash",
+    name: "Create Cash Giving",
+    description: "Record cash giving with evidence",
+    roles: ["church_member", "pastor", "elder", "treasurer", "secretary", "church_admin"],
+  },
+  CREATE_GIVING_FOR_OTHERS: {
+    id: "create_giving_for_others",
+    name: "Create Giving for Others",
+    description: "Create giving records for other members",
+    roles: ["treasurer", "church_admin"],
+  },
+  MANAGE_GIVING_CATEGORIES: {
+    id: "manage_giving_categories",
+    name: "Manage Giving Categories",
+    description: "Create, update, and delete giving categories",
+    roles: ["treasurer", "church_admin"],
+  },
+  APPROVE_GIVING: {
+    id: "approve_giving",
+    name: "Approve Giving",
+    description: "Approve or reject giving records",
+    roles: ["treasurer", "church_admin", "pastor", "elder"],
   },
   VIEW_ALL_EXPENSES: {
     id: "view_all_expenses",
@@ -191,19 +229,25 @@ export const PERMISSIONS = {
     id: "view_all_prayer_requests",
     name: "View All Prayer Requests",
     description: "View all prayer requests",
-    roles: ["pastor", "church_admin", "elder", "treasurer", "secretary", "church_member"],
+    roles: ["pastor", "church_admin", "elder", "treasurer", "secretary"],
+  },
+  VIEW_OWN_PRAYER_REQUESTS: {
+    id: "view_own_prayer_requests",
+    name: "View Own Prayer Requests",
+    description: "View personal prayer requests",
+    roles: ["church_member"],
   },
   MANAGE_PRAYER_REQUESTS: {
     id: "manage_prayer_requests",
     name: "Manage Prayer Requests",
     description: "Create, update, and delete prayer requests",
-    roles: ["pastor", "elder", "church_admin"],
+    roles: ["pastor", "elder", "church_admin", "church_member"],
   },
   VIEW_ANNOUNCEMENTS: {
     id: "view_announcements",
     name: "View Announcements",
     description: "View all announcements",
-    roles: ["church_member", "pastor", "elder","secretary", "church_admin"],
+    roles: ["church_member", "pastor", "elder", "secretary", "church_admin"],
   },
   MANAGE_ANNOUNCEMENTS: {
     id: "manage_announcements",
@@ -275,19 +319,31 @@ export const PERMISSIONS = {
     id: "view_reports",
     name: "View Reports",
     description: "View church reports",
-    roles: ["pastor", "elder", "treasurer", "secretary", "church_admin", "church_member"],
+    roles: ["pastor", "elder", "treasurer", "secretary", "church_admin"],
+  },
+  VIEW_OWN_REPORTS: {
+    id: "view_own_reports",
+    name: "View Own Reports",
+    description: "View personal reports",
+    roles: ["church_member"],
   },
   VIEW_ANALYTICS: {
     id: "view_analytics",
     name: "View Analytics",
     description: "View church analytics",
-    roles: ["pastor", "elder", "treasurer", "secretary", "church_admin", "church_member"],
+    roles: ["pastor", "elder", "treasurer", "secretary", "church_admin"],
+  },
+  VIEW_OWN_ANALYTICS: {
+    id: "view_own_analytics",
+    name: "View Own Analytics",
+    description: "View personal analytics",
+    roles: ["church_member"],
   },
   VIEW_VISITORS: {
     id: "view_visitors",
     name: "View Visitors",
     description: "View visitor records",
-    roles: ["church_member", "pastor", "elder", "treasurer", "secretary", "church_admin"],
+    roles: ["pastor", "elder", "treasurer", "secretary", "church_admin"],
   },
   MANAGE_VISITORS: {
     id: "manage_visitors",
@@ -323,7 +379,7 @@ export const PERMISSIONS = {
     id: "assign_positions",
     name: "Assign Positions",
     description: "Assign members to leadership positions",
-    roles: ["church_admin","secretary", "pastor"],
+    roles: ["church_admin", "secretary", "pastor"],
   },
 };
 

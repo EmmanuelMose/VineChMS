@@ -23,10 +23,10 @@ export const authenticate = async (
   try {
     const authHeader = req.headers.authorization;
 
-    console.log("📨 Auth header received:", authHeader);
+    console.log(" Auth header received:", authHeader);
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.warn("⚠️ No Bearer token found");
+      console.warn("No Bearer token found");
       return res.status(401).json({
         success: false,
         message: "No token provided",
@@ -34,7 +34,7 @@ export const authenticate = async (
     }
 
     const token = authHeader.split(" ")[1];
-    console.log("🔑 Token extracted:", token?.substring(0, 20) + "...");
+    console.log("Token extracted:", token?.substring(0, 20) + "...");
 
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as {
@@ -46,18 +46,18 @@ export const authenticate = async (
         organizationId?: number;
         largeOrganizationId?: number;
       };
-      console.log("✅ Token verified for user:", decoded.userId, decoded.role);
+      console.log(" Token verified for user:", decoded.userId, decoded.role);
       req.user = decoded;
       next();
     } catch (jwtError: any) {
-      console.error("❌ JWT verification failed:", jwtError.name, jwtError.message);
+      console.error(" JWT verification failed:", jwtError.name, jwtError.message);
       return res.status(401).json({
         success: false,
         message: "Invalid or expired token",
       });
     }
   } catch (error) {
-    console.error("❌ Authentication error:", error);
+    console.error("Authentication error:", error);
     return res.status(401).json({
       success: false,
       message: "Invalid or expired token",

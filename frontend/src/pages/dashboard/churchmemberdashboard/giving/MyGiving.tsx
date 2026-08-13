@@ -1,3 +1,5 @@
+// File: src/pages/dashboard/churchmemberdashboard/giving/MyGiving.tsx
+
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -30,10 +32,12 @@ export default function MyGiving() {
   const token = useSelector((state: any) => state.user.token);
   const churchId = useSelector((state: any) => state.user.user?.churchId);
   const userRole = useSelector((state: any) => state.user.user?.role) as UserRole;
+  const currentUserId = useSelector((state: any) => state.user.user?.userId);
 
   const [giving, setGiving] = useState<Giving[]>([]);
   const [categories, setCategories] = useState<GivingCategory[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [currentMemberId, setCurrentMemberId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -63,12 +67,28 @@ export default function MyGiving() {
   const [approving, setApproving] = useState(false);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
 
-  const canManageGiving = hasPermission(userRole, "view_all_giving") || hasPermission(userRole, "manage_giving");
-  const canApprove = hasPermission(userRole, "approve_expenses") || userRole === "treasurer" || userRole === "church_admin" || userRole === "pastor" || userRole === "elder";
+  const canViewAllGiving = hasPermission(userRole, "view_all_giving");
+  const canViewOwnGiving = hasPermission(userRole, "view_own_giving");
+  const canManageGiving = hasPermission(userRole, "manage_giving");
+  const canApprove = hasPermission(userRole, "approve_giving");
+  const canUseMpesa = hasPermission(userRole, "create_giving_mpesa");
+  const canUseCash = hasPermission(userRole, "create_giving_cash");
+  const canCreateForOthers = hasPermission(userRole, "create_giving_for_others");
+  const canManageCategories = hasPermission(userRole, "manage_giving_categories");
+  const canCreateOwn = hasPermission(userRole, "create_own_giving");
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (members.length > 0 && currentUserId) {
+      const member = members.find((m) => m.userId === currentUserId);
+      if (member) {
+        setCurrentMemberId(member.memberId);
+      }
+    }
+  }, [members, currentUserId]);
 
   const loadData = async () => {
     try {
@@ -208,6 +228,9 @@ export default function MyGiving() {
   };
 
   const filteredGiving = giving.filter((record) => {
+    if (!canViewOwnGiving) return false;
+    if (!canViewAllGiving && record.memberId !== currentMemberId) return false;
+
     const memberName = getMemberName(record.memberId).toLowerCase();
     const memberEmail = getMemberEmail(record.memberId).toLowerCase();
     const categoryName = getCategoryName(record.categoryId).toLowerCase();
@@ -241,6 +264,7 @@ export default function MyGiving() {
         onBack={() => setShowCategories(false)}
         token={token}
         churchId={churchId!}
+        userRole={userRole}
       />
     );
   }
@@ -426,7 +450,7 @@ export default function MyGiving() {
           <p className="member-giving-subtitle">Track your tithes and offerings</p>
         </div>
         <div className="member-giving-header-actions">
-          {canManageGiving && (
+          {canManageCategories && (
             <button
               className="member-giving-btn-categories"
               onClick={() => setShowCategories(true)}
@@ -435,28 +459,27 @@ export default function MyGiving() {
               Categories
             </button>
           )}
-          {canManageGiving && (
+          {(canUseMpesa || canUseCash) && (canCreateOwn || canCreateForOthers) && (
             <>
-              <button
-                onClick={() => { setModalMode("mpesa"); setShowCreateModal(true); }}
-                className="member-giving-btn-primary"
-              >
-                <FiSend size={16} />
-                Send M-Pesa
-              </button>
-              <button
-                onClick={() => { setModalMode("cash"); setShowCreateModal(true); }}
-                className="member-giving-btn-secondary"
-              >
-                <FiDollarSign size={16} />
-                Record Cash
-              </button>
+              {canUseMpesa && (
+                <button
+                  onClick={() => { setModalMode("mpesa"); setShowCreateModal(true); }}
+                  className="member-giving-btn-primary"
+                >
+                  <FiSend size={16} />
+                  Send M-Pesa
+                </button>
+              )}
+              {canUseCash && (
+                <button
+                  onClick={() => { setModalMode("cash"); setShowCreateModal(true); }}
+                  className="member-giving-btn-secondary"
+                >
+                  <FiDollarSign size={16} />
+                  Record Cash
+                </button>
+              )}
             </>
-          )}
-          {!canManageGiving && (
-            <button className="member-giving-add-btn" onClick={() => { setModalMode("cash"); setShowCreateModal(true); }}>
-              Record Giving
-            </button>
           )}
         </div>
       </div>
@@ -640,6 +663,8 @@ export default function MyGiving() {
         members={members}
         categories={categories}
         mode={modalMode}
+        currentMemberId={currentMemberId || undefined}
+        userRole={userRole}
       />
 
       {editingRecord && (
