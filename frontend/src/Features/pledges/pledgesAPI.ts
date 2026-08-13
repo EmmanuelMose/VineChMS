@@ -1,3 +1,5 @@
+// File: frontend/src/Features/pledges/pledgesAPI.ts
+
 import axios from "axios";
 import { ApiDomain } from "../../utils/APIDomain";
 
@@ -6,7 +8,9 @@ export interface Pledge {
   memberId: number;
   churchId: number;
   categoryId?: number;
+  categoryType?: "giving" | "expense";
   amount: string;
+  paidAmount?: string;
   currency: string;
   startDate: string;
   endDate: string;
@@ -24,7 +28,9 @@ export interface NewPledge {
   memberId: number;
   churchId: number;
   categoryId?: number;
+  categoryType?: "giving" | "expense";
   amount: string;
+  paidAmount?: string;
   currency?: string;
   startDate: string;
   endDate: string;
