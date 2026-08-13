@@ -41,7 +41,7 @@ export default function MyPledges() {
   const [showPayModal, setShowPayModal] = useState(false);
   const [selectedPledge, setSelectedPledge] = useState<Pledge | null>(null);
   const [profileImageModalOpen, setProfileImageModalOpen] = useState(false);
-  const [profileImageUrl, setProfileImageUrl] = useState("");
+  const [profileImageUrl] = useState("");
 
   const canManagePledges = hasPermission(userRole, "manage_pledges");
   const canFulfill = hasPermission(userRole, "approve_expenses") || userRole === "treasurer" || userRole === "church_admin";

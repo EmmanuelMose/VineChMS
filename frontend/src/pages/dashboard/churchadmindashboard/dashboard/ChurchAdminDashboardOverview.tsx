@@ -1,3 +1,5 @@
+// File: frontend/src/pages/dashboard/churchadmindashboard/dashboard/ChurchAdminDashboardOverview.tsx
+
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -13,7 +15,6 @@ import {
   FiTrendingUp,
   FiBarChart2,
   FiFile,
-  FiHome,
 } from "react-icons/fi";
 import { FaHandshake, FaUserFriends } from "react-icons/fa";
 import { fetchMembers } from "../../../../Features/members/membersAPI";
@@ -25,6 +26,7 @@ import { fetchServices } from "../../../../Features/services/servicesAPI";
 import { fetchExpenses } from "../../../../Features/expenses/expensesAPI";
 import { fetchPledges } from "../../../../Features/pledges/pledgesAPI";
 import { fetchVisitors } from "../../../../Features/visitors/visitorsAPI";
+import { fetchSermons } from "../../../../Features/sermons/sermonsAPI";
 import "./ChurchAdminDashboardOverview.css";
 
 export default function ChurchAdminDashboardOverview() {
@@ -41,7 +43,9 @@ export default function ChurchAdminDashboardOverview() {
     services: 0,
     expensesTotal: 0,
     pledgesTotal: 0,
+    pledgesPaid: 0,
     visitors: 0,
+    sermons: 0,
   });
   const [greeting, setGreeting] = useState("");
 
@@ -57,7 +61,7 @@ export default function ChurchAdminDashboardOverview() {
       if (!token || !user) return;
       try {
         setLoading(true);
-        const [members, events, prayers, giving, announcements, services, expenses, pledges, visitors] = await Promise.all([
+        const [members, events, prayers, giving, announcements, services, expenses, pledges, visitors, sermons] = await Promise.all([
           fetchMembers(token),
           fetchEvents(token),
           fetchPrayerRequests(token),
@@ -67,6 +71,7 @@ export default function ChurchAdminDashboardOverview() {
           fetchExpenses(token),
           fetchPledges(token),
           fetchVisitors(token),
+          fetchSermons(token),
         ]);
 
         const churchMembers = members.filter((m: any) => m.churchId === churchId);
@@ -78,6 +83,9 @@ export default function ChurchAdminDashboardOverview() {
         const churchExpenses = expenses.filter((e: any) => e.churchId === churchId);
         const churchPledges = pledges.filter((p: any) => p.churchId === churchId);
         const churchVisitors = visitors.filter((v: any) => v.churchId === churchId);
+        const churchSermons = sermons.filter((s: any) => s.churchId === churchId);
+
+        const totalPaid = churchPledges.reduce((sum: number, p: any) => sum + parseFloat(p.paidAmount || "0"), 0);
 
         setStats({
           members: churchMembers.length,
@@ -88,7 +96,9 @@ export default function ChurchAdminDashboardOverview() {
           services: churchServices.length,
           expensesTotal: churchExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0),
           pledgesTotal: churchPledges.reduce((sum: number, p: any) => sum + Number(p.amount), 0),
+          pledgesPaid: totalPaid,
           visitors: churchVisitors.length,
+          sermons: churchSermons.length,
         });
       } catch (error) {
         console.error("Failed to load dashboard data:", error);
@@ -110,6 +120,10 @@ export default function ChurchAdminDashboardOverview() {
         .slice(0, 2);
     }
     return "CA";
+  };
+
+  const formatCurrency = (amount: number) => {
+    return `KES ${amount.toFixed(2)}`;
   };
 
   const statCards = [
@@ -136,7 +150,7 @@ export default function ChurchAdminDashboardOverview() {
     },
     {
       title: "Total Giving",
-      value: `$${stats.givingTotal.toFixed(2)}`,
+      value: formatCurrency(stats.givingTotal),
       icon: FiDollarSign,
       color: "#2E7D32",
       link: "/dashboard/church-admin/giving",
@@ -156,17 +170,31 @@ export default function ChurchAdminDashboardOverview() {
       link: "/dashboard/church-admin/services",
     },
     {
+      title: "Sermons",
+      value: stats.sermons,
+      icon: FiBook,
+      color: "#7C3AED",
+      link: "/dashboard/church-admin/sermons",
+    },
+    {
       title: "Total Expenses",
-      value: `$${stats.expensesTotal.toFixed(2)}`,
+      value: formatCurrency(stats.expensesTotal),
       icon: FiClipboard,
       color: "#EF4444",
       link: "/dashboard/church-admin/expenses",
     },
     {
       title: "Total Pledges",
-      value: `$${stats.pledgesTotal.toFixed(2)}`,
+      value: formatCurrency(stats.pledgesTotal),
       icon: FaHandshake,
       color: "#059669",
+      link: "/dashboard/church-admin/pledges",
+    },
+    {
+      title: "Pledges Paid",
+      value: formatCurrency(stats.pledgesPaid),
+      icon: FiDollarSign,
+      color: "#0D9488",
       link: "/dashboard/church-admin/pledges",
     },
     {
@@ -185,6 +213,7 @@ export default function ChurchAdminDashboardOverview() {
     { label: "Record Giving", icon: FiDollarSign, link: "/dashboard/church-admin/giving" },
     { label: "Add Expense", icon: FiClipboard, link: "/dashboard/church-admin/expenses" },
     { label: "Create Pledge", icon: FaHandshake, link: "/dashboard/church-admin/pledges" },
+    { label: "Pay Pledge", icon: FiDollarSign, link: "/dashboard/church-admin/pledges" },
     { label: "View Reports", icon: FiBarChart2, link: "/dashboard/church-admin/reports" },
     { label: "Analytics", icon: FiTrendingUp, link: "/dashboard/church-admin/analytics" },
     { label: "Documents", icon: FiFile, link: "/dashboard/church-admin/documents" },
@@ -210,7 +239,15 @@ export default function ChurchAdminDashboardOverview() {
           </div>
           <div className="admin-dashboard-welcome-avatar">
             <div className="admin-dashboard-welcome-avatar-circle">
-              {getInitials()}
+              {user?.profilePicture ? (
+                <img 
+                  src={user.profilePicture} 
+                  alt="Profile" 
+                  className="admin-dashboard-welcome-avatar-image"
+                />
+              ) : (
+                getInitials()
+              )}
             </div>
           </div>
         </div>

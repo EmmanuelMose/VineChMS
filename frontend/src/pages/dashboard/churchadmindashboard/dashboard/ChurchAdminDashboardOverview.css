@@ -1,16 +1,12 @@
+/* File: frontend/src/pages/dashboard/churchadmindashboard/dashboard/ChurchAdminDashboardOverview.css */
+
 .admin-dashboard-overview {
   animation: fadeIn 0.4s ease;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .admin-dashboard-welcome {
@@ -84,6 +80,14 @@
   font-size: 2rem;
   font-weight: 700;
   color: #FFC107;
+  overflow: hidden;
+}
+
+.admin-dashboard-welcome-avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .admin-dashboard-stats-grid {
@@ -109,7 +113,7 @@
 .admin-dashboard-stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  border-color: #FFC107;
+  border-color: #2E7D32;
 }
 
 .admin-dashboard-stat-card-icon {
@@ -203,9 +207,7 @@
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {
