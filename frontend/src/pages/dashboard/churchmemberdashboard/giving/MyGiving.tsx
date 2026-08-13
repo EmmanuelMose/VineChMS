@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
+import { FiX, FiUpload, FiSend } from "react-icons/fi";
 import { fetchGivingByMember, fetchGivingCategories, createGiving, updateGiving, deleteGiving, type Giving, type GivingCategory } from "../../../../Features/giving/givingAPI";
 import { fetchMemberByUserId } from "../../../../Features/members/membersAPI";
+import { uploadFileToCloudinary } from "../../../../Features/cloudinary/cloudinaryAPI";
 import "./MyGiving.css";
 
 export default function MyGiving() {
@@ -25,6 +27,8 @@ export default function MyGiving() {
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     categoryId: "",
@@ -36,7 +40,12 @@ export default function MyGiving() {
     notes: "",
     isAnonymous: false,
     receiptNumber: "",
+    receiptFile: "",
+    receiptFilePublicId: "",
+    phoneNumber: "",
   });
+
+  const selectedMember = memberId ? { phone: "" } : null; // we'll get phone from user later
 
   useEffect(() => {
     const loadMemberId = async () => {
@@ -45,6 +54,9 @@ export default function MyGiving() {
           const member = await fetchMemberByUserId(userId, token);
           if (member && member.memberId) {
             setMemberId(member.memberId);
+            if (member.phone) {
+              setFormData(prev => ({ ...prev, phoneNumber: member.phone || "" }));
+            }
           }
         } catch (error) {
           console.error("Failed to load member ID:", error);
@@ -84,7 +96,7 @@ export default function MyGiving() {
 
   const filterGiving = () => {
     let filtered = [...giving];
-
+    // ... existing filter logic
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -94,31 +106,25 @@ export default function MyGiving() {
           (g.receiptNumber || "").toLowerCase().includes(term)
       );
     }
-
     if (filterCategory !== "all") {
       filtered = filtered.filter((g) => g.categoryId === parseInt(filterCategory));
     }
-
     if (filterType !== "all") {
       filtered = filtered.filter((g) => g.type === filterType);
     }
-
     if (filterStatus !== "all") {
       filtered = filtered.filter((g) => g.status === filterStatus);
     }
-
     if (startDate) {
       const start = new Date(startDate);
       start.setHours(0, 0, 0, 0);
       filtered = filtered.filter((g) => new Date(g.date) >= start);
     }
-
     if (endDate) {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
       filtered = filtered.filter((g) => new Date(g.date) <= end);
     }
-
     setFilteredGiving(filtered);
   };
 
@@ -139,8 +145,8 @@ export default function MyGiving() {
 
   const formatCurrency = (amount: string) => {
     const num = parseFloat(amount);
-    if (isNaN(num)) return "$0.00";
-    return "$" + num.toFixed(2);
+    if (isNaN(num)) return "KES 0.00";
+    return `KES ${num.toFixed(2)}`;
   };
 
   const formatDate = (dateString: string) => {
@@ -149,6 +155,36 @@ export default function MyGiving() {
       month: "short",
       day: "numeric",
     });
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+    setUploadingFile(true);
+    try {
+      const result = await uploadFileToCloudinary(file, token, "vinechms/giving/evidence", {
+        resourceType: "auto",
+        quality: 80,
+      });
+      setFormData((prev) => ({
+        ...prev,
+        receiptFile: result.secureUrl,
+        receiptFilePublicId: result.publicId,
+      }));
+    } catch (err: any) {
+      alert(err.message || "File upload failed");
+    } finally {
+      setUploadingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeFile = () => {
+    setFormData((prev) => ({
+      ...prev,
+      receiptFile: "",
+      receiptFilePublicId: "",
+    }));
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleEdit = (record: Giving) => {
@@ -164,6 +200,9 @@ export default function MyGiving() {
       notes: record.notes || "",
       isAnonymous: record.isAnonymous,
       receiptNumber: record.receiptNumber || "",
+      receiptFile: record.receiptFile || "",
+      receiptFilePublicId: record.receiptFilePublicId || "",
+      phoneNumber: "",
     });
     setShowModal(true);
   };
@@ -180,7 +219,18 @@ export default function MyGiving() {
       notes: "",
       isAnonymous: false,
       receiptNumber: "",
+      receiptFile: "",
+      receiptFilePublicId: "",
+      phoneNumber: "",
     });
+    // Re-fetch phone number
+    if (userId) {
+      fetchMemberByUserId(userId, token).then(member => {
+        if (member && member.phone) {
+          setFormData(prev => ({ ...prev, phoneNumber: member.phone || "" }));
+        }
+      }).catch(console.error);
+    }
     setShowModal(true);
   };
 
@@ -189,19 +239,34 @@ export default function MyGiving() {
     if (!memberId) return;
     setSubmitting(true);
     try {
-      const payload = {
+      const payload: any = {
         memberId: memberId,
         churchId: churchId!,
         categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
         amount: formData.amount,
         type: formData.type,
         date: new Date(formData.date).toISOString(),
-        paymentMethod: formData.paymentMethod || undefined,
-        status: formData.status,
+        paymentMethod: formData.paymentMethod,
         notes: formData.notes || undefined,
         isAnonymous: formData.isAnonymous,
         receiptNumber: formData.receiptNumber || undefined,
       };
+
+      if (formData.paymentMethod === "mpesa") {
+        payload.phoneNumber = formData.phoneNumber;
+        payload.status = "pending";
+        // No receipt file for M-Pesa
+      } else {
+        // Cash/other – require evidence
+        if (!formData.receiptFile) {
+          alert("Please upload evidence (receipt/screenshot) for this payment.");
+          setSubmitting(false);
+          return;
+        }
+        payload.receiptFile = formData.receiptFile;
+        payload.receiptFilePublicId = formData.receiptFilePublicId;
+        payload.status = "pending";
+      }
 
       if (editingRecord) {
         await updateGiving(editingRecord.givingId, payload, token);
@@ -243,6 +308,7 @@ export default function MyGiving() {
   }
 
   const totalAmount = giving.reduce((sum, g) => sum + parseFloat(g.amount), 0);
+  const isMpesa = formData.paymentMethod === "mpesa";
 
   return (
     <div className="member-giving-page">
@@ -267,7 +333,7 @@ export default function MyGiving() {
         </div>
         <div className="member-giving-stat">
           <span className="member-giving-stat-value">
-            {giving.length > 0 ? formatCurrency((totalAmount / giving.length).toString()) : "$0.00"}
+            {giving.length > 0 ? formatCurrency((totalAmount / giving.length).toString()) : "KES 0.00"}
           </span>
           <span className="member-giving-stat-label">Average</span>
         </div>
@@ -280,6 +346,7 @@ export default function MyGiving() {
       </div>
 
       <div className="member-giving-filters">
+        {/* filters – unchanged */}
         <div className="member-giving-filter-group">
           <label>Search</label>
           <input
@@ -462,6 +529,7 @@ export default function MyGiving() {
                   </select>
                 </div>
               </div>
+
               <div className="member-giving-form-row">
                 <div className="member-giving-form-group">
                   <label>Amount</label>
@@ -485,17 +553,19 @@ export default function MyGiving() {
                   />
                 </div>
               </div>
+
               <div className="member-giving-form-row">
                 <div className="member-giving-form-group">
                   <label>Payment Method</label>
                   <select
                     value={formData.paymentMethod}
                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                    required
                   >
                     <option value="">Select method</option>
+                    <option value="mpesa">M-Pesa</option>
                     <option value="cash">Cash</option>
                     <option value="bank">Bank Transfer</option>
-                    <option value="mpesa">M-Pesa</option>
                     <option value="card">Card</option>
                     <option value="check">Check</option>
                     <option value="other">Other</option>
@@ -503,17 +573,66 @@ export default function MyGiving() {
                 </div>
                 <div className="member-giving-form-group">
                   <label>Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
-                    <option value="failed">Failed</option>
-                    <option value="refunded">Refunded</option>
-                  </select>
+                  <input
+                    type="text"
+                    value="Pending"
+                    disabled
+                    className="member-giving-status-disabled"
+                  />
                 </div>
               </div>
+
+              {isMpesa && (
+                <div className="member-giving-form-group">
+                  <label>Phone Number (M-Pesa) *</label>
+                  <input
+                    type="tel"
+                    value={formData.phoneNumber}
+                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                    placeholder="e.g., 0712345678"
+                    required
+                  />
+                  <small style={{ color: "#6b7280", fontSize: "0.75rem" }}>
+                    STK push will be sent to this number. Auto-filled from your profile.
+                  </small>
+                </div>
+              )}
+
+              {!isMpesa && (
+                <div className="member-giving-form-group">
+                  <label>Upload Evidence (Receipt/Screenshot) *</label>
+                  <div className="member-giving-file-upload-wrapper">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file);
+                      }}
+                      disabled={uploadingFile}
+                      className="member-giving-file-input"
+                      id="evidence-upload"
+                    />
+                    <label htmlFor="evidence-upload" className="member-giving-file-label">
+                      <FiUpload size={16} />
+                      {uploadingFile ? "Uploading..." : "Upload Evidence"}
+                    </label>
+                  </div>
+                  {formData.receiptFile && (
+                    <div className="member-giving-file-preview">
+                      <span>Evidence uploaded</span>
+                      <button type="button" onClick={removeFile} className="member-giving-remove-file">
+                        <FiX size={16} />
+                      </button>
+                    </div>
+                  )}
+                  <small style={{ color: "#6b7280", fontSize: "0.75rem" }}>
+                    Upload a screenshot or photo of your payment receipt.
+                  </small>
+                </div>
+              )}
+
               <div className="member-giving-form-row">
                 <div className="member-giving-form-group">
                   <label>Receipt Number</label>
@@ -538,6 +657,7 @@ export default function MyGiving() {
                   </div>
                 </div>
               </div>
+
               <div className="member-giving-form-group">
                 <label>Notes</label>
                 <textarea
@@ -547,6 +667,7 @@ export default function MyGiving() {
                   placeholder="Additional notes..."
                 />
               </div>
+
               <div className="member-giving-modal-actions">
                 <button
                   type="button"
@@ -558,9 +679,9 @@ export default function MyGiving() {
                 <button
                   type="submit"
                   className="member-giving-modal-submit"
-                  disabled={submitting}
+                  disabled={submitting || uploadingFile || (isMpesa && !formData.phoneNumber) || (!isMpesa && !formData.receiptFile)}
                 >
-                  {submitting ? "Saving..." : editingRecord ? "Update" : "Save"}
+                  {submitting ? "Saving..." : isMpesa ? <><FiSend size={16} /> Send STK Push</> : "Submit for Approval"}
                 </button>
               </div>
             </form>
@@ -582,16 +703,10 @@ export default function MyGiving() {
               <p className="member-giving-modal-warning">This action cannot be undone.</p>
             </div>
             <div className="member-giving-modal-actions">
-              <button
-                className="member-giving-modal-cancel"
-                onClick={() => setShowDeleteModal(false)}
-              >
+              <button className="member-giving-modal-cancel" onClick={() => setShowDeleteModal(false)}>
                 Cancel
               </button>
-              <button
-                className="member-giving-modal-danger"
-                onClick={handleDelete}
-              >
+              <button className="member-giving-modal-danger" onClick={handleDelete}>
                 Delete
               </button>
             </div>
