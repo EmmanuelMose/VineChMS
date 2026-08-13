@@ -55,6 +55,8 @@ export default function CreateMemberExpense({
   const canUseMpesa = userRole ? hasPermission(userRole, "create_giving_mpesa") : false;
   const canUseCash = userRole ? hasPermission(userRole, "create_giving_cash") : false;
   const canCreateForOthers = userRole ? hasPermission(userRole, "create_giving_for_others") : false;
+  const canCreateOwnExpenses = userRole ? hasPermission(userRole, "create_own_expenses") : false;
+  const canCreateExpenses = userRole ? hasPermission(userRole, "create_expenses") : false;
 
   useEffect(() => {
     if (currentMemberId) {
@@ -164,12 +166,17 @@ export default function CreateMemberExpense({
   if (!isOpen) return null;
 
   const availableCategories = categories.filter(c => c.isActive);
+  
+  // Allow creation for self if user has create_own_expenses permission
+  // Allow creation for others if user has create_giving_for_others permission
+  const canCreateForSelf = canCreateOwnExpenses || canCreateExpenses;
   const availableMembers = canCreateForOthers
     ? members.filter((m) => m.isActive && m.churchId === churchId)
     : members.filter((m) => m.isActive && m.churchId === churchId && m.memberId === currentMemberId);
 
   const isMpesaMode = mode === "mpesa";
 
+  if (!canCreateForSelf && !canCreateForOthers) return null;
   if (isMpesaMode && !canUseMpesa) return null;
   if (!isMpesaMode && !canUseCash) return null;
 

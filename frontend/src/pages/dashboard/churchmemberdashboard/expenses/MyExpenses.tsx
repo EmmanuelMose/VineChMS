@@ -53,15 +53,15 @@ export default function MyExpenses() {
   const [evidenceUrl, setEvidenceUrl] = useState("");
 
   const canViewAllExpenses = hasPermission(userRole, "view_all_expenses");
+  const canViewOwnExpenses = hasPermission(userRole, "view_own_expenses");
   const canManageExpenses = hasPermission(userRole, "manage_expenses");
   const canApproveExpenses = hasPermission(userRole, "approve_expenses");
   const canPledgeToExpenses = hasPermission(userRole, "pledge_to_expenses");
   const canManageCategories = hasPermission(userRole, "manage_expense_categories");
   const canCreateExpenses = hasPermission(userRole, "create_expenses");
+  const canCreateOwnExpenses = hasPermission(userRole, "create_own_expenses");
   const canUseMpesa = hasPermission(userRole, "create_giving_mpesa");
   const canUseCash = hasPermission(userRole, "create_giving_cash");
-  const canCreateForOthers = hasPermission(userRole, "create_giving_for_others");
-  const canViewOwnExpenses = hasPermission(userRole, "view_own_expenses");
 
   useEffect(() => {
     loadData();
@@ -284,6 +284,8 @@ export default function MyExpenses() {
   const pendingAmount = expenses.filter(e => e.status === 'pending').reduce((sum, e) => sum + parseFloat(e.amount), 0);
   const approvedAmount = expenses.filter(e => e.status === 'approved').reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
+  const canCreate = canCreateExpenses || canCreateOwnExpenses;
+
   return (
     <div className="my-expenses-page">
       {evidenceModalOpen && (
@@ -406,7 +408,7 @@ export default function MyExpenses() {
               Categories
             </button>
           )}
-          {(canUseMpesa || canUseCash) && (canCreateExpenses || canCreateForOthers) && (
+          {canCreate && (
             <>
               {canUseMpesa && (
                 <button

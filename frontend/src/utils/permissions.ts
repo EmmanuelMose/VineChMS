@@ -1,4 +1,4 @@
-// File: src/utils/permissions.ts
+// File: frontend/src/utils/permissions.ts
 
 export type UserRole = 
   | "church_member"
@@ -211,19 +211,25 @@ export const PERMISSIONS = {
     id: "view_own_expenses",
     name: "View Own Expenses",
     description: "View personal expense records",
-    roles: ["church_member"],
+    roles: ["church_member", "pastor", "elder", "treasurer", "secretary", "church_admin"],
   },
   MANAGE_EXPENSES: {
     id: "manage_expenses",
     name: "Manage Expenses",
     description: "Create, update, and delete expenses",
-    roles: ["treasurer", "church_admin", "pastor", "elder", "secretary"],
+    roles: ["treasurer", "church_admin"],
   },
   CREATE_EXPENSES: {
     id: "create_expenses",
     name: "Create Expenses",
     description: "Create expense records",
-    roles: ["treasurer", "church_admin", "pastor", "elder", "secretary"],
+    roles: ["treasurer", "church_admin", "pastor", "elder", "secretary", "church_member"],
+  },
+  CREATE_OWN_EXPENSES: {
+    id: "create_own_expenses",
+    name: "Create Own Expenses",
+    description: "Create expense records for yourself only",
+    roles: ["church_member", "pastor", "elder", "treasurer", "secretary", "church_admin"],
   },
   APPROVE_EXPENSES: {
     id: "approve_expenses",
