@@ -1,3 +1,4 @@
+
 import { useState, useEffect, type ReactNode } from "react";
 import type { IconBaseProps } from "react-icons";
 import { useSelector } from "react-redux";
@@ -18,6 +19,7 @@ import {
   FiFile,
   FiBriefcase,
   FiUserPlus,
+  FiChevronRight,
 } from "react-icons/fi";
 import { fetchEvents } from "../../../../Features/events/eventsAPI";
 import { fetchPrayerRequests } from "../../../../Features/prayer/PrayerAPI";
@@ -55,7 +57,12 @@ export default function ChurchMemberDashboardOverview() {
     pledgesCount: 0,
     visitorsCount: 0,
     positionsCount: 0,
+    pledgesPaid: 0,
   });
+  const [recentAnnouncements, setRecentAnnouncements] = useState<any[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [recentGiving, setRecentGiving] = useState<any[]>([]);
+  const [recentAttendance, setRecentAttendance] = useState<any[]>([]);
   const [greeting, setGreeting] = useState("");
 
   useEffect(() => {
@@ -71,7 +78,7 @@ export default function ChurchMemberDashboardOverview() {
       try {
         setLoading(true);
         const [
-          events, prayers, groups, attendance, giving, announcements, 
+          events, prayers, groups, attendance, giving, announcements,
           services, expenses, sermons, members, pledges, visitors, positions
         ] = await Promise.all([
           fetchEvents(token),
@@ -103,6 +110,35 @@ export default function ChurchMemberDashboardOverview() {
         const churchVisitors = visitors.filter((v: any) => v.churchId === churchId);
         const churchPositions = positions.filter((p: any) => p.churchId === churchId);
 
+        const totalPaid = churchPledges.reduce((sum: number, p: any) => sum + parseFloat(p.paidAmount || "0"), 0);
+
+        // Sort announcements by createdAt descending and take 3
+        const sortedAnnouncements = churchAnnouncements
+          .filter((a: any) => a.isPublished)
+          .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 3);
+        setRecentAnnouncements(sortedAnnouncements);
+
+        // Upcoming events (startDate >= now) sorted ascending
+        const now = new Date();
+        const upcoming = churchEvents
+          .filter((e: any) => new Date(e.startDate) >= now && e.status === "published")
+          .sort((a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+          .slice(0, 4);
+        setUpcomingEvents(upcoming);
+
+        // Recent giving (last 3)
+        const sortedGiving = churchGiving
+          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 3);
+        setRecentGiving(sortedGiving);
+
+        // Recent attendance (last 3)
+        const sortedAttendance = churchAttendance
+          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 3);
+        setRecentAttendance(sortedAttendance);
+
         setStats({
           eventsRegistered: churchEvents.length,
           prayerRequests: churchPrayers.length,
@@ -117,6 +153,7 @@ export default function ChurchMemberDashboardOverview() {
           pledgesCount: churchPledges.length,
           visitorsCount: churchVisitors.length,
           positionsCount: churchPositions.length,
+          pledgesPaid: totalPaid,
         });
       } catch (error) {
         console.error("Failed to load dashboard data:", error);
@@ -141,6 +178,18 @@ export default function ChurchMemberDashboardOverview() {
   };
 
   const displayRole = ROLE_DISPLAY_NAMES[userRole as keyof typeof ROLE_DISPLAY_NAMES] || "Member";
+
+  const formatCurrency = (amount: number) => {
+    return `KES ${amount.toFixed(2)}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
   const getRoleSpecificStats = () => {
     const baseStats = [
@@ -170,7 +219,7 @@ export default function ChurchMemberDashboardOverview() {
       },
       {
         title: "Total Giving",
-        value: `$${stats.givingTotal.toFixed(2)}`,
+        value: formatCurrency(stats.givingTotal),
         icon: FiDollarSign,
         color: "#2E7D32",
       },
@@ -216,6 +265,12 @@ export default function ChurchMemberDashboardOverview() {
         icon: FiHandshake,
         color: "#059669",
       });
+      baseStats.push({
+        title: "Pledges Paid",
+        value: formatCurrency(stats.pledgesPaid),
+        icon: FiDollarSign,
+        color: "#0D9488",
+      });
     }
 
     if (userRole === "secretary" || userRole === "church_admin" || userRole === "pastor" || userRole === "elder") {
@@ -233,6 +288,15 @@ export default function ChurchMemberDashboardOverview() {
         value: stats.positionsCount,
         icon: FiBriefcase,
         color: "#1565C0",
+      });
+    }
+
+    if (userRole === "church_admin" || userRole === "secretary") {
+      baseStats.push({
+        title: "Members",
+        value: stats.membersCount,
+        icon: FiUsers,
+        color: "#2563EB",
       });
     }
 
@@ -278,6 +342,10 @@ export default function ChurchMemberDashboardOverview() {
       baseActions.push({ label: "My Pledges", icon: FiHandshake, link: "/dashboard/member/pledges" });
     }
 
+    if (userRole === "secretary" || userRole === "church_admin") {
+      baseActions.push({ label: "Manage Visitors", icon: FiUserPlus, link: "/dashboard/member/visitors" });
+    }
+
     return baseActions;
   };
 
@@ -301,7 +369,15 @@ export default function ChurchMemberDashboardOverview() {
           </div>
           <div className="member-dashboard-welcome-avatar">
             <div className="member-dashboard-welcome-avatar-circle">
-              {getInitials()}
+              {user?.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  alt="Profile"
+                  className="member-dashboard-welcome-avatar-image"
+                />
+              ) : (
+                getInitials()
+              )}
             </div>
           </div>
         </div>
@@ -341,6 +417,98 @@ export default function ChurchMemberDashboardOverview() {
             );
           })}
         </div>
+      </div>
+
+      <div className="member-dashboard-activity-grid">
+        {recentAnnouncements.length > 0 && (
+          <div className="member-dashboard-activity-card">
+            <div className="member-dashboard-activity-header">
+              <h4>Recent Announcements</h4>
+              <a href="/dashboard/member/announcements" className="member-dashboard-view-all">
+                View All <FiChevronRight size={14} />
+              </a>
+            </div>
+            <ul className="member-dashboard-activity-list">
+              {recentAnnouncements.map((announcement) => (
+                <li key={announcement.announcementId} className="member-dashboard-activity-item">
+                  <span className="member-dashboard-activity-icon"><FiBell size={14} color="#F59E0B" /></span>
+                  <div className="member-dashboard-activity-content">
+                    <span className="member-dashboard-activity-title">{announcement.title}</span>
+                    <span className="member-dashboard-activity-date">{formatDate(announcement.createdAt)}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {upcomingEvents.length > 0 && (
+          <div className="member-dashboard-activity-card">
+            <div className="member-dashboard-activity-header">
+              <h4>Upcoming Events</h4>
+              <a href="/dashboard/member/events" className="member-dashboard-view-all">
+                View All <FiChevronRight size={14} />
+              </a>
+            </div>
+            <ul className="member-dashboard-activity-list">
+              {upcomingEvents.map((event) => (
+                <li key={event.eventId} className="member-dashboard-activity-item">
+                  <span className="member-dashboard-activity-icon"><FiCalendar size={14} color="#1565C0" /></span>
+                  <div className="member-dashboard-activity-content">
+                    <span className="member-dashboard-activity-title">{event.title}</span>
+                    <span className="member-dashboard-activity-date">{formatDate(event.startDate)}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {recentGiving.length > 0 && (
+          <div className="member-dashboard-activity-card">
+            <div className="member-dashboard-activity-header">
+              <h4>Recent Giving</h4>
+              <a href="/dashboard/member/giving" className="member-dashboard-view-all">
+                View All <FiChevronRight size={14} />
+              </a>
+            </div>
+            <ul className="member-dashboard-activity-list">
+              {recentGiving.map((giving) => (
+                <li key={giving.givingId} className="member-dashboard-activity-item">
+                  <span className="member-dashboard-activity-icon"><FiDollarSign size={14} color="#2E7D32" /></span>
+                  <div className="member-dashboard-activity-content">
+                    <span className="member-dashboard-activity-title">{formatCurrency(Number(giving.amount))}</span>
+                    <span className="member-dashboard-activity-date">{giving.type} • {formatDate(giving.date)}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {recentAttendance.length > 0 && (
+          <div className="member-dashboard-activity-card">
+            <div className="member-dashboard-activity-header">
+              <h4>Recent Attendance</h4>
+              <a href="/dashboard/member/attendance" className="member-dashboard-view-all">
+                View All <FiChevronRight size={14} />
+              </a>
+            </div>
+            <ul className="member-dashboard-activity-list">
+              {recentAttendance.map((attendance) => (
+                <li key={attendance.attendanceId} className="member-dashboard-activity-item">
+                  <span className="member-dashboard-activity-icon"><FiCheckSquare size={14} color={attendance.attended ? "#16A34A" : "#DC2626"} /></span>
+                  <div className="member-dashboard-activity-content">
+                    <span className="member-dashboard-activity-title">
+                      {attendance.attended ? "Attended" : "Missed"} {attendance.serviceName || "Service"}
+                    </span>
+                    <span className="member-dashboard-activity-date">{formatDate(attendance.date)}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
