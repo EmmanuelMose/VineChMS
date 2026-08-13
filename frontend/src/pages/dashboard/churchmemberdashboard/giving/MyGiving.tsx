@@ -36,7 +36,6 @@ export default function MyGiving() {
     type: "offering",
     date: new Date().toISOString().split("T")[0],
     paymentMethod: "",
-    status: "pending",
     notes: "",
     isAnonymous: false,
     receiptNumber: "",
@@ -44,8 +43,6 @@ export default function MyGiving() {
     receiptFilePublicId: "",
     phoneNumber: "",
   });
-
-  const selectedMember = memberId ? { phone: "" } : null; // we'll get phone from user later
 
   useEffect(() => {
     const loadMemberId = async () => {
@@ -96,7 +93,6 @@ export default function MyGiving() {
 
   const filterGiving = () => {
     let filtered = [...giving];
-    // ... existing filter logic
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -196,7 +192,6 @@ export default function MyGiving() {
       type: record.type,
       date: date.toISOString().split("T")[0],
       paymentMethod: record.paymentMethod || "",
-      status: record.status,
       notes: record.notes || "",
       isAnonymous: record.isAnonymous,
       receiptNumber: record.receiptNumber || "",
@@ -215,7 +210,6 @@ export default function MyGiving() {
       type: "offering",
       date: new Date().toISOString().split("T")[0],
       paymentMethod: "",
-      status: "pending",
       notes: "",
       isAnonymous: false,
       receiptNumber: "",
@@ -223,7 +217,6 @@ export default function MyGiving() {
       receiptFilePublicId: "",
       phoneNumber: "",
     });
-    // Re-fetch phone number
     if (userId) {
       fetchMemberByUserId(userId, token).then(member => {
         if (member && member.phone) {
@@ -249,15 +242,12 @@ export default function MyGiving() {
         paymentMethod: formData.paymentMethod,
         notes: formData.notes || undefined,
         isAnonymous: formData.isAnonymous,
-        receiptNumber: formData.receiptNumber || undefined,
       };
 
       if (formData.paymentMethod === "mpesa") {
         payload.phoneNumber = formData.phoneNumber;
         payload.status = "pending";
-        // No receipt file for M-Pesa
       } else {
-        // Cash/other – require evidence
         if (!formData.receiptFile) {
           alert("Please upload evidence (receipt/screenshot) for this payment.");
           setSubmitting(false);
@@ -265,6 +255,7 @@ export default function MyGiving() {
         }
         payload.receiptFile = formData.receiptFile;
         payload.receiptFilePublicId = formData.receiptFilePublicId;
+        payload.receiptNumber = formData.receiptNumber || undefined;
         payload.status = "pending";
       }
 
@@ -346,7 +337,6 @@ export default function MyGiving() {
       </div>
 
       <div className="member-giving-filters">
-        {/* filters – unchanged */}
         <div className="member-giving-filter-group">
           <label>Search</label>
           <input
@@ -564,11 +554,7 @@ export default function MyGiving() {
                   >
                     <option value="">Select method</option>
                     <option value="mpesa">M-Pesa</option>
-                    <option value="cash">Cash</option>
-                    <option value="bank">Bank Transfer</option>
-                    <option value="card">Card</option>
-                    <option value="check">Check</option>
-                    <option value="other">Other</option>
+                    <option value="other">Upload Evidence</option>
                   </select>
                 </div>
                 <div className="member-giving-form-group">
@@ -633,9 +619,9 @@ export default function MyGiving() {
                 </div>
               )}
 
-              <div className="member-giving-form-row">
+              {!isMpesa && (
                 <div className="member-giving-form-group">
-                  <label>Receipt Number</label>
+                  <label>Receipt Number (Optional)</label>
                   <input
                     type="text"
                     value={formData.receiptNumber}
@@ -643,20 +629,7 @@ export default function MyGiving() {
                     placeholder="Optional"
                   />
                 </div>
-                <div className="member-giving-form-group">
-                  <label>Anonymous</label>
-                  <div className="member-giving-checkbox-group">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={formData.isAnonymous}
-                        onChange={(e) => setFormData({ ...formData, isAnonymous: e.target.checked })}
-                      />
-                      Hide my name
-                    </label>
-                  </div>
-                </div>
-              </div>
+              )}
 
               <div className="member-giving-form-group">
                 <label>Notes</label>
@@ -666,6 +639,17 @@ export default function MyGiving() {
                   rows={2}
                   placeholder="Additional notes..."
                 />
+              </div>
+
+              <div className="member-giving-checkbox-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={formData.isAnonymous}
+                    onChange={(e) => setFormData({ ...formData, isAnonymous: e.target.checked })}
+                  />
+                  Hide my name (Anonymous)
+                </label>
               </div>
 
               <div className="member-giving-modal-actions">
@@ -703,10 +687,16 @@ export default function MyGiving() {
               <p className="member-giving-modal-warning">This action cannot be undone.</p>
             </div>
             <div className="member-giving-modal-actions">
-              <button className="member-giving-modal-cancel" onClick={() => setShowDeleteModal(false)}>
+              <button
+                className="member-giving-modal-cancel"
+                onClick={() => setShowDeleteModal(false)}
+              >
                 Cancel
               </button>
-              <button className="member-giving-modal-danger" onClick={handleDelete}>
+              <button
+                className="member-giving-modal-danger"
+                onClick={handleDelete}
+              >
                 Delete
               </button>
             </div>

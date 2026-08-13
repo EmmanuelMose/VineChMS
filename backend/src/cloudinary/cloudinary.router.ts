@@ -12,7 +12,7 @@ const cloudinaryRouter = Router();
 cloudinaryRouter.post(
   "/upload",
   authenticate,
-  authorize("church_admin", "pastor", "elder", "secretary", "treasurer"),
+  authorize("church_admin", "pastor", "elder", "secretary", "treasurer", "church_member"),
   uploadSingle("file", 50) as unknown as RequestHandler,
   uploadFileController
 );
