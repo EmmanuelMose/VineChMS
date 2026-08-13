@@ -1,3 +1,5 @@
+// File: frontend/src/pages/dashboard/churchmemberdashboard/pledges/MyPledges.tsx
+
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { 
@@ -9,18 +11,22 @@ import {
   type Pledge 
 } from "../../../../Features/pledges/pledgesAPI";
 import { fetchGivingCategories, type GivingCategory } from "../../../../Features/giving/givingAPI";
+import { fetchExpenseCategories, type ExpenseCategory } from "../../../../Features/expenses/expensesAPI";
 import { fetchMemberByUserId } from "../../../../Features/members/membersAPI";
-import { FiPlus, FiEdit2, FiTrash2, FiCheckCircle, FiX } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiCheckCircle, FiX, FiDollarSign } from "react-icons/fi";
+import { hasPermission, type UserRole } from "../../../../utils/permissions";
+import PayMyPledge from "./PayMyPledge";
 import "./MyPledges.css";
 
 export default function MyPledges() {
   const token = useSelector((state: any) => state.user.token);
   const churchId = useSelector((state: any) => state.user.user?.churchId);
   const userId = useSelector((state: any) => state.user.user?.userId);
-  const userRole = useSelector((state: any) => state.user.user?.role);
+  const userRole = useSelector((state: any) => state.user.user?.role) as UserRole;
 
   const [pledges, setPledges] = useState<Pledge[]>([]);
-  const [categories, setCategories] = useState<GivingCategory[]>([]);
+  const [givingCategories, setGivingCategories] = useState<GivingCategory[]>([]);
+  const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>([]);
   const [memberId, setMemberId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,10 +38,16 @@ export default function MyPledges() {
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-  const [showFulfillModal, setShowFulfillModal] = useState(false);
-  const [fulfillTargetId, setFulfillTargetId] = useState<number | null>(null);
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [selectedPledge, setSelectedPledge] = useState<Pledge | null>(null);
+  const [profileImageModalOpen, setProfileImageModalOpen] = useState(false);
+  const [profileImageUrl, setProfileImageUrl] = useState("");
+
+  const canManagePledges = hasPermission(userRole, "manage_pledges");
+  const canFulfill = hasPermission(userRole, "approve_expenses") || userRole === "treasurer" || userRole === "church_admin";
 
   const [formData, setFormData] = useState({
+    categoryType: "giving",
     categoryId: "",
     amount: "",
     startDate: new Date().toISOString().split("T")[0],
@@ -43,9 +55,6 @@ export default function MyPledges() {
     frequency: "monthly",
     notes: "",
   });
-
-  const canManagePledges = userRole === "treasurer" || userRole === "church_admin" || userRole === "pastor" || userRole === "elder" || userRole === "secretary";
-  const canFulfill = userRole === "treasurer" || userRole === "church_admin";
 
   useEffect(() => {
     const loadMemberId = async () => {
@@ -77,14 +86,17 @@ export default function MyPledges() {
     if (!memberId || !token) return;
     try {
       setLoading(true);
-      const [pledgesData, categoriesData] = await Promise.all([
+      const [pledgesData, givingData, expenseData] = await Promise.all([
         fetchPledgesByMember(memberId, token),
         fetchGivingCategories(token),
+        fetchExpenseCategories(token),
       ]);
       const churchPledges = pledgesData.filter((p) => p.churchId === churchId);
-      const churchCategories = categoriesData.filter((c) => c.churchId === churchId);
+      const churchGiving = givingData.filter((c) => c.churchId === churchId);
+      const churchExpense = expenseData.filter((c) => c.churchId === churchId);
       setPledges(churchPledges);
-      setCategories(churchCategories);
+      setGivingCategories(churchGiving);
+      setExpenseCategories(churchExpense);
     } catch (error) {
       console.error("Failed to load pledges:", error);
     } finally {
@@ -106,6 +118,8 @@ export default function MyPledges() {
       filtered = filtered.filter((p) => p.isFulfilled);
     } else if (filterStatus === "unfulfilled") {
       filtered = filtered.filter((p) => !p.isFulfilled);
+    } else if (filterStatus === "partial") {
+      filtered = filtered.filter((p) => !p.isFulfilled && parseFloat(p.amount) > parseFloat(p.paidAmount || "0"));
     }
     setFilteredPledges(filtered);
   };
@@ -113,6 +127,7 @@ export default function MyPledges() {
   const handleCreate = () => {
     setEditingPledge(null);
     setFormData({
+      categoryType: "giving",
       categoryId: "",
       amount: "",
       startDate: new Date().toISOString().split("T")[0],
@@ -128,6 +143,7 @@ export default function MyPledges() {
     const startDate = new Date(pledge.startDate);
     const endDate = new Date(pledge.endDate);
     setFormData({
+      categoryType: pledge.categoryType || "giving",
       categoryId: pledge.categoryId?.toString() || "",
       amount: pledge.amount,
       startDate: startDate.toISOString().split("T")[0],
@@ -147,6 +163,7 @@ export default function MyPledges() {
         memberId: memberId,
         churchId: churchId!,
         categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
+        categoryType: formData.categoryType as "giving" | "expense",
         amount: formData.amount,
         startDate: new Date(formData.startDate).toISOString(),
         endDate: new Date(formData.endDate).toISOString(),
@@ -182,23 +199,22 @@ export default function MyPledges() {
     }
   };
 
-  const handleFulfill = async () => {
-    if (!fulfillTargetId) return;
-    try {
-      await fulfillPledge(fulfillTargetId, token);
-      setShowFulfillModal(false);
-      setFulfillTargetId(null);
-      await loadData();
-    } catch (error) {
-      console.error("Failed to fulfill pledge:", error);
-      alert("Failed to fulfill pledge.");
-    }
+  const handlePayPledge = (pledge: Pledge) => {
+    setSelectedPledge(pledge);
+    setShowPayModal(true);
+  };
+
+  const handleSuccess = () => {
+    setShowModal(false);
+    setShowPayModal(false);
+    setSelectedPledge(null);
+    loadData();
   };
 
   const formatCurrency = (amount: string) => {
     const num = parseFloat(amount);
-    if (isNaN(num)) return "$0.00";
-    return "$" + num.toFixed(2);
+    if (isNaN(num)) return "KES 0.00";
+    return `KES ${num.toFixed(2)}`;
   };
 
   const formatDate = (dateString: string) => {
@@ -209,11 +225,25 @@ export default function MyPledges() {
     });
   };
 
-  const getCategoryName = (categoryId?: number) => {
+  const getCategoryName = (categoryId?: number, categoryType?: string) => {
     if (!categoryId) return "Uncategorized";
-    const cat = categories.find((c) => c.categoryId === categoryId);
-    return cat ? cat.name : "Unknown";
+    if (categoryType === "giving") {
+      const cat = givingCategories.find((c) => c.categoryId === categoryId);
+      return cat ? cat.name : "Unknown";
+    } else {
+      const cat = expenseCategories.find((c) => c.categoryId === categoryId);
+      return cat ? cat.name : "Unknown";
+    }
   };
+
+  const getProgress = (pledge: Pledge) => {
+    const total = parseFloat(pledge.amount);
+    const paid = parseFloat(pledge.paidAmount || "0");
+    if (total === 0) return 0;
+    const progress = Math.min((paid / total) * 100, 100);
+    return Math.round(progress);
+  };
+
 
   if (loading) {
     return (
@@ -225,10 +255,64 @@ export default function MyPledges() {
   }
 
   const totalAmount = pledges.reduce((sum, p) => sum + parseFloat(p.amount), 0);
-  const fulfilledAmount = pledges.filter(p => p.isFulfilled).reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  const totalPaid = pledges.reduce((sum, p) => sum + parseFloat(p.paidAmount || "0"), 0);
 
   return (
     <div className="member-pledges-page">
+      {profileImageModalOpen && (
+        <div className="member-pledges-modal-overlay" onClick={() => setProfileImageModalOpen(false)}>
+          <div className="member-pledges-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "90vw", padding: "0.5rem" }}>
+            <button
+              onClick={() => setProfileImageModalOpen(false)}
+              style={{
+                position: "absolute",
+                top: "12px",
+                right: "12px",
+                background: "rgba(0,0,0,0.6)",
+                border: "none",
+                borderRadius: "50%",
+                width: "40px",
+                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                cursor: "pointer",
+                zIndex: 10,
+              }}
+            >
+              <FiX size={24} />
+            </button>
+            <img src={profileImageUrl} alt="Profile" style={{ maxWidth: "100%", maxHeight: "85vh", display: "block", margin: "0 auto" }} />
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div className="member-pledges-modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="member-pledges-modal member-pledges-modal-small" onClick={(e) => e.stopPropagation()}>
+            <div className="member-pledges-modal-header">
+              <h3>Delete Pledge</h3>
+              <button className="member-pledges-modal-close" onClick={() => setShowDeleteModal(false)}>
+                <FiX size={20} />
+              </button>
+            </div>
+            <div className="member-pledges-modal-body">
+              <p>Are you sure you want to delete this pledge?</p>
+              <p className="member-pledges-modal-warning">This action cannot be undone.</p>
+            </div>
+            <div className="member-pledges-modal-actions">
+              <button className="member-pledges-modal-cancel" onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </button>
+              <button className="member-pledges-modal-danger" onClick={handleDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="member-pledges-header">
         <div>
           <h2 className="member-pledges-title">My Pledges</h2>
@@ -249,15 +333,19 @@ export default function MyPledges() {
         </div>
         <div className="member-pledges-stat">
           <span className="member-pledges-stat-value">{formatCurrency(totalAmount.toString())}</span>
-          <span className="member-pledges-stat-label">Total Amount</span>
+          <span className="member-pledges-stat-label">Total Pledged</span>
+        </div>
+        <div className="member-pledges-stat">
+          <span className="member-pledges-stat-value">{formatCurrency(totalPaid.toString())}</span>
+          <span className="member-pledges-stat-label">Total Paid</span>
         </div>
         <div className="member-pledges-stat">
           <span className="member-pledges-stat-value">{pledges.filter(p => p.isFulfilled).length}</span>
           <span className="member-pledges-stat-label">Fulfilled</span>
         </div>
         <div className="member-pledges-stat">
-          <span className="member-pledges-stat-value">{formatCurrency(fulfilledAmount.toString())}</span>
-          <span className="member-pledges-stat-label">Fulfilled Amount</span>
+          <span className="member-pledges-stat-value">{pledges.filter(p => !p.isFulfilled).length}</span>
+          <span className="member-pledges-stat-label">Pending</span>
         </div>
       </div>
 
@@ -280,79 +368,130 @@ export default function MyPledges() {
             <option value="all">All</option>
             <option value="fulfilled">Fulfilled</option>
             <option value="unfulfilled">Unfulfilled</option>
+            <option value="partial">Partial</option>
           </select>
         </div>
       </div>
 
-      <div className="member-pledges-table-wrapper">
-        {filteredPledges.length > 0 ? (
-          <table className="member-pledges-table">
-            <thead>
-              <tr>
-                <th>Category</th>
-                <th>Amount</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Frequency</th>
-                <th>Status</th>
-                <th>Notes</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPledges.map((pledge) => (
-                <tr key={pledge.pledgeId}>
-                  <td>{getCategoryName(pledge.categoryId)}</td>
-                  <td className="member-pledges-amount">{formatCurrency(pledge.amount)}</td>
-                  <td>{formatDate(pledge.startDate)}</td>
-                  <td>{formatDate(pledge.endDate)}</td>
-                  <td className="member-pledges-frequency">{pledge.frequency}</td>
-                  <td>
-                    <span className={`member-pledges-status ${pledge.isFulfilled ? "status-fulfilled" : "status-unfulfilled"}`}>
-                      {pledge.isFulfilled ? "Fulfilled" : "Unfulfilled"}
-                    </span>
-                  </td>
-                  <td>{pledge.notes || "—"}</td>
-                  <td>
-                    <div className="member-pledges-actions">
-                      {canManagePledges && (
-                        <>
-                          <button className="member-pledges-action-edit" onClick={() => handleEdit(pledge)}>
-                            <FiEdit2 size={14} /> Edit
-                          </button>
-                          <button
-                            className="member-pledges-action-delete"
-                            onClick={() => {
-                              setDeleteTargetId(pledge.pledgeId);
-                              setShowDeleteModal(true);
-                            }}
-                          >
-                            <FiTrash2 size={14} /> Delete
-                          </button>
-                        </>
-                      )}
-                      {canFulfill && !pledge.isFulfilled && (
-                        <button
-                          className="member-pledges-action-fulfill"
-                          onClick={() => {
-                            setFulfillTargetId(pledge.pledgeId);
-                            setShowFulfillModal(true);
-                          }}
-                        >
-                          <FiCheckCircle size={14} /> Fulfill
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
+      <div className="member-pledges-cards-grid">
+        {filteredPledges.length === 0 ? (
           <div className="member-pledges-empty">
             <p>No pledges found</p>
             {canManagePledges && <span>Create your first pledge</span>}
           </div>
+        ) : (
+          filteredPledges.map((pledge) => {
+            const progress = getProgress(pledge);
+            const paidAmount = parseFloat(pledge.paidAmount || "0");
+            const totalAmount = parseFloat(pledge.amount);
+            const remaining = totalAmount - paidAmount;
+            const isFulfilled = pledge.isFulfilled;
+
+            return (
+              <div key={pledge.pledgeId} className="member-pledges-card">
+                <div className="member-pledges-card-header">
+                  <div className="member-pledges-card-info">
+                    <span className="member-pledges-card-category">{getCategoryName(pledge.categoryId, pledge.categoryType)}</span>
+                    <span className="member-pledges-card-type">{pledge.categoryType || "giving"}</span>
+                  </div>
+                  <div className="member-pledges-card-status-badge">
+                    <span className={`member-pledges-status-badge ${isFulfilled ? "status-fulfilled" : "status-unfulfilled"}`}>
+                      {isFulfilled ? "Fulfilled" : "Pending"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="member-pledges-card-body">
+                  <div className="member-pledges-card-details">
+                    <div className="member-pledges-card-detail">
+                      <label>Pledged Amount</label>
+                      <span className="member-pledges-card-amount">{formatCurrency(pledge.amount)}</span>
+                    </div>
+                    <div className="member-pledges-card-detail">
+                      <label>Paid Amount</label>
+                      <span className="member-pledges-card-paid">{formatCurrency(pledge.paidAmount || "0")}</span>
+                    </div>
+                    <div className="member-pledges-card-detail">
+                      <label>Remaining</label>
+                      <span className="member-pledges-card-remaining">{formatCurrency(remaining.toString())}</span>
+                    </div>
+                    <div className="member-pledges-card-detail full-width">
+                      <label>Progress</label>
+                      <div className="member-pledges-progress-wrapper">
+                        <div className="member-pledges-progress-bar">
+                          <div 
+                            className="member-pledges-progress-fill" 
+                            style={{ width: `${progress}%` }}
+                          ></div>
+                        </div>
+                        <span className="member-pledges-progress-text">{progress}%</span>
+                      </div>
+                    </div>
+                    <div className="member-pledges-card-detail">
+                      <label>Start Date</label>
+                      <span>{formatDate(pledge.startDate)}</span>
+                    </div>
+                    <div className="member-pledges-card-detail">
+                      <label>End Date</label>
+                      <span>{formatDate(pledge.endDate)}</span>
+                    </div>
+                    <div className="member-pledges-card-detail">
+                      <label>Frequency</label>
+                      <span className="member-pledges-frequency">{pledge.frequency}</span>
+                    </div>
+                    {pledge.notes && (
+                      <div className="member-pledges-card-detail full-width">
+                        <label>Notes</label>
+                        <span>{pledge.notes}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="member-pledges-card-footer">
+                  {canManagePledges && (
+                    <button 
+                      className="member-pledges-card-btn member-pledges-card-btn-pay" 
+                      onClick={() => handlePayPledge(pledge)}
+                    >
+                      <FiDollarSign size={14} /> Pay Pledge
+                    </button>
+                  )}
+                  {canManagePledges && (
+                    <button 
+                      className="member-pledges-card-btn member-pledges-card-btn-edit" 
+                      onClick={() => handleEdit(pledge)}
+                    >
+                      <FiEdit2 size={14} /> Edit
+                    </button>
+                  )}
+                  {canManagePledges && (
+                    <button
+                      className="member-pledges-card-btn member-pledges-card-btn-delete"
+                      onClick={() => {
+                        setDeleteTargetId(pledge.pledgeId);
+                        setShowDeleteModal(true);
+                      }}
+                    >
+                      <FiTrash2 size={14} /> Delete
+                    </button>
+                  )}
+                  {canFulfill && !isFulfilled && (
+                    <button
+                      className="member-pledges-card-btn member-pledges-card-btn-fulfill"
+                      onClick={() => {
+                        if (window.confirm("Mark this pledge as fulfilled?")) {
+                          fulfillPledge(pledge.pledgeId, token).then(() => loadData());
+                        }
+                      }}
+                    >
+                      <FiCheckCircle size={14} /> Mark Fulfilled
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 
@@ -362,7 +501,7 @@ export default function MyPledges() {
         </div>
       )}
 
-      {showModal && (
+      {showModal && canManagePledges && (
         <div className="member-pledges-modal-overlay" onClick={() => setShowModal(false)}>
           <div className="member-pledges-modal" onClick={(e) => e.stopPropagation()}>
             <div className="member-pledges-modal-header">
@@ -374,30 +513,58 @@ export default function MyPledges() {
             <form onSubmit={handleSubmit} className="member-pledges-modal-form">
               <div className="member-pledges-form-row">
                 <div className="member-pledges-form-group">
+                  <label>Category Type</label>
+                  <select
+                    value={formData.categoryType}
+                    onChange={(e) => setFormData({ ...formData, categoryType: e.target.value, categoryId: "" })}
+                  >
+                    <option value="giving">Giving</option>
+                    <option value="expense">Expense</option>
+                  </select>
+                </div>
+                <div className="member-pledges-form-group">
                   <label>Category</label>
                   <select
                     value={formData.categoryId}
                     onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                   >
                     <option value="">Select category</option>
-                    {categories.filter(c => c.isActive).map((c) => (
-                      <option key={c.categoryId} value={c.categoryId}>
-                        {c.name}
-                      </option>
-                    ))}
+                    {(formData.categoryType === "giving" ? givingCategories : expenseCategories)
+                      .filter(c => c.isActive)
+                      .map((c) => (
+                        <option key={c.categoryId} value={c.categoryId}>
+                          {c.name}
+                        </option>
+                      ))}
                   </select>
                 </div>
+              </div>
+
+              <div className="member-pledges-form-row">
                 <div className="member-pledges-form-group">
-                  <label>Amount *</label>
+                  <label>Amount (KES) *</label>
                   <input
                     type="number"
-                    step="0.01"
-                    min="0.01"
+                    step="1"
+                    min="1"
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                     placeholder="0.00"
                     required
                   />
+                </div>
+                <div className="member-pledges-form-group">
+                  <label>Frequency</label>
+                  <select
+                    value={formData.frequency}
+                    onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                  >
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="annually">Annually</option>
+                    <option value="one_time">One Time</option>
+                  </select>
                 </div>
               </div>
 
@@ -419,22 +586,6 @@ export default function MyPledges() {
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                     required
                   />
-                </div>
-              </div>
-
-              <div className="member-pledges-form-row">
-                <div className="member-pledges-form-group">
-                  <label>Frequency</label>
-                  <select
-                    value={formData.frequency}
-                    onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                  >
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="annually">Annually</option>
-                    <option value="one_time">One Time</option>
-                  </select>
                 </div>
               </div>
 
@@ -469,54 +620,16 @@ export default function MyPledges() {
         </div>
       )}
 
-      {showDeleteModal && (
-        <div className="member-pledges-modal-overlay" onClick={() => setShowDeleteModal(false)}>
-          <div className="member-pledges-modal member-pledges-modal-small" onClick={(e) => e.stopPropagation()}>
-            <div className="member-pledges-modal-header">
-              <h3>Delete Pledge</h3>
-              <button className="member-pledges-modal-close" onClick={() => setShowDeleteModal(false)}>
-                <FiX size={20} />
-              </button>
-            </div>
-            <div className="member-pledges-modal-body">
-              <p>Are you sure you want to delete this pledge?</p>
-              <p className="member-pledges-modal-warning">This action cannot be undone.</p>
-            </div>
-            <div className="member-pledges-modal-actions">
-              <button className="member-pledges-modal-cancel" onClick={() => setShowDeleteModal(false)}>
-                Cancel
-              </button>
-              <button className="member-pledges-modal-danger" onClick={handleDelete}>
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showFulfillModal && (
-        <div className="member-pledges-modal-overlay" onClick={() => setShowFulfillModal(false)}>
-          <div className="member-pledges-modal member-pledges-modal-small" onClick={(e) => e.stopPropagation()}>
-            <div className="member-pledges-modal-header">
-              <h3>Fulfill Pledge</h3>
-              <button className="member-pledges-modal-close" onClick={() => setShowFulfillModal(false)}>
-                <FiX size={20} />
-              </button>
-            </div>
-            <div className="member-pledges-modal-body">
-              <p>Are you sure you want to mark this pledge as fulfilled?</p>
-              <p className="member-pledges-modal-info">This will update the pledge status to fulfilled.</p>
-            </div>
-            <div className="member-pledges-modal-actions">
-              <button className="member-pledges-modal-cancel" onClick={() => setShowFulfillModal(false)}>
-                Cancel
-              </button>
-              <button className="member-pledges-modal-fulfill" onClick={handleFulfill}>
-                Fulfill
-              </button>
-            </div>
-          </div>
-        </div>
+      {selectedPledge && (
+        <PayMyPledge
+          isOpen={showPayModal}
+          onClose={() => {
+            setShowPayModal(false);
+            setSelectedPledge(null);
+          }}
+          onSuccess={handleSuccess}
+          pledge={selectedPledge}
+        />
       )}
     </div>
   );

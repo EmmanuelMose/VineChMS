@@ -1,0 +1,242 @@
+/* File: frontend/src/pages/dashboard/churchmemberdashboard/pledges/PayMyPledge.css */
+
+.member-pledges-pay-modal {
+  max-width: 560px;
+}
+
+.member-pledges-pay-summary {
+  background: #f8faf8;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #e5e7eb;
+}
+
+.member-pledges-pay-member {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.member-pledges-pay-member strong {
+  font-size: 1rem;
+  color: #111827;
+}
+
+.member-pledges-pay-amounts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.member-pledges-pay-amount-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-pledges-pay-amount-item label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.member-pledges-pay-paid {
+  font-weight: 600;
+  color: #1565C0;
+}
+
+.member-pledges-pay-remaining {
+  font-weight: 600;
+  color: #DC2626;
+}
+
+.member-pledges-pay-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.member-pledges-pay-progress-bar {
+  flex: 1;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.member-pledges-pay-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2E7D32, #4CAF50);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.member-pledges-pay-progress-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #111827;
+  min-width: 40px;
+  text-align: right;
+}
+
+.member-pledges-pay-mode-selector {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.member-pledges-pay-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  background: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  justify-content: center;
+}
+
+.member-pledges-pay-mode-btn:hover {
+  background: #f3f4f6;
+}
+
+.member-pledges-pay-mode-btn.active {
+  background: rgba(46, 125, 50, 0.08);
+  border-color: #2E7D32;
+  color: #2E7D32;
+}
+
+.member-pledges-file-upload-wrapper {
+  position: relative;
+  margin: 0.25rem 0;
+}
+
+.member-pledges-file-input {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.member-pledges-file-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: 1.5px dashed #d1d5db;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.member-pledges-file-label:hover {
+  background: #e5e7eb;
+  border-color: #2E7D32;
+}
+
+.member-pledges-file-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  margin-top: 0.3rem;
+  background: #f0fdf4;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+  font-size: 0.85rem;
+  color: #16a34a;
+}
+
+.member-pledges-file-preview span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-pledges-view-evidence {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(21, 101, 192, 0.08);
+  color: #1565C0;
+  border: none;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.member-pledges-view-evidence:hover {
+  background: rgba(21, 101, 192, 0.15);
+}
+
+.member-pledges-remove-file {
+  background: rgba(220, 38, 38, 0.08);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.member-pledges-remove-file:hover {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.member-pledges-form-error {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 0.85rem;
+  border: 1px solid #fecaca;
+}
+
+.member-pledges-form-error::before {
+  content: "⚠️ ";
+}
+
+@media (max-width: 768px) {
+  .member-pledges-pay-amounts {
+    grid-template-columns: 1fr;
+  }
+  .member-pledges-pay-mode-selector {
+    flex-direction: column;
+  }
+  .member-pledges-file-preview {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .member-pledges-pay-amounts {
+    grid-template-columns: 1fr;
+  }
+}
