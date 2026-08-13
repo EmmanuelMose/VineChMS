@@ -223,7 +223,7 @@ export const PERMISSIONS = {
     id: "create_expenses",
     name: "Create Expenses",
     description: "Create expense records",
-    roles: ["treasurer", "church_admin", "pastor", "elder", "secretary", "church_member"],
+    roles: ["treasurer", "church_admin", "pastor", "elder", "secretary"],
   },
   CREATE_OWN_EXPENSES: {
     id: "create_own_expenses",
@@ -375,10 +375,10 @@ export const PERMISSIONS = {
     description: "Create, update, and delete visitors",
     roles: ["secretary", "church_admin", "pastor", "elder"],
   },
-  CONVERT_VISITORS: {
-    id: "convert_visitors",
-    name: "Convert Visitors",
-    description: "Convert visitors to members",
+  INVITE_VISITORS: {
+    id: "invite_visitors",
+    name: "Invite Visitors",
+    description: "Send invitations to visitors to register",
     roles: ["secretary", "church_admin", "pastor", "elder"],
   },
   MANAGE_PLEDGES: {
@@ -386,6 +386,18 @@ export const PERMISSIONS = {
     name: "Manage Pledges",
     description: "Create, update, and delete pledges",
     roles: ["treasurer", "church_admin", "pastor", "elder", "secretary"],
+  },
+  VIEW_PLEDGES: {
+    id: "view_pledges",
+    name: "View Pledges",
+    description: "View all pledges",
+    roles: ["treasurer", "church_admin", "pastor", "elder", "secretary", "church_member"],
+  },
+  PAY_PLEDGE: {
+    id: "pay_pledge",
+    name: "Pay Pledge",
+    description: "Make payments towards pledges",
+    roles: ["church_member", "pastor", "elder", "treasurer", "secretary", "church_admin"],
   },
   VIEW_POSITIONS: {
     id: "view_positions",

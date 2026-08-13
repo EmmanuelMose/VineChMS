@@ -1,15 +1,19 @@
+// File: frontend/src/pages/dashboard/churchadmindashboard/visitors/Visitors.tsx
+
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { fetchVisitors, createVisitor, updateVisitor, deleteVisitor, convertVisitorToMember, type Visitor } from "../../../../Features/visitors/visitorsAPI";
+import { fetchVisitors, createVisitor, updateVisitor, deleteVisitor, type Visitor } from "../../../../Features/visitors/visitorsAPI";
+import { inviteMember } from "../../../../Features/auth/authAPI";
 import { fetchServices, type Service } from "../../../../Features/services/servicesAPI";
 import { fetchMemberByUserId } from "../../../../Features/members/membersAPI";
-import { FiSearch, FiX, FiPlus, FiEdit2, FiTrash2, FiUserPlus } from "react-icons/fi";
+import { FiSearch, FiX, FiPlus, FiEdit2, FiTrash2, FiMail } from "react-icons/fi";
 import "./Visitors.css";
 
 export default function Visitors() {
   const token = useSelector((state: any) => state.user.token);
   const churchId = useSelector((state: any) => state.user.user?.churchId);
   const userId = useSelector((state: any) => state.user.user?.userId);
+  const userRole = useSelector((state: any) => state.user.user?.role);
 
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -17,14 +21,14 @@ export default function Visitors() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredVisitors, setFilteredVisitors] = useState<Visitor[]>([]);
-  
+
   const [showModal, setShowModal] = useState(false);
   const [editingVisitor, setEditingVisitor] = useState<Visitor | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-  const [showConvertModal, setShowConvertModal] = useState(false);
-  const [convertTargetId, setConvertTargetId] = useState<number | null>(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteTarget, setInviteTarget] = useState<Visitor | null>(null);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -36,11 +40,13 @@ export default function Visitors() {
     notes: "",
   });
 
-  const [convertFormData, setConvertFormData] = useState({
+  const [inviteFormData, setInviteFormData] = useState({
+    email: "",
+    fullName: "",
     role: "church_member",
-    isActive: true,
-    notes: "",
   });
+
+  const canManage = userRole === "secretary" || userRole === "church_admin" || userRole === "pastor" || userRole === "elder";
 
   useEffect(() => {
     const loadMemberId = async () => {
@@ -190,59 +196,41 @@ export default function Visitors() {
     }
   };
 
-  const handleConvertClick = (visitorId: number) => {
-    setConvertTargetId(visitorId);
-    setConvertFormData({
+  const handleInviteClick = (visitor: Visitor) => {
+    setInviteTarget(visitor);
+    setInviteFormData({
+      email: visitor.email || "",
+      fullName: visitor.fullName,
       role: "church_member",
-      isActive: true,
-      notes: "",
     });
-    setShowConvertModal(true);
+    setShowInviteModal(true);
   };
 
-  const handleConvert = async () => {
-    if (!convertTargetId) return;
+  const handleInviteSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteTarget) return;
     setSubmitting(true);
     try {
-      const result = await convertVisitorToMember(convertTargetId, {
-        role: convertFormData.role,
-        isActive: convertFormData.isActive,
-        notes: convertFormData.notes || undefined,
-      }, token);
-      
-      if (result.member) {
-        setShowConvertModal(false);
-        setConvertTargetId(null);
-        await loadData();
-        alert("Visitor converted to member successfully!");
-      } else {
-        alert("Failed to convert visitor. Please try again.");
-      }
+      await inviteMember(
+        {
+          fullName: inviteFormData.fullName,
+          email: inviteFormData.email,
+          role: inviteFormData.role as any,
+          churchId: churchId!,
+        },
+        token
+      );
+      setShowInviteModal(false);
+      setInviteTarget(null);
+      alert(`Invitation sent to ${inviteFormData.email}. They will need to register to become a member.`);
+      await loadData();
     } catch (error: any) {
-      console.error("Failed to convert visitor:", error);
-      if (error.response) {
-        const msg = error.response.data?.message || "Failed to convert visitor.";
-        if (msg.toLowerCase().includes("already") || msg.toLowerCase().includes("exists")) {
-          alert("This visitor has already been converted to a member.");
-          setShowConvertModal(false);
-          setConvertTargetId(null);
-          await loadData();
-        } else if (msg.toLowerCase().includes("not found")) {
-          alert("This visitor no longer exists.");
-          setShowConvertModal(false);
-          setConvertTargetId(null);
-          await loadData();
-        } else {
-          alert(msg);
-        }
-      } else {
-        alert("Failed to convert visitor. Please try again.");
-      }
+      console.error("Failed to send invitation:", error);
+      alert(error.response?.data?.message || "Failed to send invitation.");
     } finally {
       setSubmitting(false);
     }
   };
-
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -260,8 +248,8 @@ export default function Visitors() {
 
   if (loading) {
     return (
-      <div className="admin-visitors-loading">
-        <div className="admin-visitors-loading-spinner"></div>
+      <div className="visitors-loading">
+        <div className="visitors-loading-spinner"></div>
         <p>Loading visitors...</p>
       </div>
     );
@@ -271,60 +259,65 @@ export default function Visitors() {
   const convertedVisitors = visitors.filter((v) => v.isMember).length;
 
   return (
-    <div className="admin-visitors-page">
-      <div className="admin-visitors-header">
+    <div className="visitors-page">
+      <div className="visitors-header">
         <div>
-          <h2 className="admin-visitors-title">Visitors</h2>
-          <p className="admin-visitors-subtitle">Track and manage church visitors</p>
+          <h2 className="visitors-title">Visitors</h2>
+          <p className="visitors-subtitle">Track and manage church visitors</p>
         </div>
-        <button className="admin-visitors-add-btn" onClick={handleCreate}>
-          <FiPlus size={18} />
-          Add Visitor
-        </button>
+        {canManage && (
+          <button className="visitors-add-btn" onClick={handleCreate}>
+            <FiPlus size={18} />
+            Add Visitor
+          </button>
+        )}
       </div>
 
-      <div className="admin-visitors-stats">
-        <div className="admin-visitors-stat">
-          <span className="admin-visitors-stat-value">{totalVisitors}</span>
-          <span className="admin-visitors-stat-label">Total Visitors</span>
+      <div className="visitors-stats">
+        <div className="visitors-stat">
+          <span className="visitors-stat-value">{totalVisitors}</span>
+          <span className="visitors-stat-label">Total Visitors</span>
         </div>
-        <div className="admin-visitors-stat">
-          <span className="admin-visitors-stat-value">{convertedVisitors}</span>
-          <span className="admin-visitors-stat-label">Converted to Members</span>
+        <div className="visitors-stat">
+          <span className="visitors-stat-value">{convertedVisitors}</span>
+          <span className="visitors-stat-label">Converted to Members</span>
         </div>
-        <div className="admin-visitors-stat">
-          <span className="admin-visitors-stat-value">{totalVisitors - convertedVisitors}</span>
-          <span className="admin-visitors-stat-label">Unconverted</span>
+        <div className="visitors-stat">
+          <span className="visitors-stat-value">{totalVisitors - convertedVisitors}</span>
+          <span className="visitors-stat-label">Unconverted</span>
         </div>
-        <div className="admin-visitors-stat">
-          <span className="admin-visitors-stat-value">
+        <div className="visitors-stat">
+          <span className="visitors-stat-value">
             {totalVisitors > 0 ? Math.round((convertedVisitors / totalVisitors) * 100) : 0}%
           </span>
-          <span className="admin-visitors-stat-label">Conversion Rate</span>
+          <span className="visitors-stat-label">Conversion Rate</span>
         </div>
       </div>
 
-      <div className="admin-visitors-search">
-        <div className="admin-visitors-search-wrapper">
-          <FiSearch className="admin-visitors-search-icon" />
+      <div className="visitors-search">
+        <div className="visitors-search-wrapper">
+          <FiSearch className="visitors-search-icon" />
           <input
             type="text"
             placeholder="Search visitors..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="admin-visitors-search-input"
+            className="visitors-search-input"
           />
           {searchTerm && (
-            <button onClick={() => setSearchTerm("")} className="admin-visitors-search-clear">
+            <button
+              onClick={() => setSearchTerm("")}
+              className="visitors-search-clear"
+            >
               <FiX size={16} />
             </button>
           )}
         </div>
       </div>
 
-      <div className="admin-visitors-table-wrapper">
+      <div className="visitors-table-wrapper">
         {filteredVisitors.length > 0 ? (
-          <table className="admin-visitors-table">
+          <table className="visitors-table">
             <thead>
               <tr>
                 <th>Name</th>
@@ -339,38 +332,42 @@ export default function Visitors() {
             <tbody>
               {filteredVisitors.map((visitor) => (
                 <tr key={visitor.visitorId}>
-                  <td className="admin-visitors-name">{visitor.fullName}</td>
+                  <td className="visitors-name">{visitor.fullName}</td>
                   <td>{visitor.email || "—"}</td>
                   <td>{visitor.phone || "—"}</td>
                   <td>{formatDate(visitor.visitedDate)}</td>
                   <td>{getServiceName(visitor.serviceId)}</td>
                   <td>
-                    <span className={`admin-visitors-status ${visitor.isMember ? "status-member" : "status-visitor"}`}>
+                    <span className={`visitors-status ${visitor.isMember ? "status-member" : "status-visitor"}`}>
                       {visitor.isMember ? "Member" : "Visitor"}
                     </span>
                   </td>
                   <td>
-                    <div className="admin-visitors-actions">
-                      <button className="admin-visitors-action-edit" onClick={() => handleEdit(visitor)}>
-                        <FiEdit2 size={14} /> Edit
-                      </button>
-                      {!visitor.isMember && (
-                        <button
-                          className="admin-visitors-action-convert"
-                          onClick={() => handleConvertClick(visitor.visitorId)}
-                        >
-                          <FiUserPlus size={14} /> Convert
-                        </button>
+                    <div className="visitors-actions">
+                      {canManage && (
+                        <>
+                          <button className="visitors-action-edit" onClick={() => handleEdit(visitor)}>
+                            <FiEdit2 size={14} /> Edit
+                          </button>
+                          {!visitor.isMember && (
+                            <button
+                              className="visitors-action-invite"
+                              onClick={() => handleInviteClick(visitor)}
+                            >
+                              <FiMail size={14} /> Invite
+                            </button>
+                          )}
+                          <button
+                            className="visitors-action-delete"
+                            onClick={() => {
+                              setDeleteTargetId(visitor.visitorId);
+                              setShowDeleteModal(true);
+                            }}
+                          >
+                            <FiTrash2 size={14} /> Delete
+                          </button>
+                        </>
                       )}
-                      <button
-                        className="admin-visitors-action-delete"
-                        onClick={() => {
-                          setDeleteTargetId(visitor.visitorId);
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        <FiTrash2 size={14} /> Delete
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -378,30 +375,30 @@ export default function Visitors() {
             </tbody>
           </table>
         ) : (
-          <div className="admin-visitors-empty">
+          <div className="visitors-empty">
             <p>No visitors found</p>
           </div>
         )}
       </div>
 
       {filteredVisitors.length > 0 && (
-        <div className="admin-visitors-count">
+        <div className="visitors-count">
           Showing {filteredVisitors.length} of {visitors.length} visitors
           {searchTerm && " (filtered)"}
         </div>
       )}
 
       {showModal && (
-        <div className="admin-visitors-modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="admin-visitors-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-visitors-modal-header">
+        <div className="visitors-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="visitors-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="visitors-modal-header">
               <h3>{editingVisitor ? "Edit Visitor" : "Add Visitor"}</h3>
-              <button className="admin-visitors-modal-close" onClick={() => setShowModal(false)}>
+              <button className="visitors-modal-close" onClick={() => setShowModal(false)}>
                 Close
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="admin-visitors-modal-form">
-              <div className="admin-visitors-form-group">
+            <form onSubmit={handleSubmit} className="visitors-modal-form">
+              <div className="visitors-form-group">
                 <label>Full Name *</label>
                 <input
                   type="text"
@@ -411,8 +408,8 @@ export default function Visitors() {
                   required
                 />
               </div>
-              <div className="admin-visitors-form-row">
-                <div className="admin-visitors-form-group">
+              <div className="visitors-form-row">
+                <div className="visitors-form-group">
                   <label>Email</label>
                   <input
                     type="email"
@@ -421,7 +418,7 @@ export default function Visitors() {
                     placeholder="john@example.com"
                   />
                 </div>
-                <div className="admin-visitors-form-group">
+                <div className="visitors-form-group">
                   <label>Phone</label>
                   <input
                     type="tel"
@@ -431,7 +428,7 @@ export default function Visitors() {
                   />
                 </div>
               </div>
-              <div className="admin-visitors-form-group">
+              <div className="visitors-form-group">
                 <label>Address</label>
                 <input
                   type="text"
@@ -440,8 +437,8 @@ export default function Visitors() {
                   placeholder="123 Main St, City"
                 />
               </div>
-              <div className="admin-visitors-form-row">
-                <div className="admin-visitors-form-group">
+              <div className="visitors-form-row">
+                <div className="visitors-form-group">
                   <label>Visited Date *</label>
                   <input
                     type="date"
@@ -450,7 +447,7 @@ export default function Visitors() {
                     required
                   />
                 </div>
-                <div className="admin-visitors-form-group">
+                <div className="visitors-form-group">
                   <label>Service</label>
                   <select
                     value={formData.serviceId}
@@ -465,7 +462,7 @@ export default function Visitors() {
                   </select>
                 </div>
               </div>
-              <div className="admin-visitors-form-group">
+              <div className="visitors-form-group">
                 <label>Notes</label>
                 <textarea
                   value={formData.notes}
@@ -474,11 +471,19 @@ export default function Visitors() {
                   placeholder="Additional notes about this visitor..."
                 />
               </div>
-              <div className="admin-visitors-modal-actions">
-                <button type="button" className="admin-visitors-modal-cancel" onClick={() => setShowModal(false)}>
+              <div className="visitors-modal-actions">
+                <button
+                  type="button"
+                  className="visitors-modal-cancel"
+                  onClick={() => setShowModal(false)}
+                >
                   Cancel
                 </button>
-                <button type="submit" className="admin-visitors-modal-submit" disabled={submitting}>
+                <button
+                  type="submit"
+                  className="visitors-modal-submit"
+                  disabled={submitting}
+                >
                   {submitting ? "Saving..." : editingVisitor ? "Update" : "Save"}
                 </button>
               </div>
@@ -488,23 +493,23 @@ export default function Visitors() {
       )}
 
       {showDeleteModal && (
-        <div className="admin-visitors-modal-overlay" onClick={() => setShowDeleteModal(false)}>
-          <div className="admin-visitors-modal admin-visitors-modal-small" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-visitors-modal-header">
+        <div className="visitors-modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="visitors-modal visitors-modal-small" onClick={(e) => e.stopPropagation()}>
+            <div className="visitors-modal-header">
               <h3>Delete Visitor</h3>
-              <button className="admin-visitors-modal-close" onClick={() => setShowDeleteModal(false)}>
+              <button className="visitors-modal-close" onClick={() => setShowDeleteModal(false)}>
                 Close
               </button>
             </div>
-            <div className="admin-visitors-modal-body">
+            <div className="visitors-modal-body">
               <p>Are you sure you want to delete this visitor?</p>
-              <p className="admin-visitors-modal-warning">This action cannot be undone.</p>
+              <p className="visitors-modal-warning">This action cannot be undone.</p>
             </div>
-            <div className="admin-visitors-modal-actions">
-              <button className="admin-visitors-modal-cancel" onClick={() => setShowDeleteModal(false)}>
+            <div className="visitors-modal-actions">
+              <button className="visitors-modal-cancel" onClick={() => setShowDeleteModal(false)}>
                 Cancel
               </button>
-              <button className="admin-visitors-modal-danger" onClick={handleDelete} disabled={submitting}>
+              <button className="visitors-modal-danger" onClick={handleDelete} disabled={submitting}>
                 {submitting ? "Deleting..." : "Delete"}
               </button>
             </div>
@@ -512,21 +517,39 @@ export default function Visitors() {
         </div>
       )}
 
-      {showConvertModal && (
-        <div className="admin-visitors-modal-overlay" onClick={() => setShowConvertModal(false)}>
-          <div className="admin-visitors-modal admin-visitors-modal-convert" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-visitors-modal-header">
-              <h3>Convert Visitor to Member</h3>
-              <button className="admin-visitors-modal-close" onClick={() => setShowConvertModal(false)}>
+      {showInviteModal && inviteTarget && (
+        <div className="visitors-modal-overlay" onClick={() => setShowInviteModal(false)}>
+          <div className="visitors-modal visitors-modal-invite" onClick={(e) => e.stopPropagation()}>
+            <div className="visitors-modal-header">
+              <h3>Invite Visitor to Register</h3>
+              <button className="visitors-modal-close" onClick={() => setShowInviteModal(false)}>
                 Close
               </button>
             </div>
-            <div className="admin-visitors-modal-body">
-              <div className="admin-visitors-form-group">
+            <form onSubmit={handleInviteSubmit} className="visitors-modal-form">
+              <div className="visitors-form-group">
+                <label>Full Name *</label>
+                <input
+                  type="text"
+                  value={inviteFormData.fullName}
+                  onChange={(e) => setInviteFormData({ ...inviteFormData, fullName: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="visitors-form-group">
+                <label>Email *</label>
+                <input
+                  type="email"
+                  value={inviteFormData.email}
+                  onChange={(e) => setInviteFormData({ ...inviteFormData, email: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="visitors-form-group">
                 <label>Role</label>
                 <select
-                  value={convertFormData.role}
-                  onChange={(e) => setConvertFormData({ ...convertFormData, role: e.target.value })}
+                  value={inviteFormData.role}
+                  onChange={(e) => setInviteFormData({ ...inviteFormData, role: e.target.value })}
                 >
                   <option value="church_member">Church Member</option>
                   <option value="pastor">Pastor</option>
@@ -535,34 +558,23 @@ export default function Visitors() {
                   <option value="secretary">Secretary</option>
                 </select>
               </div>
-              <div className="admin-visitors-form-group">
-                <label>Status</label>
-                <select
-                  value={convertFormData.isActive ? "active" : "inactive"}
-                  onChange={(e) => setConvertFormData({ ...convertFormData, isActive: e.target.value === "active" })}
+              <div className="visitors-modal-actions">
+                <button
+                  type="button"
+                  className="visitors-modal-cancel"
+                  onClick={() => setShowInviteModal(false)}
                 >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="visitors-modal-invite-btn"
+                  disabled={submitting}
+                >
+                  {submitting ? "Sending..." : "Send Invitation"}
+                </button>
               </div>
-              <div className="admin-visitors-form-group">
-                <label>Notes</label>
-                <textarea
-                  value={convertFormData.notes}
-                  onChange={(e) => setConvertFormData({ ...convertFormData, notes: e.target.value })}
-                  rows={2}
-                  placeholder="Additional notes about conversion..."
-                />
-              </div>
-            </div>
-            <div className="admin-visitors-modal-actions">
-              <button type="button" className="admin-visitors-modal-cancel" onClick={() => setShowConvertModal(false)}>
-                Cancel
-              </button>
-              <button type="button" className="admin-visitors-modal-convert-btn" onClick={handleConvert} disabled={submitting}>
-                {submitting ? "Converting..." : "Convert to Member"}
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       )}
