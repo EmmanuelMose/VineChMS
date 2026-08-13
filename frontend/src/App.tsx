@@ -37,7 +37,7 @@ import MemberPrayerRequests from './pages/dashboard/churchmemberdashboard/prayer
 import MemberGroups from './pages/dashboard/churchmemberdashboard/groups/Groups';
 import MemberAttendance from './pages/dashboard/churchmemberdashboard/attendance/MyAttendance';
 import MyGiving from './pages/dashboard/churchmemberdashboard/giving/MyGiving';
-import MemberExpenses from './pages/dashboard/churchmemberdashboard/expenses/Expenses';
+import MemberExpenses from './pages/dashboard/churchmemberdashboard/expenses/MyExpenses';
 import MyLeadership from './pages/dashboard/churchmemberdashboard/leadership/MyLeadership';
 import MyPledges from './pages/dashboard/churchmemberdashboard/pledges/MyPledges';
 import MemberVisitors from './pages/dashboard/churchmemberdashboard/visitors/Visitors';
