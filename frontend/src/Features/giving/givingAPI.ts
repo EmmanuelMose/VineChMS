@@ -41,6 +41,10 @@ export interface Giving {
   receiptNumber?: string;
   receiptFile?: string;
   receiptFilePublicId?: string;
+  mpesaCheckoutRequestID?: string;
+  mpesaMerchantRequestID?: string;
+  approvedBy?: number;
+  approvedAt?: string;
   fullName?: string;
   categoryName?: string;
   createdAt: string;
@@ -63,6 +67,7 @@ export interface NewGiving {
   receiptNumber?: string;
   receiptFile?: string;
   receiptFilePublicId?: string;
+  phoneNumber?: string; // <-- ADD THIS
 }
 
 export interface GivingSummary {
@@ -194,4 +199,18 @@ export const deleteGiving = async (id: number, token: string): Promise<{ success
     headers: { Authorization: `Bearer ${token}` }
   });
   return response.data;
+};
+
+export const approveGiving = async (id: number, token: string): Promise<Giving> => {
+  const response = await axios.put(`${API_URL}/${id}/approve`, {}, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data.data;
+};
+
+export const rejectGiving = async (id: number, token: string): Promise<Giving> => {
+  const response = await axios.put(`${API_URL}/${id}/reject`, {}, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data.data;
 };

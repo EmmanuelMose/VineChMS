@@ -564,7 +564,7 @@ export const giving = pgTable(
       { onDelete: "set null" }
     ),
     amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-    currency: varchar("currency", { length: 3 }).default("USD"),
+    currency: varchar("currency", { length: 3 }).default("KES"),
     type: givingTypeEnum("type").notNull(),
     status: givingStatusEnum("status").default("pending"),
     date: timestamp("date").defaultNow().notNull(),
@@ -575,6 +575,12 @@ export const giving = pgTable(
     receiptNumber: varchar("receipt_number", { length: 50 }),
     receiptFile: varchar("receipt_file", { length: 500 }),
     receiptFilePublicId: varchar("receipt_file_public_id", { length: 255 }),
+    mpesaCheckoutRequestID: varchar("mpesa_checkout_request_id", { length: 255 }),
+    mpesaMerchantRequestID: varchar("mpesa_merchant_request_id", { length: 255 }),
+    approvedBy: integer("approved_by").references(() => users.userId, {
+      onDelete: "set null",
+    }),
+    approvedAt: timestamp("approved_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
@@ -963,7 +969,6 @@ export const groups = pgTable(
   })
 );
 
-// NEW: group_join_requests table
 export const groupJoinRequests = pgTable(
   "group_join_requests",
   {
@@ -975,7 +980,7 @@ export const groupJoinRequests = pgTable(
       .references(() => members.memberId, { onDelete: "cascade" })
       .notNull(),
     message: text("message"),
-    status: varchar("status", { length: 20 }).default("pending"), // pending, approved, rejected
+    status: varchar("status", { length: 20 }).default("pending"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
@@ -1331,7 +1336,6 @@ export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
   }),
 }));
 
-// NEW: relations for groupJoinRequests
 export const groupJoinRequestsRelations = relations(groupJoinRequests, ({ one }) => ({
   group: one(groups, {
     fields: [groupJoinRequests.groupId],

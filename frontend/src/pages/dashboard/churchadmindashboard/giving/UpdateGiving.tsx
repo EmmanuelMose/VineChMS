@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
-import { FiX } from "react-icons/fi";
+import { FiX, FiUpload } from "react-icons/fi";
 import { updateGiving, type Giving } from "../../../../Features/giving/givingAPI";
+import { uploadFileToCloudinary } from "../../../../Features/cloudinary/cloudinaryAPI";
 import { type Member } from "../../../../Features/members/membersAPI";
 import { type GivingCategory } from "../../../../Features/giving/givingAPI";
 import "./UpdateGiving.css";
@@ -17,20 +18,25 @@ interface UpdateGivingProps {
 
 export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, members, categories }: UpdateGivingProps) {
   const token = useSelector((state: any) => state.user.token);
-  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState({
     memberId: "",
     categoryId: "",
     amount: "",
+    currency: "KES",
     date: "",
     paymentMethod: "",
     status: "pending",
     notes: "",
     isAnonymous: false,
     receiptNumber: "",
+    receiptFile: "",
+    receiptFilePublicId: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
 
   useEffect(() => {
     if (giving) {
@@ -38,15 +44,48 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
         memberId: giving.memberId.toString(),
         categoryId: giving.categoryId?.toString() || "",
         amount: giving.amount,
+        currency: giving.currency || "KES",
         date: giving.date.split("T")[0],
         paymentMethod: giving.paymentMethod || "",
         status: giving.status,
         notes: giving.notes || "",
         isAnonymous: giving.isAnonymous,
         receiptNumber: giving.receiptNumber || "",
+        receiptFile: giving.receiptFile || "",
+        receiptFilePublicId: giving.receiptFilePublicId || "",
       });
     }
   }, [giving]);
+
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+    setUploadingReceipt(true);
+    try {
+      const result = await uploadFileToCloudinary(file, token, "vinechms/giving/receipts", {
+        resourceType: "image",
+        quality: 80,
+      });
+      setFormData((prev) => ({
+        ...prev,
+        receiptFile: result.secureUrl,
+        receiptFilePublicId: result.publicId,
+      }));
+    } catch (err: any) {
+      setError(err.message || "Receipt upload failed");
+    } finally {
+      setUploadingReceipt(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeReceipt = () => {
+    setFormData((prev) => ({
+      ...prev,
+      receiptFile: "",
+      receiptFilePublicId: "",
+    }));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,12 +97,15 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
         memberId: parseInt(formData.memberId),
         categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
         amount: formData.amount,
+        currency: formData.currency,
         date: new Date(formData.date).toISOString(),
         paymentMethod: formData.paymentMethod || undefined,
         status: formData.status,
         notes: formData.notes || undefined,
         isAnonymous: formData.isAnonymous,
         receiptNumber: formData.receiptNumber || undefined,
+        receiptFile: formData.receiptFile || undefined,
+        receiptFilePublicId: formData.receiptFilePublicId || undefined,
       }, token);
       onSuccess();
     } catch (err: any) {
@@ -75,6 +117,7 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
 
   if (!isOpen) return null;
 
+  const availableMembers = members.filter(m => m.isActive && m.churchId === giving.churchId);
   const availableCategories = categories.filter(c => c.isActive);
 
   return (
@@ -95,7 +138,7 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
               required
             >
               <option value="">Select a member</option>
-              {members.filter(m => m.isActive && m.churchId === giving.churchId).map((member) => (
+              {availableMembers.map((member) => (
                 <option key={member.memberId} value={member.memberId}>
                   {member.fullName} ({member.email})
                 </option>
@@ -134,6 +177,18 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
 
           <div className="update-giving-row">
             <div className="update-giving-group">
+              <label>Currency</label>
+              <select
+                value={formData.currency}
+                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+              >
+                <option value="KES">KES (Kenyan Shilling)</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+              </select>
+            </div>
+            <div className="update-giving-group">
               <label>Date *</label>
               <input
                 type="date"
@@ -142,6 +197,9 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
                 required
               />
             </div>
+          </div>
+
+          <div className="update-giving-row">
             <div className="update-giving-group">
               <label>Payment Method</label>
               <select
@@ -157,9 +215,6 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
                 <option value="other">Other</option>
               </select>
             </div>
-          </div>
-
-          <div className="update-giving-row">
             <div className="update-giving-group">
               <label>Status</label>
               <select
@@ -172,6 +227,39 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
                 <option value="refunded">Refunded</option>
               </select>
             </div>
+          </div>
+
+          <div className="update-giving-group">
+            <label>Receipt Upload</label>
+            <div className="update-giving-file-upload-wrapper">
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file);
+                }}
+                disabled={uploadingReceipt}
+                className="update-giving-file-input"
+                id="update-receipt-upload"
+              />
+              <label htmlFor="update-receipt-upload" className="update-giving-file-label">
+                <FiUpload size={16} />
+                {uploadingReceipt ? "Uploading..." : "Upload Receipt"}
+              </label>
+            </div>
+            {formData.receiptFile && (
+              <div className="update-giving-file-preview">
+                <span>Receipt uploaded</span>
+                <button type="button" onClick={removeReceipt} className="update-giving-remove-file">
+                  <FiX size={16} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="update-giving-row">
             <div className="update-giving-group">
               <label>Receipt Number</label>
               <input
@@ -209,7 +297,7 @@ export default function UpdateGiving({ isOpen, onClose, onSuccess, giving, membe
             <button type="button" onClick={onClose} className="update-giving-cancel">
               Cancel
             </button>
-            <button type="submit" className="update-giving-save" disabled={loading}>
+            <button type="submit" className="update-giving-save" disabled={loading || uploadingReceipt}>
               {loading ? "Updating..." : "Update Giving"}
             </button>
           </div>

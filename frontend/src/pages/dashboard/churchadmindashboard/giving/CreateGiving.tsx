@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { FiX } from "react-icons/fi";
+import { FiX, FiSend, FiDollarSign } from "react-icons/fi";
 import { createGiving } from "../../../../Features/giving/givingAPI";
 import { type Member } from "../../../../Features/members/membersAPI";
 import { type GivingCategory } from "../../../../Features/giving/givingAPI";
@@ -13,24 +13,41 @@ interface CreateGivingProps {
   churchId?: number;
   members: Member[];
   categories: GivingCategory[];
+  mode?: "mpesa" | "cash"; // default "mpesa"
 }
 
-export default function CreateGiving({ isOpen, onClose, onSuccess, churchId, members, categories }: CreateGivingProps) {
+export default function CreateGiving({
+  isOpen,
+  onClose,
+  onSuccess,
+  churchId,
+  members,
+  categories,
+  mode = "mpesa",
+}: CreateGivingProps) {
   const token = useSelector((state: any) => state.user.token);
-  
+
   const [formData, setFormData] = useState({
     memberId: "",
     categoryId: "",
     amount: "",
-    date: new Date().toISOString().split("T")[0],
-    paymentMethod: "",
-    status: "pending",
+    currency: "KES",
+    paymentMethod: mode === "mpesa" ? "mpesa" : "cash",
     notes: "",
     isAnonymous: false,
-    receiptNumber: "",
+    phoneNumber: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const selectedMember = members.find((m) => m.memberId === parseInt(formData.memberId));
+
+  useEffect(() => {
+    if (selectedMember && selectedMember.phone && mode === "mpesa") {
+      setFormData((prev) => ({ ...prev, phoneNumber: selectedMember.phone || "" }));
+    }
+  }, [formData.memberId, selectedMember, mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,30 +55,37 @@ export default function CreateGiving({ isOpen, onClose, onSuccess, churchId, mem
     setLoading(true);
 
     try {
-      await createGiving({
-          memberId: parseInt(formData.memberId),
-          churchId: Number(churchId),
-          categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
-          amount: formData.amount,
-          date: new Date(formData.date).toISOString(),
-          paymentMethod: formData.paymentMethod || undefined,
-          status: formData.status,
-          notes: formData.notes || undefined,
-          isAnonymous: formData.isAnonymous,
-          receiptNumber: formData.receiptNumber || undefined,
-          type: ""
-      }, token);
-      
+      const payload: any = {
+        memberId: parseInt(formData.memberId),
+        churchId: Number(churchId),
+        categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
+        amount: formData.amount,
+        currency: formData.currency,
+        type: categories.find((c) => c.categoryId === parseInt(formData.categoryId))?.type || "offering",
+        date: new Date().toISOString(),
+        paymentMethod: mode === "mpesa" ? "mpesa" : "cash",
+        notes: formData.notes || undefined,
+        isAnonymous: formData.isAnonymous,
+      };
+
+      if (mode === "mpesa") {
+        payload.phoneNumber = formData.phoneNumber;
+        payload.status = "pending"; // will be auto-completed via callback
+      } else {
+        payload.status = "completed"; // admin records cash, mark as completed
+      }
+
+      await createGiving(payload, token);
+
       setFormData({
         memberId: "",
         categoryId: "",
         amount: "",
-        date: new Date().toISOString().split("T")[0],
-        paymentMethod: "",
-        status: "pending",
+        currency: "KES",
+        paymentMethod: mode === "mpesa" ? "mpesa" : "cash",
         notes: "",
         isAnonymous: false,
-        receiptNumber: "",
+        phoneNumber: "",
       });
       onSuccess();
     } catch (err: any) {
@@ -73,14 +97,15 @@ export default function CreateGiving({ isOpen, onClose, onSuccess, churchId, mem
 
   if (!isOpen) return null;
 
-  const availableMembers = members.filter(m => m.isActive && m.churchId === churchId);
-  const availableCategories = categories.filter(c => c.isActive);
+  const availableMembers = members.filter((m) => m.isActive && m.churchId === churchId);
+  const availableCategories = categories.filter((c) => c.isActive);
+  const isMpesaMode = mode === "mpesa";
 
   return (
     <div className="create-giving-overlay" onClick={onClose}>
       <div className="create-giving-modal" onClick={(e) => e.stopPropagation()}>
         <div className="create-giving-header">
-          <h3>Record Giving</h3>
+          <h3>{isMpesaMode ? "Send M-Pesa STK Push" : "Record Cash Giving"}</h3>
           <button onClick={onClose} className="create-giving-close">
             <FiX size={20} />
           </button>
@@ -134,54 +159,34 @@ export default function CreateGiving({ isOpen, onClose, onSuccess, churchId, mem
 
           <div className="create-giving-row">
             <div className="create-giving-group">
-              <label>Date *</label>
-              <input
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                required
-              />
-            </div>
-            <div className="create-giving-group">
-              <label>Payment Method</label>
+              <label>Currency</label>
               <select
-                value={formData.paymentMethod}
-                onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                value={formData.currency}
+                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
               >
-                <option value="">Select method</option>
-                <option value="cash">Cash</option>
-                <option value="bank">Bank Transfer</option>
-                <option value="mpesa">M-Pesa</option>
-                <option value="card">Card</option>
-                <option value="check">Check</option>
-                <option value="other">Other</option>
+                <option value="KES">KES (Kenyan Shilling)</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
               </select>
             </div>
           </div>
 
-          <div className="create-giving-row">
+          {isMpesaMode && (
             <div className="create-giving-group">
-              <label>Status</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              >
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-                <option value="failed">Failed</option>
-                <option value="refunded">Refunded</option>
-              </select>
-            </div>
-            <div className="create-giving-group">
-              <label>Receipt Number</label>
+              <label>Phone Number (M-Pesa) *</label>
               <input
-                type="text"
-                value={formData.receiptNumber}
-                onChange={(e) => setFormData({ ...formData, receiptNumber: e.target.value })}
-                placeholder="Optional"
+                type="tel"
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                placeholder="e.g., 0712345678"
+                required
               />
+              <small style={{ color: "#6b7280", fontSize: "0.75rem" }}>
+                STK push will be sent to this number. Auto-fills from member profile.
+              </small>
             </div>
-          </div>
+          )}
 
           <div className="create-giving-group">
             <label>Notes</label>
@@ -210,8 +215,16 @@ export default function CreateGiving({ isOpen, onClose, onSuccess, churchId, mem
             <button type="button" onClick={onClose} className="create-giving-cancel">
               Cancel
             </button>
-            <button type="submit" className="create-giving-save" disabled={loading}>
-              {loading ? "Recording..." : "Record Giving"}
+            <button
+              type="submit"
+              className="create-giving-save"
+              disabled={
+                loading ||
+                (isMpesaMode && (!formData.phoneNumber || !formData.amount)) ||
+                (!isMpesaMode && !formData.amount)
+              }
+            >
+              {loading ? "Processing..." : isMpesaMode ? <><FiSend size={16} /> Send STK Push</> : <><FiDollarSign size={16} /> Record Cash</>}
             </button>
           </div>
         </form>

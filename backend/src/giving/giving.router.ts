@@ -1,10 +1,6 @@
 import { Router } from "express";
+import { authenticate } from "../middleware/auth.middleware";
 import {
-  createGivingCategory,
-  getGivingCategories,
-  getGivingCategoryById,
-  updateGivingCategory,
-  deleteGivingCategory,
   createGiving,
   getGiving,
   getGivingById,
@@ -15,8 +11,14 @@ import {
   getGivingSummary,
   getGivingTotal,
   getGivingByDateRange,
+  approveGiving,
+  rejectGiving,
+  createGivingCategory,
+  getGivingCategories,
+  getGivingCategoryById,
+  updateGivingCategory,
+  deleteGivingCategory,
 } from "./giving.controller";
-import { authenticate } from "../middleware/auth.middleware";
 
 const givingRouter = Router();
 
@@ -28,13 +30,15 @@ givingRouter.delete("/categories/:id", authenticate, deleteGivingCategory);
 
 givingRouter.post("/", authenticate, createGiving);
 givingRouter.get("/", authenticate, getGiving);
-givingRouter.get("/:id", authenticate, getGivingById);
-givingRouter.put("/:id", authenticate, updateGiving);
-givingRouter.delete("/:id", authenticate, deleteGiving);
 givingRouter.get("/member/:memberId", authenticate, getGivingByMember);
 givingRouter.get("/type/:churchId/:type", authenticate, getGivingByType);
 givingRouter.get("/summary/:churchId", authenticate, getGivingSummary);
 givingRouter.get("/total/:churchId", authenticate, getGivingTotal);
 givingRouter.get("/date-range/:churchId", authenticate, getGivingByDateRange);
+givingRouter.get("/:id", authenticate, getGivingById);
+givingRouter.put("/:id", authenticate, updateGiving);
+givingRouter.delete("/:id", authenticate, deleteGiving);
+givingRouter.put("/:id/approve", authenticate, approveGiving);
+givingRouter.put("/:id/reject", authenticate, rejectGiving);
 
 export default givingRouter;

@@ -26,7 +26,8 @@ import pledgesRouter from "./pledges/pledges.router";
 import budgetsRouter from "./budgets/budgets.router";
 import auditLogsRouter from "./audit-logs/audit-logs.router";
 import documentsRouter from "./documents/documents.router";
-import cloudinaryRouter from "./cloudinary/cloudinary.router"; // Added Cloudinary router
+import cloudinaryRouter from "./cloudinary/cloudinary.router";
+import mpesaRouter from "./mpesa/mpesa.router";
 
 const initializeApp = () => {
   const app = express();
@@ -77,7 +78,8 @@ const initializeApp = () => {
   app.use("/api/budgets", budgetsRouter);
   app.use("/api/audit-logs", auditLogsRouter);
   app.use("/api/documents", documentsRouter);
-  app.use("/api/cloudinary", cloudinaryRouter); // Mount Cloudinary router
+  app.use("/api/cloudinary", cloudinaryRouter);
+  app.use("/api/mpesa", mpesaRouter);
 
   return app;
 };
