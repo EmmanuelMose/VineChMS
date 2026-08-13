@@ -1,10 +1,10 @@
+// File: frontend/src/pages/dashboard/churchadmindashboard/expenses/Expenses.tsx
+
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { 
   fetchExpenses, 
   fetchExpenseCategories, 
-  createExpense, 
-  updateExpense, 
   deleteExpense,
   approveExpense,
   rejectExpense,
@@ -12,22 +12,27 @@ import {
   type ExpenseCategory
 } from "../../../../Features/expenses/expensesAPI";
 import { createPledge } from "../../../../Features/pledges/pledgesAPI";
-import { fetchMemberByUserId } from "../../../../Features/members/membersAPI";
-import { FiPlus, FiEdit2, FiTrash2, FiCheckCircle, FiXCircle, FiDollarSign } from "react-icons/fi";
+import { fetchMembers, type Member } from "../../../../Features/members/membersAPI";
+import { FiEdit2, FiTrash2, FiCheckCircle, FiXCircle, FiDollarSign, FiFilter, FiSend, FiUpload, FiEye, FiX } from "react-icons/fi";
+import { hasPermission, type UserRole } from "../../../../utils/permissions";
+import CreateExpense from "./CreateExpense";
+import UpdateExpense from "./UpdateExpense";
+import ExpenseCategories from "./ExpenseCategories";
 import "./Expenses.css";
 
 export default function Expenses() {
   const token = useSelector((state: any) => state.user.token);
   const churchId = useSelector((state: any) => state.user.user?.churchId);
-  const userId = useSelector((state: any) => state.user.user?.userId);
+  const userRole = useSelector((state: any) => state.user.user?.role) as UserRole;
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
-  const [memberId, setMemberId] = useState<number | null>(null);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [modalMode, setModalMode] = useState<"mpesa" | "cash">("mpesa");
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,59 +44,46 @@ export default function Expenses() {
   const [pledgeAmount, setPledgeAmount] = useState("");
   const [pledgeNotes, setPledgeNotes] = useState("");
   const [pledgeSubmitting, setPledgeSubmitting] = useState(false);
+  const [showCategories, setShowCategories] = useState(false);
+  const [approvingId, setApprovingId] = useState<number | null>(null);
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
+  const [evidenceUrl, setEvidenceUrl] = useState("");
 
-  const [formData, setFormData] = useState({
-    categoryId: "",
-    amount: "",
-    description: "",
-    date: new Date().toISOString().split("T")[0],
-    status: "pending",
-    notes: "",
-  });
-
-  useEffect(() => {
-    const loadMemberId = async () => {
-      if (token && userId) {
-        try {
-          const member = await fetchMemberByUserId(userId, token);
-          if (member && member.memberId) {
-            setMemberId(member.memberId);
-          }
-        } catch (error) {
-          console.error("Failed to load member ID:", error);
-        }
-      }
-    };
-    loadMemberId();
-  }, [token, userId]);
+  const canManageExpenses = hasPermission(userRole, "manage_expenses");
+  const canApproveExpenses = hasPermission(userRole, "approve_expenses");
+  const canPledgeToExpenses = hasPermission(userRole, "pledge_to_expenses");
+  const canManageCategories = hasPermission(userRole, "manage_expense_categories");
+  const canCreateExpenses = hasPermission(userRole, "create_expenses");
 
   useEffect(() => {
-    if (memberId) {
-      loadData();
-    }
-  }, [memberId]);
-
-  useEffect(() => {
-    filterExpenses();
-  }, [expenses, searchTerm, filterCategory, filterStatus]);
+    loadData();
+  }, []);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [expensesData, categoriesData] = await Promise.all([
+      const [expensesData, categoriesData, membersData] = await Promise.all([
         fetchExpenses(token),
         fetchExpenseCategories(token),
+        fetchMembers(token),
       ]);
       const churchExpenses = expensesData.filter((e) => e.churchId === churchId);
       const churchCategories = categoriesData.filter((c) => c.churchId === churchId);
+      const churchMembers = membersData.filter((m) => m.churchId === churchId);
       setExpenses(churchExpenses);
       setCategories(churchCategories);
+      setMembers(churchMembers);
     } catch (error) {
       console.error("Failed to load expenses:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    filterExpenses();
+  }, [expenses, searchTerm, filterCategory, filterStatus]);
 
   const filterExpenses = () => {
     let filtered = [...expenses];
@@ -116,62 +108,6 @@ export default function Expenses() {
     setFilteredExpenses(filtered);
   };
 
-  const handleCreate = () => {
-    setEditingExpense(null);
-    setFormData({
-      categoryId: "",
-      amount: "",
-      description: "",
-      date: new Date().toISOString().split("T")[0],
-      status: "pending",
-      notes: "",
-    });
-    setShowModal(true);
-  };
-
-  const handleEdit = (expense: Expense) => {
-    setEditingExpense(expense);
-    const date = new Date(expense.date);
-    setFormData({
-      categoryId: expense.categoryId?.toString() || "",
-      amount: expense.amount,
-      description: expense.description,
-      date: date.toISOString().split("T")[0],
-      status: expense.status,
-      notes: expense.notes || "",
-    });
-    setShowModal(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      const payload = {
-        churchId: churchId!,
-        categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
-        amount: formData.amount,
-        description: formData.description,
-        date: new Date(formData.date).toISOString(),
-        status: formData.status,
-        notes: formData.notes || undefined,
-      };
-
-      if (editingExpense) {
-        await updateExpense(editingExpense.expenseId, payload, token);
-      } else {
-        await createExpense(payload, token);
-      }
-      setShowModal(false);
-      await loadData();
-    } catch (error: any) {
-      console.error("Failed to save expense:", error);
-      alert(error.response?.data?.message || "Failed to save expense.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleDelete = async () => {
     if (!deleteTargetId) return;
     try {
@@ -186,22 +122,28 @@ export default function Expenses() {
   };
 
   const handleApprove = async (id: number) => {
+    setApprovingId(id);
     try {
       await approveExpense(id, token);
       await loadData();
     } catch (error) {
       console.error("Failed to approve expense:", error);
       alert("Failed to approve expense.");
+    } finally {
+      setApprovingId(null);
     }
   };
 
   const handleReject = async (id: number) => {
+    setRejectingId(id);
     try {
       await rejectExpense(id, token);
       await loadData();
     } catch (error) {
       console.error("Failed to reject expense:", error);
       alert("Failed to reject expense.");
+    } finally {
+      setRejectingId(null);
     }
   };
 
@@ -213,7 +155,7 @@ export default function Expenses() {
   };
 
   const submitPledge = async () => {
-    if (!pledgeExpenseId || !memberId || !pledgeAmount) {
+    if (!pledgeExpenseId || !pledgeAmount) {
       alert("Please fill in all required fields.");
       return;
     }
@@ -227,7 +169,7 @@ export default function Expenses() {
       }
 
       await createPledge({
-        memberId: memberId,
+        memberId: expense.memberId!,
         churchId: churchId!,
         amount: pledgeAmount,
         startDate: new Date().toISOString(),
@@ -236,7 +178,7 @@ export default function Expenses() {
         notes: `Pledge for expense: ${expense.description} - ${pledgeNotes || "No additional notes"}`,
       }, token);
 
-      alert(`✅ You have successfully pledged $${parseFloat(pledgeAmount).toFixed(2)} for this expense!`);
+      alert(`✅ You have successfully pledged KES ${parseFloat(pledgeAmount).toFixed(2)} for this expense!`);
       setShowPledgeModal(false);
       setPledgeExpenseId(null);
       setPledgeAmount("");
@@ -252,8 +194,8 @@ export default function Expenses() {
 
   const formatCurrency = (amount: string) => {
     const num = parseFloat(amount);
-    if (isNaN(num)) return "$0.00";
-    return "$" + num.toFixed(2);
+    if (isNaN(num)) return "KES 0.00";
+    return `KES ${num.toFixed(2)}`;
   };
 
   const formatDate = (dateString: string) => {
@@ -270,12 +212,46 @@ export default function Expenses() {
     return cat ? cat.name : "Unknown";
   };
 
+  const getMemberName = (memberId?: number) => {
+    if (!memberId) return "Unknown";
+    const member = members.find((m) => m.memberId === memberId);
+    return member ? member.fullName : "Unknown";
+  };
+
+  const getMemberEmail = (memberId?: number) => {
+    if (!memberId) return "";
+    const member = members.find((m) => m.memberId === memberId);
+    return member ? member.email : "";
+  };
+
+  const getMemberProfilePicture = (memberId?: number) => {
+    if (!memberId) return null;
+    const member = members.find((m) => m.memberId === memberId);
+    return member?.profilePicture || null;
+  };
+
+  const openEvidenceModal = (url: string) => {
+    setEvidenceUrl(url);
+    setEvidenceModalOpen(true);
+  };
+
   if (loading) {
     return (
-      <div className="admin-expenses-loading">
-        <div className="admin-expenses-loading-spinner"></div>
+      <div className="expenses-loading">
+        <div className="expenses-loading-spinner"></div>
         <p>Loading expenses...</p>
       </div>
+    );
+  }
+
+  if (showCategories) {
+    return (
+      <ExpenseCategories
+        onBack={() => setShowCategories(false)}
+        token={token}
+        churchId={churchId!}
+        userRole={userRole}
+      />
     );
   }
 
@@ -284,39 +260,169 @@ export default function Expenses() {
   const approvedAmount = expenses.filter(e => e.status === 'approved').reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
   return (
-    <div className="admin-expenses-page">
-      <div className="admin-expenses-header">
+    <div className="expenses-page">
+      {evidenceModalOpen && (
+        <div className="expenses-modal-overlay" onClick={() => setEvidenceModalOpen(false)}>
+          <div className="expenses-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "90vw", padding: "0.5rem" }}>
+            <button
+              onClick={() => setEvidenceModalOpen(false)}
+              style={{
+                position: "absolute",
+                top: "12px",
+                right: "12px",
+                background: "rgba(0,0,0,0.6)",
+                border: "none",
+                borderRadius: "50%",
+                width: "40px",
+                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                cursor: "pointer",
+                zIndex: 10,
+              }}
+            >
+              <FiX size={24} />
+            </button>
+            <img src={evidenceUrl} alt="Evidence" style={{ maxWidth: "100%", maxHeight: "85vh", display: "block", margin: "0 auto" }} />
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div className="expenses-modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="expenses-modal expenses-modal-small" onClick={(e) => e.stopPropagation()}>
+            <div className="expenses-modal-header">
+              <h3>Delete Expense</h3>
+              <button className="expenses-modal-close" onClick={() => setShowDeleteModal(false)}>
+                Close
+              </button>
+            </div>
+            <div className="expenses-modal-body">
+              <p>Are you sure you want to permanently delete this expense?</p>
+              <p className="expenses-modal-warning">This action cannot be undone.</p>
+            </div>
+            <div className="expenses-modal-actions">
+              <button className="expenses-modal-cancel" onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </button>
+              <button className="expenses-modal-danger" onClick={handleDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPledgeModal && canPledgeToExpenses && (
+        <div className="expenses-modal-overlay" onClick={() => setShowPledgeModal(false)}>
+          <div className="expenses-modal expenses-pledge-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="expenses-modal-header">
+              <h3>Pledge to Pay for Expense</h3>
+              <button className="expenses-modal-close" onClick={() => setShowPledgeModal(false)}>
+                Close
+              </button>
+            </div>
+            <div className="expenses-modal-body">
+              <div className="expenses-pledge-info">
+                <p><strong>Expense:</strong> {expenses.find(e => e.expenseId === pledgeExpenseId)?.description}</p>
+                <p><strong>Total Amount:</strong> {formatCurrency(expenses.find(e => e.expenseId === pledgeExpenseId)?.amount || "0")}</p>
+              </div>
+              <div className="expenses-form-group">
+                <label>Amount You Want to Pledge *</label>
+                <div className="expenses-pledge-amount-input">
+                  <FiDollarSign className="expenses-pledge-amount-icon" />
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={pledgeAmount}
+                    onChange={(e) => setPledgeAmount(e.target.value)}
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="expenses-form-group">
+                <label>Notes (Optional)</label>
+                <textarea
+                  value={pledgeNotes}
+                  onChange={(e) => setPledgeNotes(e.target.value)}
+                  rows={2}
+                  placeholder="Add any notes about your pledge..."
+                />
+              </div>
+            </div>
+            <div className="expenses-modal-actions">
+              <button type="button" className="expenses-modal-cancel" onClick={() => setShowPledgeModal(false)}>
+                Cancel
+              </button>
+              <button type="button" className="expenses-modal-submit" onClick={submitPledge} disabled={!pledgeAmount || pledgeSubmitting}>
+                {pledgeSubmitting ? "Processing..." : "Submit Pledge"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="expenses-header">
         <div>
-          <h2 className="admin-expenses-title">Expenses</h2>
-          <p className="admin-expenses-subtitle">Track, manage, and approve church expenses</p>
+          <h2 className="expenses-title">Expenses</h2>
+          <p className="expenses-subtitle">Track, manage, and approve church expenses</p>
         </div>
-        <button className="admin-expenses-add-btn" onClick={handleCreate}>
-          <FiPlus size={18} />
-          Create Expense
-        </button>
+        <div className="expenses-header-actions">
+          {canManageCategories && (
+            <button 
+              className="expenses-btn-categories" 
+              onClick={() => setShowCategories(true)}
+            >
+              <FiFilter size={16} />
+              Categories
+            </button>
+          )}
+          {canCreateExpenses && (
+            <>
+              <button
+                onClick={() => { setModalMode("mpesa"); setShowCreateModal(true); }}
+                className="expenses-btn-primary"
+              >
+                <FiSend size={16} />
+                Pay via M-Pesa
+              </button>
+              <button
+                onClick={() => { setModalMode("cash"); setShowCreateModal(true); }}
+                className="expenses-btn-secondary"
+              >
+                <FiUpload size={16} />
+                Cash with Evidence
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      <div className="admin-expenses-stats">
-        <div className="admin-expenses-stat">
-          <span className="admin-expenses-stat-value">{expenses.length}</span>
-          <span className="admin-expenses-stat-label">Total Expenses</span>
+      <div className="expenses-stats">
+        <div className="expenses-stat">
+          <span className="expenses-stat-value">{expenses.length}</span>
+          <span className="expenses-stat-label">Total Expenses</span>
         </div>
-        <div className="admin-expenses-stat">
-          <span className="admin-expenses-stat-value">{formatCurrency(totalAmount.toString())}</span>
-          <span className="admin-expenses-stat-label">Total Amount</span>
+        <div className="expenses-stat">
+          <span className="expenses-stat-value">{formatCurrency(totalAmount.toString())}</span>
+          <span className="expenses-stat-label">Total Amount</span>
         </div>
-        <div className="admin-expenses-stat">
-          <span className="admin-expenses-stat-value">{formatCurrency(pendingAmount.toString())}</span>
-          <span className="admin-expenses-stat-label">Pending</span>
+        <div className="expenses-stat">
+          <span className="expenses-stat-value">{formatCurrency(pendingAmount.toString())}</span>
+          <span className="expenses-stat-label">Pending</span>
         </div>
-        <div className="admin-expenses-stat">
-          <span className="admin-expenses-stat-value">{formatCurrency(approvedAmount.toString())}</span>
-          <span className="admin-expenses-stat-label">Approved</span>
+        <div className="expenses-stat">
+          <span className="expenses-stat-value">{formatCurrency(approvedAmount.toString())}</span>
+          <span className="expenses-stat-label">Approved</span>
         </div>
       </div>
 
-      <div className="admin-expenses-filters">
-        <div className="admin-expenses-filter-group">
+      <div className="expenses-filters">
+        <div className="expenses-filter-group">
           <label>Search</label>
           <input
             type="text"
@@ -325,7 +431,7 @@ export default function Expenses() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="admin-expenses-filter-group">
+        <div className="expenses-filter-group">
           <label>Category</label>
           <select
             value={filterCategory}
@@ -339,7 +445,7 @@ export default function Expenses() {
             ))}
           </select>
         </div>
-        <div className="admin-expenses-filter-group">
+        <div className="expenses-filter-group">
           <label>Status</label>
           <select
             value={filterStatus}
@@ -354,242 +460,187 @@ export default function Expenses() {
         </div>
       </div>
 
-      <div className="admin-expenses-table-wrapper">
-        {filteredExpenses.length > 0 ? (
-          <table className="admin-expenses-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Category</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredExpenses.map((expense) => (
-                <tr key={expense.expenseId}>
-                  <td>{formatDate(expense.date)}</td>
-                  <td>{expense.description}</td>
-                  <td>{getCategoryName(expense.categoryId)}</td>
-                  <td className="admin-expenses-amount">{formatCurrency(expense.amount)}</td>
-                  <td>
-                    <span className={`admin-expenses-status status-${expense.status}`}>
+      <div className="expenses-cards-grid">
+        {filteredExpenses.length === 0 ? (
+          <div className="expenses-empty">
+            <p>No expenses found</p>
+            <span>Try adjusting your filters</span>
+          </div>
+        ) : (
+          filteredExpenses.map((expense) => {
+            const profilePic = getMemberProfilePicture(expense.memberId);
+            const isPending = expense.status === "pending";
+            const isMpesa = expense.paymentMethod === "mpesa";
+            const hasEvidence = expense.receiptUrl && !isMpesa;
+
+            return (
+              <div key={expense.expenseId} className="expenses-card">
+                <div className="expenses-card-header">
+                  <div className="expenses-card-member">
+                    {profilePic ? (
+                      <div className="expenses-card-avatar">
+                        <img src={profilePic} alt={getMemberName(expense.memberId)} />
+                      </div>
+                    ) : (
+                      <div className="expenses-card-avatar">
+                        {getMemberName(expense.memberId).charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="expenses-card-member-info">
+                      <span className="expenses-card-member-name">{getMemberName(expense.memberId)}</span>
+                      <span className="expenses-card-member-email">{getMemberEmail(expense.memberId)}</span>
+                    </div>
+                  </div>
+                  <div className="expenses-card-status-badge">
+                    <span className={`expenses-status-badge status-${expense.status}`}>
                       {expense.status}
                     </span>
-                  </td>
-                  <td>
-                    <div className="admin-expenses-actions">
-                      <button className="admin-expenses-action-edit" onClick={() => handleEdit(expense)}>
-                        <FiEdit2 size={14} /> Edit
-                      </button>
-                      <button
-                        className="admin-expenses-action-delete"
-                        onClick={() => {
-                          setDeleteTargetId(expense.expenseId);
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        <FiTrash2 size={14} /> Delete
-                      </button>
-                      {expense.status === "approved" && (
-                        <button
-                          className="admin-expenses-action-pledge"
-                          onClick={() => handlePledge(expense.expenseId)}
-                        >
-                          <FiDollarSign size={14} /> Pledge
-                        </button>
-                      )}
-                      {expense.status === "pending" && (
-                        <>
-                          <button className="admin-expenses-action-approve" onClick={() => handleApprove(expense.expenseId)}>
-                            <FiCheckCircle size={14} /> Approve
-                          </button>
-                          <button className="admin-expenses-action-reject" onClick={() => handleReject(expense.expenseId)}>
-                            <FiXCircle size={14} /> Reject
-                          </button>
-                        </>
-                      )}
+                  </div>
+                </div>
+
+                <div className="expenses-card-body">
+                  <div className="expenses-card-details">
+                    <div className="expenses-card-detail">
+                      <label>Description</label>
+                      <span>{expense.description}</span>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className="admin-expenses-empty">
-            <p>No expenses found</p>
-          </div>
+                    <div className="expenses-card-detail">
+                      <label>Category</label>
+                      <span>{getCategoryName(expense.categoryId)}</span>
+                    </div>
+                    <div className="expenses-card-detail">
+                      <label>Date</label>
+                      <span>{formatDate(expense.date)}</span>
+                    </div>
+                    <div className="expenses-card-detail">
+                      <label>Amount</label>
+                      <span className="expenses-card-amount">{formatCurrency(expense.amount)}</span>
+                    </div>
+                    <div className="expenses-card-detail">
+                      <label>Method</label>
+                      <span className={`expenses-method-badge ${isMpesa ? "method-mpesa" : "method-cash"}`}>
+                        {isMpesa ? "M-Pesa" : "Cash"}
+                      </span>
+                    </div>
+                    {isMpesa && isPending && (
+                      <div className="expenses-card-detail full-width">
+                        <label>Status</label>
+                        <span className="expenses-mpesa-waiting">⏳ Waiting for M-Pesa confirmation...</span>
+                      </div>
+                    )}
+                    {expense.mpesaCheckoutRequestID && (
+                      <div className="expenses-card-detail full-width">
+                        <label>M-Pesa Transaction ID</label>
+                        <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>{expense.mpesaCheckoutRequestID}</span>
+                      </div>
+                    )}
+                    {hasEvidence && (
+                      <div className="expenses-card-detail full-width">
+                        <label>Evidence</label>
+                        <button
+                          className="expenses-evidence-btn"
+                          onClick={() => openEvidenceModal(expense.receiptUrl!)}
+                        >
+                          <FiEye size={16} />
+                          <span>View Evidence</span>
+                        </button>
+                      </div>
+                    )}
+                    {expense.notes && (
+                      <div className="expenses-card-detail full-width">
+                        <label>Notes</label>
+                        <span>{expense.notes}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="expenses-card-footer">
+                  {canManageExpenses && (
+                    <button 
+                      className="expenses-card-btn expenses-card-btn-edit" 
+                      onClick={() => {
+                        setEditingExpense(expense);
+                        setShowUpdateModal(true);
+                      }}
+                    >
+                      <FiEdit2 size={14} /> Edit
+                    </button>
+                  )}
+                  {canManageExpenses && (
+                    <button
+                      className="expenses-card-btn expenses-card-btn-delete"
+                      onClick={() => {
+                        setDeleteTargetId(expense.expenseId);
+                        setShowDeleteModal(true);
+                      }}
+                    >
+                      <FiTrash2 size={14} /> Delete
+                    </button>
+                  )}
+                  {canApproveExpenses && isPending && (
+                    <>
+                      <button 
+                        className="expenses-card-btn expenses-card-btn-approve" 
+                        onClick={() => handleApprove(expense.expenseId)}
+                        disabled={approvingId === expense.expenseId}
+                      >
+                        {approvingId === expense.expenseId ? "..." : <FiCheckCircle size={14} />}
+                        Approve
+                      </button>
+                      <button 
+                        className="expenses-card-btn expenses-card-btn-reject" 
+                        onClick={() => handleReject(expense.expenseId)}
+                        disabled={rejectingId === expense.expenseId}
+                      >
+                        {rejectingId === expense.expenseId ? "..." : <FiXCircle size={14} />}
+                        Reject
+                      </button>
+                    </>
+                  )}
+                  {canPledgeToExpenses && expense.status === "approved" && (
+                    <button
+                      className="expenses-card-btn expenses-card-btn-pledge"
+                      onClick={() => handlePledge(expense.expenseId)}
+                    >
+                      <FiDollarSign size={14} /> Pledge
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 
-      {showModal && (
-        <div className="admin-expenses-modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="admin-expenses-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-expenses-modal-header">
-              <h3>{editingExpense ? "Edit Expense" : "Create Expense"}</h3>
-              <button className="admin-expenses-modal-close" onClick={() => setShowModal(false)}>
-                Close
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="admin-expenses-modal-form">
-              <div className="admin-expenses-form-group">
-                <label>Description *</label>
-                <input
-                  type="text"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="admin-expenses-form-row">
-                <div className="admin-expenses-form-group">
-                  <label>Category</label>
-                  <select
-                    value={formData.categoryId}
-                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                  >
-                    <option value="">Select category</option>
-                    {categories.filter(c => c.isActive).map((c) => (
-                      <option key={c.categoryId} value={c.categoryId}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="admin-expenses-form-group">
-                  <label>Amount *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="admin-expenses-form-row">
-                <div className="admin-expenses-form-group">
-                  <label>Date *</label>
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="admin-expenses-form-group">
-                  <label>Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="paid">Paid</option>
-                  </select>
-                </div>
-              </div>
-              <div className="admin-expenses-form-group">
-                <label>Notes</label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={2}
-                  placeholder="Additional notes..."
-                />
-              </div>
-              <div className="admin-expenses-modal-actions">
-                <button type="button" className="admin-expenses-modal-cancel" onClick={() => setShowModal(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="admin-expenses-modal-submit" disabled={submitting}>
-                  {submitting ? "Saving..." : editingExpense ? "Update" : "Create"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CreateExpense
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={() => {
+          setShowCreateModal(false);
+          loadData();
+        }}
+        categories={categories}
+        members={members}
+        mode={modalMode}
+      />
 
-      {showDeleteModal && (
-        <div className="admin-expenses-modal-overlay" onClick={() => setShowDeleteModal(false)}>
-          <div className="admin-expenses-modal admin-expenses-modal-small" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-expenses-modal-header">
-              <h3>Delete Expense</h3>
-              <button className="admin-expenses-modal-close" onClick={() => setShowDeleteModal(false)}>
-                Close
-              </button>
-            </div>
-            <div className="admin-expenses-modal-body">
-              <p>Are you sure you want to delete this expense?</p>
-              <p className="admin-expenses-modal-warning">This action cannot be undone.</p>
-            </div>
-            <div className="admin-expenses-modal-actions">
-              <button className="admin-expenses-modal-cancel" onClick={() => setShowDeleteModal(false)}>
-                Cancel
-              </button>
-              <button className="admin-expenses-modal-danger" onClick={handleDelete}>
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showPledgeModal && (
-        <div className="admin-expenses-modal-overlay" onClick={() => setShowPledgeModal(false)}>
-          <div className="admin-expenses-modal admin-expenses-pledge-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-expenses-modal-header">
-              <h3>Pledge to Pay for Expense</h3>
-              <button className="admin-expenses-modal-close" onClick={() => setShowPledgeModal(false)}>
-                Close
-              </button>
-            </div>
-            <div className="admin-expenses-modal-body">
-              <div className="admin-expenses-pledge-info">
-                <p><strong>Expense:</strong> {expenses.find(e => e.expenseId === pledgeExpenseId)?.description}</p>
-                <p><strong>Total Amount:</strong> {formatCurrency(expenses.find(e => e.expenseId === pledgeExpenseId)?.amount || "0")}</p>
-              </div>
-              <div className="admin-expenses-form-group">
-                <label>Amount You Want to Pledge *</label>
-                <div className="admin-expenses-pledge-amount-input">
-                  <FiDollarSign className="admin-expenses-pledge-amount-icon" />
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    value={pledgeAmount}
-                    onChange={(e) => setPledgeAmount(e.target.value)}
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="admin-expenses-form-group">
-                <label>Notes (Optional)</label>
-                <textarea
-                  value={pledgeNotes}
-                  onChange={(e) => setPledgeNotes(e.target.value)}
-                  rows={2}
-                  placeholder="Add any notes about your pledge..."
-                />
-              </div>
-            </div>
-            <div className="admin-expenses-modal-actions">
-              <button type="button" className="admin-expenses-modal-cancel" onClick={() => setShowPledgeModal(false)}>
-                Cancel
-              </button>
-              <button type="button" className="admin-expenses-modal-submit" onClick={submitPledge} disabled={!pledgeAmount || pledgeSubmitting}>
-                {pledgeSubmitting ? "Processing..." : "Submit Pledge"}
-              </button>
-            </div>
-          </div>
-        </div>
+      {editingExpense && (
+        <UpdateExpense
+          isOpen={showUpdateModal}
+          onClose={() => {
+            setShowUpdateModal(false);
+            setEditingExpense(null);
+          }}
+          onSuccess={() => {
+            setShowUpdateModal(false);
+            setEditingExpense(null);
+            loadData();
+          }}
+          expense={editingExpense}
+          categories={categories}
+          members={members}
+        />
       )}
     </div>
   );

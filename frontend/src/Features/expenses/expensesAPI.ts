@@ -1,3 +1,5 @@
+// File: frontend/src/Features/expenses/expensesAPI.ts
+
 import axios from "axios";
 import { ApiDomain } from "../../utils/APIDomain";
 
@@ -25,33 +27,41 @@ export interface NewExpenseCategory {
 export interface Expense {
   expenseId: number;
   churchId: number;
+  memberId?: number;
   categoryId?: number;
   amount: string;
   currency: string;
   description: string;
   date: string;
   status: string;
+  paymentMethod?: string;
   approvedBy?: number;
   approvedAt?: string;
   receiptUrl?: string;
   receiptPublicId?: string;
   notes?: string;
+  memberName?: string;
   categoryName?: string;
+  mpesaCheckoutRequestID?: string;
+  mpesaMerchantRequestID?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface NewExpense {
   churchId: number;
+  memberId: number;
   categoryId?: number;
   amount: string;
   currency?: string;
   description: string;
   date?: string;
   status?: string;
+  paymentMethod?: string;
   notes?: string;
   receiptUrl?: string;
   receiptPublicId?: string;
+  phoneNumber?: string;
 }
 
 export interface ExpenseSummary {

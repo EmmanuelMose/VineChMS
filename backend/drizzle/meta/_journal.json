@@ -15,6 +15,13 @@
       "when": 1786559185674,
       "tag": "0001_violet_meteorite",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786625358436,
+      "tag": "0002_awesome_zeigeist",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,6 @@
-.create-expense-overlay {
+/* File: frontend/src/pages/dashboard/churchadmindashboard/expenses/CreateExpense.css */
+
+.expense-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -10,7 +12,7 @@
   animation: fadeIn 0.2s ease;
 }
 
-.create-expense-modal {
+.expense-modal {
   background: white;
   border-radius: 16px;
   max-width: 540px;
@@ -20,21 +22,34 @@
   padding: 1.5rem;
 }
 
-.create-expense-header {
+.expense-modal::-webkit-scrollbar {
+  width: 4px;
+}
+
+.expense-modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.expense-modal::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.expense-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1.5rem;
 }
 
-.create-expense-header h3 {
+.expense-modal-header h3 {
   font-size: 1.25rem;
   font-weight: 600;
   color: #111827;
   margin: 0;
 }
 
-.create-expense-close {
+.expense-modal-close {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -47,54 +62,152 @@
   transition: all 0.3s ease;
 }
 
-.create-expense-close:hover {
+.expense-modal-close:hover {
   background: #f3f4f6;
 }
 
-.create-expense-form {
+.expense-modal-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.create-expense-group {
+.expense-form-group {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
 }
 
-.create-expense-group label {
+.expense-form-group label {
   font-size: 0.85rem;
   font-weight: 600;
   color: #374151;
 }
 
-.create-expense-group input,
-.create-expense-group select,
-.create-expense-group textarea {
+.expense-form-group input,
+.expense-form-group select,
+.expense-form-group textarea {
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
   border: 1.5px solid #e5e7eb;
   font-size: 0.9rem;
+  background: #fafbfa;
   transition: all 0.3s ease;
   outline: none;
   font-family: inherit;
+  width: 100%;
 }
 
-.create-expense-group input:focus,
-.create-expense-group select:focus,
-.create-expense-group textarea:focus {
+.expense-form-group input:focus,
+.expense-form-group select:focus,
+.expense-form-group textarea:focus {
   border-color: #2E7D32;
-  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.08);
+  background: white;
 }
 
-.create-expense-row {
+.expense-form-group textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.expense-form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
-.create-expense-error {
+.expense-file-upload-wrapper {
+  position: relative;
+  margin: 0.25rem 0;
+}
+
+.expense-file-input {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.expense-file-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: 1.5px dashed #d1d5db;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.expense-file-label:hover {
+  background: #e5e7eb;
+  border-color: #2E7D32;
+}
+
+.expense-file-label:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.expense-file-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  margin-top: 0.3rem;
+  background: #f0fdf4;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+  font-size: 0.85rem;
+  color: #16a34a;
+}
+
+.expense-file-preview span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expense-remove-file {
+  background: rgba(220, 38, 38, 0.08);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.expense-remove-file:hover {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.expense-status-disabled {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 0.9rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+  width: 100%;
+}
+
+.expense-form-error {
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
   background: #fef2f2;
@@ -103,14 +216,18 @@
   border: 1px solid #fecaca;
 }
 
-.create-expense-actions {
+.expense-form-error::before {
+  content: "⚠️ ";
+}
+
+.expense-modal-actions {
   display: flex;
   gap: 0.75rem;
   justify-content: flex-end;
   margin-top: 0.25rem;
 }
 
-.create-expense-cancel {
+.expense-modal-cancel {
   padding: 0.5rem 1.25rem;
   border-radius: 8px;
   border: 1.5px solid #e5e7eb;
@@ -122,11 +239,14 @@
   transition: all 0.3s ease;
 }
 
-.create-expense-cancel:hover {
+.expense-modal-cancel:hover {
   background: #f3f4f6;
 }
 
-.create-expense-save {
+.expense-modal-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 1.25rem;
   border-radius: 8px;
   background: linear-gradient(135deg, #2E7D32, #1b5e20);
@@ -136,24 +256,55 @@
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.2);
 }
 
-.create-expense-save:hover:not(:disabled) {
+.expense-modal-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.3);
+  box-shadow: 0 8px 28px rgba(46, 125, 50, 0.3);
 }
 
-.create-expense-save:disabled {
+.expense-modal-submit:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
+.expense-modal-submit svg {
+  flex-shrink: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @media (max-width: 768px) {
-  .create-expense-modal {
+  .expense-modal {
     padding: 1rem;
     margin: 1rem;
   }
-  .create-expense-row {
+  .expense-form-row {
     grid-template-columns: 1fr;
+  }
+  .expense-modal-actions {
+    flex-direction: column;
+  }
+  .expense-modal-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .expense-modal {
+    padding: 0.75rem;
+    margin: 0.5rem;
+  }
+  .expense-modal-header h3 {
+    font-size: 1rem;
+  }
+  .expense-file-label {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.75rem;
   }
 }

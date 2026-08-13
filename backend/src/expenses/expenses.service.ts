@@ -1,6 +1,9 @@
+// File: backend/src/expenses/expenses.service.ts (full updated)
+
 import db from "../Drizzle/db";
 import { expenses, expenseCategories } from "../Drizzle/schema";
 import { eq, desc, and } from "drizzle-orm";
+import { initiateStkPush } from "../mpesa/mpesa.service";
 
 export const createExpenseCategoryService = async (data: any) => {
   const pool = db.$client;
@@ -11,9 +14,10 @@ export const createExpenseCategoryService = async (data: any) => {
       name,
       description,
       is_active,
-      image
+      image,
+      image_public_id
     ) VALUES (
-      $1, $2, $3, $4, $5
+      $1, $2, $3, $4, $5, $6
     )
     RETURNING *
   `;
@@ -23,7 +27,8 @@ export const createExpenseCategoryService = async (data: any) => {
     data.name,
     data.description || null,
     data.isActive !== undefined ? Boolean(data.isActive) : true,
-    data.image || null
+    data.image || null,
+    data.imagePublicId || null
   ];
 
   const result = await pool.query(query, values);
@@ -73,6 +78,11 @@ export const updateExpenseCategoryService = async (id: number, data: any) => {
     values.push(data.image);
     paramIndex++;
   }
+  if (data.imagePublicId !== undefined) {
+    updates.push(`image_public_id = $${paramIndex}`);
+    values.push(data.imagePublicId);
+    paramIndex++;
+  }
 
   if (updates.length === 0) {
     throw new Error("No fields to update");
@@ -102,34 +112,72 @@ export const deleteExpenseCategoryService = async (id: number) => {
 
 export const createExpenseService = async (data: any) => {
   const pool = db.$client;
-  
+  let mpesaCheckoutRequestID: string | null = null;
+  let mpesaMerchantRequestID: string | null = null;
+
+  if (data.paymentMethod === "mpesa" && data.phoneNumber) {
+    try {
+      let phoneNumber = data.phoneNumber.replace(/\D/g, "");
+      if (phoneNumber.startsWith("0")) {
+        phoneNumber = "254" + phoneNumber.slice(1);
+      } else if (!phoneNumber.startsWith("254")) {
+        phoneNumber = "254" + phoneNumber;
+      }
+
+      const stkResult = await initiateStkPush(
+        phoneNumber,
+        parseFloat(data.amount),
+        `EXP-${Date.now()}`,
+        "Church Expense Payment"
+      );
+      mpesaCheckoutRequestID = stkResult.CheckoutRequestID;
+      mpesaMerchantRequestID = stkResult.MerchantRequestID;
+      
+      if (stkResult.ResponseCode !== "0") {
+        console.warn("STK push warning:", stkResult.ResponseDescription);
+      }
+    } catch (error: any) {
+      console.error("STK push error:", error.message);
+    }
+  }
+
   const query = `
     INSERT INTO expenses (
       church_id,
+      member_id,
       category_id,
       amount,
       currency,
       description,
       date,
       status,
+      payment_method,
       notes,
-      receipt_url
+      receipt_url,
+      receipt_public_id,
+      mpesa_checkout_request_id,
+      mpesa_merchant_request_id
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
     )
     RETURNING *
   `;
 
   const values = [
     Number(data.churchId),
+    data.memberId ? Number(data.memberId) : null,
     data.categoryId ? Number(data.categoryId) : null,
     data.amount || "0.00",
-    data.currency || "USD",
+    data.currency || "KES",
     data.description,
     data.date || new Date().toISOString(),
     data.status || "pending",
+    data.paymentMethod || null,
     data.notes || null,
-    data.receiptUrl || null
+    data.receiptUrl || null,
+    data.receiptPublicId || null,
+    mpesaCheckoutRequestID,
+    mpesaMerchantRequestID
   ];
 
   const result = await pool.query(query, values);
@@ -206,9 +254,14 @@ export const updateExpenseService = async (id: number, data: any) => {
   const values: any[] = [];
   let paramIndex = 1;
 
+  if (data.memberId !== undefined) {
+    updates.push(`member_id = $${paramIndex}`);
+    values.push(data.memberId ? Number(data.memberId) : null);
+    paramIndex++;
+  }
   if (data.categoryId !== undefined) {
     updates.push(`category_id = $${paramIndex}`);
-    values.push(data.categoryId);
+    values.push(data.categoryId ? Number(data.categoryId) : null);
     paramIndex++;
   }
   if (data.amount !== undefined) {
@@ -236,6 +289,11 @@ export const updateExpenseService = async (id: number, data: any) => {
     values.push(data.status);
     paramIndex++;
   }
+  if (data.paymentMethod !== undefined) {
+    updates.push(`payment_method = $${paramIndex}`);
+    values.push(data.paymentMethod);
+    paramIndex++;
+  }
   if (data.notes !== undefined) {
     updates.push(`notes = $${paramIndex}`);
     values.push(data.notes);
@@ -244,6 +302,11 @@ export const updateExpenseService = async (id: number, data: any) => {
   if (data.receiptUrl !== undefined) {
     updates.push(`receipt_url = $${paramIndex}`);
     values.push(data.receiptUrl);
+    paramIndex++;
+  }
+  if (data.receiptPublicId !== undefined) {
+    updates.push(`receipt_public_id = $${paramIndex}`);
+    values.push(data.receiptPublicId);
     paramIndex++;
   }
 
@@ -325,4 +388,19 @@ export const getExpensesByDateRangeService = async (churchId: number, startDate:
   
   const result = await pool.query(query, [churchId, startDate, endDate]);
   return result.rows;
+};
+
+export const updateExpenseStatusFromMpesa = async (checkoutRequestID: string, status: string, resultDesc?: string) => {
+  const pool = db.$client;
+  const query = `
+    UPDATE expenses 
+    SET 
+      status = $1, 
+      notes = COALESCE(notes, '') || ' | M-Pesa: ' || COALESCE($2, ''),
+      updated_at = NOW() 
+    WHERE mpesa_checkout_request_id = $3 
+    RETURNING *
+  `;
+  const result = await pool.query(query, [status, resultDesc, checkoutRequestID]);
+  return result.rows[0];
 };

@@ -1,3 +1,5 @@
+// File: backend/src/mpesa/mpesa.service.ts
+
 import axios from "axios";
 import crypto from "crypto";
 
@@ -44,7 +46,7 @@ export const initiateStkPush = async (
   phoneNumber: string,
   amount: number,
   accountReference: string,
-  transactionDesc: string = "Church Giving"
+  transactionDesc: string = "Church Payment"
 ): Promise<StkPushResponse> => {
   phoneNumber = phoneNumber.replace(/\D/g, "");
   if (phoneNumber.startsWith("0")) {
@@ -79,6 +81,39 @@ export const initiateStkPush = async (
     CallBackURL: MPESA_CALLBACK_URL,
     AccountReference: accountReference.slice(0, 12),
     TransactionDesc: transactionDesc.slice(0, 13),
+  };
+
+  const response = await axios.post(url, requestBody, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.data;
+};
+
+export const queryMpesaStatus = async (
+  checkoutRequestID: string
+): Promise<any> => {
+  const timestamp = new Date()
+    .toISOString()
+    .replace(/[^0-9]/g, "")
+    .slice(0, 14);
+  const password = Buffer.from(
+    `${MPESA_SHORT_CODE}${MPESA_PASSKEY}${timestamp}`
+  ).toString("base64");
+
+  const url = MPESA_ENVIRONMENT === "sandbox"
+    ? "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query"
+    : "https://api.safaricom.co.ke/mpesa/stkpushquery/v1/query";
+
+  const token = await getMpesaAccessToken();
+
+  const requestBody = {
+    BusinessShortCode: MPESA_SHORT_CODE,
+    Password: password,
+    Timestamp: timestamp,
+    CheckoutRequestID: checkoutRequestID,
   };
 
   const response = await axios.post(url, requestBody, {

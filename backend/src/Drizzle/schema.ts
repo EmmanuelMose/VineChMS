@@ -649,15 +649,18 @@ export const expenses = pgTable(
     churchId: integer("church_id")
       .references(() => churches.churchId, { onDelete: "cascade" })
       .notNull(),
+    memberId: integer("member_id")
+      .references(() => members.memberId, { onDelete: "set null" }),
     categoryId: integer("category_id").references(
       () => expenseCategories.categoryId,
       { onDelete: "set null" }
     ),
     amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-    currency: varchar("currency", { length: 3 }).default("USD"),
+    currency: varchar("currency", { length: 3 }).default("KES"),
     description: text("description").notNull(),
     date: timestamp("date").defaultNow().notNull(),
     status: expenseStatusEnum("status").default("pending"),
+    paymentMethod: varchar("payment_method", { length: 50 }),
     approvedBy: integer("approved_by").references(() => users.userId, {
       onDelete: "set null",
     }),
@@ -665,12 +668,16 @@ export const expenses = pgTable(
     receiptUrl: varchar("receipt_url", { length: 500 }),
     receiptPublicId: varchar("receipt_public_id", { length: 255 }),
     notes: text("notes"),
+    mpesaCheckoutRequestID: varchar("mpesa_checkout_request_id", { length: 255 }),
+    mpesaMerchantRequestID: varchar("mpesa_merchant_request_id", { length: 255 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => ({
     churchIdx: index("expense_church_idx").on(table.churchId),
+    memberIdx: index("expense_member_idx").on(table.memberId),
     dateIdx: index("expense_date_idx").on(table.date),
+    mpesaCheckoutIdx: index("expense_mpesa_checkout_idx").on(table.mpesaCheckoutRequestID),
   })
 );
 
@@ -1238,6 +1245,10 @@ export const expensesRelations = relations(expenses, ({ one }) => ({
   church: one(churches, {
     fields: [expenses.churchId],
     references: [churches.churchId],
+  }),
+  member: one(members, {
+    fields: [expenses.memberId],
+    references: [members.memberId],
   }),
   category: one(expenseCategories, {
     fields: [expenses.categoryId],

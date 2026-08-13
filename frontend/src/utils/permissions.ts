@@ -205,13 +205,25 @@ export const PERMISSIONS = {
     id: "view_all_expenses",
     name: "View All Expenses",
     description: "View all expense records",
-    roles: ["church_member", "pastor", "elder", "treasurer", "secretary", "church_admin"],
+    roles: ["treasurer", "church_admin", "pastor", "elder", "secretary"],
+  },
+  VIEW_OWN_EXPENSES: {
+    id: "view_own_expenses",
+    name: "View Own Expenses",
+    description: "View personal expense records",
+    roles: ["church_member"],
   },
   MANAGE_EXPENSES: {
     id: "manage_expenses",
     name: "Manage Expenses",
     description: "Create, update, and delete expenses",
-    roles: ["treasurer", "church_admin"],
+    roles: ["treasurer", "church_admin", "pastor", "elder", "secretary"],
+  },
+  CREATE_EXPENSES: {
+    id: "create_expenses",
+    name: "Create Expenses",
+    description: "Create expense records",
+    roles: ["treasurer", "church_admin", "pastor", "elder", "secretary"],
   },
   APPROVE_EXPENSES: {
     id: "approve_expenses",
@@ -224,6 +236,12 @@ export const PERMISSIONS = {
     name: "Pledge to Expenses",
     description: "Pledge to pay for expenses",
     roles: ["church_member", "pastor", "elder", "treasurer", "secretary", "church_admin"],
+  },
+  MANAGE_EXPENSE_CATEGORIES: {
+    id: "manage_expense_categories",
+    name: "Manage Expense Categories",
+    description: "Create, update, and delete expense categories",
+    roles: ["treasurer", "church_admin"],
   },
   VIEW_ALL_PRAYER_REQUESTS: {
     id: "view_all_prayer_requests",

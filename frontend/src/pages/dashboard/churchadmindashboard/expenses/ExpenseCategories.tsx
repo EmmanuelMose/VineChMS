@@ -1,15 +1,19 @@
+// File: src/pages/dashboard/churchadmindashboard/expenses/ExpenseCategories.tsx
+
 import { useState, useEffect } from "react";
 import { FiX, FiPlus, FiEdit2, FiTrash2, FiArrowLeft } from "react-icons/fi";
 import { fetchExpenseCategories, createExpenseCategory, updateExpenseCategory, deleteExpenseCategory, type ExpenseCategory } from "../../../../Features/expenses/expensesAPI";
+import { hasPermission, type UserRole } from "../../../../utils/permissions";
 import "./ExpenseCategories.css";
 
 interface ExpenseCategoriesProps {
   onBack: () => void;
   token: string;
   churchId: number;
+  userRole?: UserRole;
 }
 
-export default function ExpenseCategories({ onBack, token, churchId }: ExpenseCategoriesProps) {
+export default function ExpenseCategories({ onBack, token, churchId, userRole }: ExpenseCategoriesProps) {
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -21,6 +25,8 @@ export default function ExpenseCategories({ onBack, token, churchId }: ExpenseCa
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const canManageCategories = userRole ? hasPermission(userRole, "manage_expense_categories") : false;
 
   useEffect(() => {
     loadCategories();
@@ -103,10 +109,12 @@ export default function ExpenseCategories({ onBack, token, churchId }: ExpenseCa
           Back
         </button>
         <h2 className="expense-categories-title">Expense Categories</h2>
-        <button onClick={() => { setEditing(null); setFormData({ name: "", description: "", image: "" }); setShowModal(true); }} className="expense-categories-add-btn">
-          <FiPlus size={16} />
-          Add Category
-        </button>
+        {canManageCategories && (
+          <button onClick={() => { setEditing(null); setFormData({ name: "", description: "", image: "" }); setShowModal(true); }} className="expense-categories-add-btn">
+            <FiPlus size={16} />
+            Add Category
+          </button>
+        )}
       </div>
 
       <div className="expense-categories-grid">
@@ -122,14 +130,16 @@ export default function ExpenseCategories({ onBack, token, churchId }: ExpenseCa
               {category.description && (
                 <p className="expense-categories-card-description">{category.description}</p>
               )}
-              <div className="expense-categories-card-actions">
-                <button onClick={() => handleEdit(category)} className="expense-categories-card-btn edit">
-                  <FiEdit2 size={14} />
-                </button>
-                <button onClick={() => handleDelete(category.categoryId)} className="expense-categories-card-btn delete">
-                  <FiTrash2 size={14} />
-                </button>
-              </div>
+              {canManageCategories && (
+                <div className="expense-categories-card-actions">
+                  <button onClick={() => handleEdit(category)} className="expense-categories-card-btn edit">
+                    <FiEdit2 size={14} />
+                  </button>
+                  <button onClick={() => handleDelete(category.categoryId)} className="expense-categories-card-btn delete">
+                    <FiTrash2 size={14} />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -138,7 +148,7 @@ export default function ExpenseCategories({ onBack, token, churchId }: ExpenseCa
         )}
       </div>
 
-      {showModal && (
+      {showModal && canManageCategories && (
         <div className="expense-categories-modal-overlay" onClick={() => setShowModal(false)}>
           <div className="expense-categories-modal" onClick={(e) => e.stopPropagation()}>
             <div className="expense-categories-modal-header">

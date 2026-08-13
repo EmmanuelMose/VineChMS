@@ -1,8 +1,11 @@
+// File: frontend/src/pages/dashboard/churchadmindashboard/expenses/UpdateExpense.tsx
+
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { FiX } from "react-icons/fi";
 import { updateExpense, type Expense } from "../../../../Features/expenses/expensesAPI";
 import { type ExpenseCategory } from "../../../../Features/expenses/expensesAPI";
+import { type Member } from "../../../../Features/members/membersAPI";
 import "./UpdateExpense.css";
 
 interface UpdateExpenseProps {
@@ -11,17 +14,20 @@ interface UpdateExpenseProps {
   onSuccess: () => void;
   expense: Expense;
   categories: ExpenseCategory[];
+  members: Member[];
 }
 
-export default function UpdateExpense({ isOpen, onClose, onSuccess, expense, categories }: UpdateExpenseProps) {
+export default function UpdateExpense({ isOpen, onClose, onSuccess, expense, categories, members }: UpdateExpenseProps) {
   const token = useSelector((state: any) => state.user.token);
   
   const [formData, setFormData] = useState({
+    memberId: "",
     description: "",
     categoryId: "",
     amount: "",
     date: "",
     status: "pending",
+    paymentMethod: "",
     notes: "",
     receiptUrl: "",
   });
@@ -31,11 +37,13 @@ export default function UpdateExpense({ isOpen, onClose, onSuccess, expense, cat
   useEffect(() => {
     if (expense) {
       setFormData({
+        memberId: expense.memberId?.toString() || "",
         description: expense.description,
         categoryId: expense.categoryId?.toString() || "",
         amount: expense.amount,
         date: expense.date.split("T")[0],
         status: expense.status,
+        paymentMethod: expense.paymentMethod || "",
         notes: expense.notes || "",
         receiptUrl: expense.receiptUrl || "",
       });
@@ -49,11 +57,13 @@ export default function UpdateExpense({ isOpen, onClose, onSuccess, expense, cat
 
     try {
       await updateExpense(expense.expenseId, {
+        memberId: parseInt(formData.memberId),
         description: formData.description,
         categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
         amount: formData.amount,
         date: new Date(formData.date).toISOString(),
         status: formData.status,
+        paymentMethod: formData.paymentMethod || undefined,
         notes: formData.notes || undefined,
         receiptUrl: formData.receiptUrl || undefined,
       }, token);
@@ -68,6 +78,7 @@ export default function UpdateExpense({ isOpen, onClose, onSuccess, expense, cat
   if (!isOpen) return null;
 
   const availableCategories = categories.filter(c => c.isActive);
+  const availableMembers = members.filter(m => m.isActive && m.churchId === expense.churchId);
 
   return (
     <div className="update-expense-overlay" onClick={onClose}>
@@ -79,6 +90,22 @@ export default function UpdateExpense({ isOpen, onClose, onSuccess, expense, cat
           </button>
         </div>
         <form onSubmit={handleSubmit} className="update-expense-form">
+          <div className="update-expense-group">
+            <label>Member *</label>
+            <select
+              value={formData.memberId}
+              onChange={(e) => setFormData({ ...formData, memberId: e.target.value })}
+              required
+            >
+              <option value="">Select a member</option>
+              {availableMembers.map((member) => (
+                <option key={member.memberId} value={member.memberId}>
+                  {member.fullName} ({member.email})
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="update-expense-group">
             <label>Description *</label>
             <input
@@ -105,11 +132,11 @@ export default function UpdateExpense({ isOpen, onClose, onSuccess, expense, cat
               </select>
             </div>
             <div className="update-expense-group">
-              <label>Amount *</label>
+              <label>Amount (KES) *</label>
               <input
                 type="number"
-                step="0.01"
-                min="0.01"
+                step="1"
+                min="1"
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 required
@@ -127,6 +154,24 @@ export default function UpdateExpense({ isOpen, onClose, onSuccess, expense, cat
                 required
               />
             </div>
+            <div className="update-expense-group">
+              <label>Payment Method</label>
+              <select
+                value={formData.paymentMethod}
+                onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+              >
+                <option value="">Select method</option>
+                <option value="cash">Cash</option>
+                <option value="mpesa">M-Pesa</option>
+                <option value="bank">Bank Transfer</option>
+                <option value="card">Card</option>
+                <option value="check">Check</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="update-expense-row">
             <div className="update-expense-group">
               <label>Status</label>
               <select

@@ -1,3 +1,5 @@
+// File: backend/src/expenses/expenses.controller.ts
+
 import { Request, Response } from "express";
 import {
   createExpenseCategoryService,
@@ -97,7 +99,13 @@ export const createExpense = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ success: false, message: "Church ID is required" });
     }
     const result = await createExpenseService({ ...req.body, churchId });
-    res.status(201).json({ success: true, data: result, message: "Expense created successfully" });
+    res.status(201).json({ 
+      success: true, 
+      data: result, 
+      message: result.mpesaCheckoutRequestID 
+        ? "Expense created. STK Push sent to your phone." 
+        : "Expense created successfully" 
+    });
   } catch (error: any) {
     res.status(400).json({ success: false, message: "Failed to create expense" });
   }

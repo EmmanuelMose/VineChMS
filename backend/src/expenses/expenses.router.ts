@@ -1,3 +1,5 @@
+// File: backend/src/expenses/expenses.router.ts
+
 import { Router } from "express";
 import {
   createExpenseCategory,
@@ -33,12 +35,14 @@ expensesRouter.get("/", authenticate, getExpenses);
 expensesRouter.get("/:id", authenticate, getExpenseById);
 expensesRouter.put("/:id", authenticate, updateExpense);
 expensesRouter.delete("/:id", authenticate, deleteExpense);
+
 expensesRouter.get("/category/:categoryId", authenticate, getExpensesByCategory);
 expensesRouter.get("/status/:status", authenticate, getExpensesByStatus);
 expensesRouter.get("/summary/:churchId", authenticate, getExpensesSummary);
 expensesRouter.get("/total/:churchId", authenticate, getExpensesTotal);
+expensesRouter.get("/date-range/:churchId", authenticate, getExpensesByDateRange);
+
 expensesRouter.put("/:id/approve", authenticate, approveExpense);
 expensesRouter.put("/:id/reject", authenticate, rejectExpense);
-expensesRouter.get("/date-range/:churchId", authenticate, getExpensesByDateRange);
 
 export default expensesRouter;
