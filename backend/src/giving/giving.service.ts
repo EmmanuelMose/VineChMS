@@ -1,3 +1,5 @@
+// File: backend/src/giving/giving.service.ts
+
 import db from "../Drizzle/db";
 import { giving, members, users, givingCategories } from "../Drizzle/schema";
 import { eq, desc, and } from "drizzle-orm";
@@ -255,13 +257,26 @@ export const getGivingByDateRangeService = async (churchId: number, startDate: s
   return result.rows;
 };
 
-export const approveGivingService = async (id: number, approvedBy: number) => {
+export const approveGivingService = async (id: number, approvedBy: number, amount?: string) => {
   const pool = db.$client;
-  const query = `
-    UPDATE giving SET status = 'completed', approved_by = $1, approved_at = NOW(), updated_at = NOW()
-    WHERE giving_id = $2 RETURNING *
+  let query = `
+    UPDATE giving
+    SET status = 'completed', approved_by = $1, approved_at = NOW(), updated_at = NOW()
   `;
-  const result = await pool.query(query, [approvedBy, id]);
+  const params: any[] = [approvedBy];
+  
+  if (amount !== undefined && amount !== null && amount !== "") {
+    const numAmount = parseFloat(amount);
+    if (!isNaN(numAmount) && numAmount > 0) {
+      query += `, amount = $2`;
+      params.push(numAmount.toString());
+    }
+  }
+  
+  query += ` WHERE giving_id = $${params.length + 1} RETURNING *`;
+  params.push(id);
+  
+  const result = await pool.query(query, params);
   if (!result.rows[0]) throw new Error("Giving record not found");
   return result.rows[0];
 };

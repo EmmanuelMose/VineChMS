@@ -1,3 +1,5 @@
+// File: src/Features/giving/givingAPI.ts
+
 import axios from "axios";
 import { ApiDomain } from "../../utils/APIDomain";
 
@@ -67,7 +69,7 @@ export interface NewGiving {
   receiptNumber?: string;
   receiptFile?: string;
   receiptFilePublicId?: string;
-  phoneNumber?: string; // <-- ADD THIS
+  phoneNumber?: string;
 }
 
 export interface GivingSummary {
@@ -201,10 +203,14 @@ export const deleteGiving = async (id: number, token: string): Promise<{ success
   return response.data;
 };
 
-export const approveGiving = async (id: number, token: string): Promise<Giving> => {
-  const response = await axios.put(`${API_URL}/${id}/approve`, {}, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+export const approveGiving = async (id: number, token: string, amount?: number): Promise<Giving> => {
+  const response = await axios.put(
+    `${API_URL}/${id}/approve`,
+    { amount },
+    {
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
   return response.data.data;
 };
 

@@ -1,14 +1,13 @@
-// File: src/pages/dashboard/churchadmindashboard/giving/CreateGiving.tsx
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
-import { FiX, FiSend, FiDollarSign } from "react-icons/fi";
+import { FiX, FiSend, FiUpload } from "react-icons/fi";
 import { createGiving } from "../../../../Features/giving/givingAPI";
+import { uploadFileToCloudinary } from "../../../../Features/cloudinary/cloudinaryAPI";
 import { type Member } from "../../../../Features/members/membersAPI";
 import { type GivingCategory } from "../../../../Features/giving/givingAPI";
-import "./CreateGiving.css";
+import "./CreateMyGiving.css";
 
-interface CreateGivingProps {
+interface CreateMyGivingProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -18,7 +17,7 @@ interface CreateGivingProps {
   mode?: "mpesa" | "cash";
 }
 
-export default function CreateGiving({
+export default function CreateMyGiving({
   isOpen,
   onClose,
   onSuccess,
@@ -26,8 +25,9 @@ export default function CreateGiving({
   members,
   categories,
   mode = "mpesa",
-}: CreateGivingProps) {
+}: CreateMyGivingProps) {
   const token = useSelector((state: any) => state.user.token);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     memberId: "",
@@ -38,10 +38,13 @@ export default function CreateGiving({
     notes: "",
     isAnonymous: false,
     phoneNumber: "",
+    receiptFile: "",
+    receiptFilePublicId: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   const selectedMember = members.find((m) => m.memberId === parseInt(formData.memberId));
 
@@ -50,6 +53,36 @@ export default function CreateGiving({
       setFormData((prev) => ({ ...prev, phoneNumber: selectedMember.phone || "" }));
     }
   }, [formData.memberId, selectedMember, mode]);
+
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+    setUploadingFile(true);
+    try {
+      const result = await uploadFileToCloudinary(file, token, "vinechms/giving/evidence", {
+        resourceType: "image",
+        quality: 80,
+      });
+      setFormData((prev) => ({
+        ...prev,
+        receiptFile: result.secureUrl,
+        receiptFilePublicId: result.publicId,
+      }));
+    } catch (err: any) {
+      setError(err.message || "File upload failed");
+    } finally {
+      setUploadingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeFile = () => {
+    setFormData((prev) => ({
+      ...prev,
+      receiptFile: "",
+      receiptFilePublicId: "",
+    }));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +107,14 @@ export default function CreateGiving({
         payload.phoneNumber = formData.phoneNumber;
         payload.status = "pending";
       } else {
-        payload.status = "completed";
+        if (!formData.receiptFile) {
+          alert("Please upload evidence (receipt/screenshot) for this payment.");
+          setLoading(false);
+          return;
+        }
+        payload.receiptFile = formData.receiptFile;
+        payload.receiptFilePublicId = formData.receiptFilePublicId;
+        payload.status = "pending";
       }
 
       await createGiving(payload, token);
@@ -88,6 +128,8 @@ export default function CreateGiving({
         notes: "",
         isAnonymous: false,
         phoneNumber: "",
+        receiptFile: "",
+        receiptFilePublicId: "",
       });
       onSuccess();
     } catch (err: any) {
@@ -104,16 +146,16 @@ export default function CreateGiving({
   const isMpesaMode = mode === "mpesa";
 
   return (
-    <div className="create-giving-overlay" onClick={onClose}>
-      <div className="create-giving-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="create-giving-header">
-          <h3>{isMpesaMode ? "Send M-Pesa STK Push" : "Record Cash Giving"}</h3>
-          <button onClick={onClose} className="create-giving-close">
+    <div className="member-giving-modal-overlay" onClick={onClose}>
+      <div className="member-giving-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="member-giving-modal-header">
+          <h3>{isMpesaMode ? "Send M-Pesa STK Push" : "Upload Evidence"}</h3>
+          <button onClick={onClose} className="member-giving-modal-close">
             <FiX size={20} />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="create-giving-form">
-          <div className="create-giving-group">
+        <form onSubmit={handleSubmit} className="member-giving-modal-form">
+          <div className="member-giving-form-group">
             <label>Member *</label>
             <select
               value={formData.memberId}
@@ -129,8 +171,8 @@ export default function CreateGiving({
             </select>
           </div>
 
-          <div className="create-giving-row">
-            <div className="create-giving-group">
+          <div className="member-giving-form-row">
+            <div className="member-giving-form-group">
               <label>Category *</label>
               <select
                 value={formData.categoryId}
@@ -145,7 +187,7 @@ export default function CreateGiving({
                 ))}
               </select>
             </div>
-            <div className="create-giving-group">
+            <div className="member-giving-form-group">
               <label>Amount *</label>
               <input
                 type="number"
@@ -159,8 +201,8 @@ export default function CreateGiving({
             </div>
           </div>
 
-          <div className="create-giving-row">
-            <div className="create-giving-group">
+          <div className="member-giving-form-row">
+            <div className="member-giving-form-group">
               <label>Currency</label>
               <select
                 value={formData.currency}
@@ -175,7 +217,7 @@ export default function CreateGiving({
           </div>
 
           {isMpesaMode && (
-            <div className="create-giving-group">
+            <div className="member-giving-form-group">
               <label>Phone Number (M-Pesa) *</label>
               <input
                 type="tel"
@@ -190,43 +232,89 @@ export default function CreateGiving({
             </div>
           )}
 
-          <div className="create-giving-group">
+          {!isMpesaMode && (
+            <div className="member-giving-form-group">
+              <label>Upload Evidence (Receipt/Screenshot) *</label>
+              <div className="member-giving-file-upload-wrapper">
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file);
+                  }}
+                  disabled={uploadingFile}
+                  className="member-giving-file-input"
+                  id="evidence-upload"
+                />
+                <label htmlFor="evidence-upload" className="member-giving-file-label">
+                  <FiUpload size={16} />
+                  {uploadingFile ? "Uploading..." : "Upload Evidence"}
+                </label>
+              </div>
+              {formData.receiptFile && (
+                <div className="member-giving-file-preview">
+                  <span>Evidence uploaded</span>
+                  <button type="button" onClick={removeFile} className="member-giving-remove-file">
+                    <FiX size={16} />
+                  </button>
+                </div>
+              )}
+              <small style={{ color: "#6b7280", fontSize: "0.75rem" }}>
+                Upload a screenshot or photo of your payment receipt.
+              </small>
+            </div>
+          )}
+
+          <div className="member-giving-form-group">
+            <label>Status</label>
+            <input
+              type="text"
+              value="Pending"
+              disabled
+              className="member-giving-status-disabled"
+            />
+          </div>
+
+          <div className="member-giving-form-group">
             <label>Notes</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={2}
-              placeholder="Additional notes"
+              placeholder="Additional notes..."
             />
           </div>
 
-          <div className="create-giving-checkbox">
-            <label className="create-giving-checkbox-label">
+          <div className="member-giving-checkbox-group">
+            <label>
               <input
                 type="checkbox"
                 checked={formData.isAnonymous}
                 onChange={(e) => setFormData({ ...formData, isAnonymous: e.target.checked })}
               />
-              Anonymous Donation
+              Hide my name (Anonymous)
             </label>
           </div>
 
-          {error && <div className="create-giving-error">{error}</div>}
+          {error && <div className="member-giving-form-error">{error}</div>}
 
-          <div className="create-giving-actions">
-            <button type="button" onClick={onClose} className="create-giving-cancel">
+          <div className="member-giving-modal-actions">
+            <button type="button" onClick={onClose} className="member-giving-modal-cancel">
               Cancel
             </button>
             <button
               type="submit"
-              className="create-giving-save"
+              className="member-giving-modal-submit"
               disabled={
                 loading ||
+                uploadingFile ||
                 (isMpesaMode && (!formData.phoneNumber || !formData.amount)) ||
-                (!isMpesaMode && !formData.amount)
+                (!isMpesaMode && !formData.receiptFile)
               }
             >
-              {loading ? "Processing..." : isMpesaMode ? <><FiSend size={16} /> Send STK Push</> : <><FiDollarSign size={16} /> Record Cash</>}
+              {loading ? "Saving..." : isMpesaMode ? <><FiSend size={16} /> Send STK Push</> : "Submit for Approval"}
             </button>
           </div>
         </form>

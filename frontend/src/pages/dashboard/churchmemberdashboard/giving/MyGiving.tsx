@@ -1,136 +1,188 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { FiX, FiUpload, FiSend } from "react-icons/fi";
-import { fetchGivingByMember, fetchGivingCategories, createGiving, updateGiving, deleteGiving, type Giving, type GivingCategory } from "../../../../Features/giving/givingAPI";
-import { fetchMemberByUserId } from "../../../../Features/members/membersAPI";
-import { uploadFileToCloudinary } from "../../../../Features/cloudinary/cloudinaryAPI";
+import {
+  FiSearch,
+  FiX,
+  FiCheck,
+  FiXCircle,
+  FiEye,
+  FiMaximize2,
+  FiFilter,
+  FiSend,
+  FiDollarSign,
+} from "react-icons/fi";
+import {
+  fetchGiving,
+  deleteGiving,
+  approveGiving,
+  rejectGiving,
+  type Giving,
+} from "../../../../Features/giving/givingAPI";
+import { fetchGivingCategories, type GivingCategory } from "../../../../Features/giving/givingAPI";
+import { fetchMembers, type Member } from "../../../../Features/members/membersAPI";
+import CreateMyGiving from "./CreateMyGiving";
+import UpdateMyGiving from "./UpdateMyGiving";
+import MyGivingCategories from "./MyGivingCategories";
+import { hasPermission, type UserRole } from "../../../../utils/permissions";
 import "./MyGiving.css";
 
 export default function MyGiving() {
   const token = useSelector((state: any) => state.user.token);
   const churchId = useSelector((state: any) => state.user.user?.churchId);
-  const userId = useSelector((state: any) => state.user.user?.userId);
+  const userRole = useSelector((state: any) => state.user.user?.role) as UserRole;
 
   const [giving, setGiving] = useState<Giving[]>([]);
   const [categories, setCategories] = useState<GivingCategory[]>([]);
-  const [memberId, setMemberId] = useState<number | null>(null);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
-  const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [filteredGiving, setFilteredGiving] = useState<Giving[]>([]);
-  const [showModal, setShowModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [modalMode, setModalMode] = useState<"mpesa" | "cash">("mpesa");
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Giving | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-  const [uploadingFile, setUploadingFile] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [approveTargetId, setApproveTargetId] = useState<number | null>(null);
+  const [approveAmount, setApproveAmount] = useState("");
+  const [approveEvidenceUrl, setApproveEvidenceUrl] = useState("");
+  const [approveMemberName, setApproveMemberName] = useState("");
+  const [approveCategory, setApproveCategory] = useState("");
+  const [approveDate, setApproveDate] = useState("");
+  const [approveNotes, setApproveNotes] = useState("");
+  const [approveReceiptNumber, setApproveReceiptNumber] = useState("");
+  const [approvePaymentMethod, setApprovePaymentMethod] = useState("");
+  const [approveMemberProfilePic, setApproveMemberProfilePic] = useState("");
+  const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
+  const [evidenceUrl, setEvidenceUrl] = useState("");
+  const [profileImageModalOpen, setProfileImageModalOpen] = useState(false);
+  const [profileImageUrl, setProfileImageUrl] = useState("");
+  const [showCategories, setShowCategories] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
 
-  const [formData, setFormData] = useState({
-    categoryId: "",
-    amount: "",
-    type: "offering",
-    date: new Date().toISOString().split("T")[0],
-    paymentMethod: "",
-    notes: "",
-    isAnonymous: false,
-    receiptNumber: "",
-    receiptFile: "",
-    receiptFilePublicId: "",
-    phoneNumber: "",
-  });
-
-  useEffect(() => {
-    const loadMemberId = async () => {
-      if (token && userId) {
-        try {
-          const member = await fetchMemberByUserId(userId, token);
-          if (member && member.memberId) {
-            setMemberId(member.memberId);
-            if (member.phone) {
-              setFormData(prev => ({ ...prev, phoneNumber: member.phone || "" }));
-            }
-          }
-        } catch (error) {
-          console.error("Failed to load member ID:", error);
-        }
-      }
-    };
-    loadMemberId();
-  }, [token, userId]);
+  const canManageGiving = hasPermission(userRole, "view_all_giving") || hasPermission(userRole, "manage_giving");
+  const canApprove = hasPermission(userRole, "approve_expenses") || userRole === "treasurer" || userRole === "church_admin" || userRole === "pastor" || userRole === "elder";
 
   useEffect(() => {
-    if (memberId) {
-      loadData();
-    }
-  }, [memberId]);
-
-  useEffect(() => {
-    filterGiving();
-  }, [giving, searchTerm, filterCategory, filterType, filterStatus, startDate, endDate]);
+    loadData();
+  }, []);
 
   const loadData = async () => {
-    if (!memberId || !token) return;
     try {
       setLoading(true);
-      const [givingData, categoriesData] = await Promise.all([
-        fetchGivingByMember(memberId, token),
+      const [givingData, categoriesData, membersData] = await Promise.all([
+        fetchGiving(token),
         fetchGivingCategories(token),
+        fetchMembers(token),
       ]);
-      const churchCategories = categoriesData.filter((c) => c.churchId === churchId);
-      setGiving(givingData);
-      setCategories(churchCategories);
+      const filteredGiving = givingData.filter((g) => g.churchId === churchId);
+      const filteredCategories = categoriesData.filter((c) => c.churchId === churchId);
+      setGiving(filteredGiving);
+      setCategories(filteredCategories);
+      setMembers(membersData);
     } catch (error) {
-      console.error("Failed to load giving:", error);
+      console.error("Failed to load data:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filterGiving = () => {
-    let filtered = [...giving];
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (g) =>
-          (g.notes || "").toLowerCase().includes(term) ||
-          (g.categoryName || "").toLowerCase().includes(term) ||
-          (g.receiptNumber || "").toLowerCase().includes(term)
-      );
-    }
-    if (filterCategory !== "all") {
-      filtered = filtered.filter((g) => g.categoryId === parseInt(filterCategory));
-    }
-    if (filterType !== "all") {
-      filtered = filtered.filter((g) => g.type === filterType);
-    }
-    if (filterStatus !== "all") {
-      filtered = filtered.filter((g) => g.status === filterStatus);
-    }
-    if (startDate) {
-      const start = new Date(startDate);
-      start.setHours(0, 0, 0, 0);
-      filtered = filtered.filter((g) => new Date(g.date) >= start);
-    }
-    if (endDate) {
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
-      filtered = filtered.filter((g) => new Date(g.date) <= end);
-    }
-    setFilteredGiving(filtered);
+  const handleDeleteClick = (id: number) => {
+    setDeleteTargetId(id);
+    setShowDeleteModal(true);
   };
 
-  const clearFilters = () => {
-    setSearchTerm("");
-    setFilterCategory("all");
-    setFilterType("all");
-    setFilterStatus("all");
-    setStartDate("");
-    setEndDate("");
+  const confirmDelete = async () => {
+    if (deleteTargetId) {
+      try {
+        await deleteGiving(deleteTargetId, token);
+        await loadData();
+        setShowDeleteModal(false);
+        setDeleteTargetId(null);
+      } catch (error) {
+        console.error("Failed to delete giving:", error);
+      }
+    }
+  };
+
+  const openApproveModal = (record: Giving) => {
+    const member = members.find((m) => m.memberId === record.memberId);
+    setApproveTargetId(record.givingId);
+    setApproveAmount(record.amount);
+    setApproveEvidenceUrl(record.receiptFile || "");
+    setApproveMemberName(member ? member.fullName : "Unknown");
+    setApproveCategory(getCategoryName(record.categoryId));
+    setApproveDate(new Date(record.date).toLocaleDateString());
+    setApproveNotes(record.notes || "");
+    setApproveReceiptNumber(record.receiptNumber || "");
+    setApprovePaymentMethod(record.paymentMethod || "cash");
+    setApproveMemberProfilePic(member?.profilePicture || "");
+    setShowApproveModal(true);
+  };
+
+  const handleApprove = async () => {
+    if (!approveTargetId) return;
+    setApproving(true);
+    try {
+      const amount = parseFloat(approveAmount);
+      await approveGiving(approveTargetId, token, amount);
+      setShowApproveModal(false);
+      setApproveTargetId(null);
+      await loadData();
+    } catch (error: any) {
+      console.error("Failed to approve giving:", error);
+      alert(error.response?.data?.message || "Failed to approve giving. Please try again.");
+    } finally {
+      setApproving(false);
+    }
+  };
+
+  const handleReject = async (id: number) => {
+    if (!window.confirm("Are you sure you want to reject this giving record?")) return;
+    setRejectingId(id);
+    try {
+      await rejectGiving(id, token);
+      await loadData();
+    } catch (error) {
+      console.error("Failed to reject giving:", error);
+      alert("Failed to reject giving. Please try again.");
+    } finally {
+      setRejectingId(null);
+    }
+  };
+
+  const handleEdit = (record: Giving) => {
+    setEditingRecord(record);
+    setShowUpdateModal(true);
+  };
+
+  const handleSuccess = () => {
+    loadData();
+    setShowCreateModal(false);
+    setShowUpdateModal(false);
+    setEditingRecord(null);
+  };
+
+  const getMember = (memberId: number) => {
+    return members.find((m) => m.memberId === memberId);
+  };
+
+  const getMemberName = (memberId: number) => {
+    const member = getMember(memberId);
+    return member ? member.fullName : "Unknown";
+  };
+
+  const getMemberEmail = (memberId: number) => {
+    const member = getMember(memberId);
+    return member ? member.email : "";
+  };
+
+  const getMemberProfilePicture = (memberId: number) => {
+    const member = getMember(memberId);
+    return member?.profilePicture || null;
   };
 
   const getCategoryName = (categoryId?: number) => {
@@ -145,149 +197,34 @@ export default function MyGiving() {
     return `KES ${num.toFixed(2)}`;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+  const openEvidenceModal = (url: string) => {
+    setEvidenceUrl(url);
+    setEvidenceModalOpen(true);
   };
 
-  const handleFileUpload = async (file: File) => {
-    if (!file) return;
-    setUploadingFile(true);
-    try {
-      const result = await uploadFileToCloudinary(file, token, "vinechms/giving/evidence", {
-        resourceType: "auto",
-        quality: 80,
-      });
-      setFormData((prev) => ({
-        ...prev,
-        receiptFile: result.secureUrl,
-        receiptFilePublicId: result.publicId,
-      }));
-    } catch (err: any) {
-      alert(err.message || "File upload failed");
-    } finally {
-      setUploadingFile(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
+  const openProfileImageModal = (url: string) => {
+    setProfileImageUrl(url);
+    setProfileImageModalOpen(true);
   };
 
-  const removeFile = () => {
-    setFormData((prev) => ({
-      ...prev,
-      receiptFile: "",
-      receiptFilePublicId: "",
-    }));
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  const filteredGiving = giving.filter((record) => {
+    const memberName = getMemberName(record.memberId).toLowerCase();
+    const memberEmail = getMemberEmail(record.memberId).toLowerCase();
+    const categoryName = getCategoryName(record.categoryId).toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
 
-  const handleEdit = (record: Giving) => {
-    setEditingRecord(record);
-    const date = new Date(record.date);
-    setFormData({
-      categoryId: record.categoryId?.toString() || "",
-      amount: record.amount,
-      type: record.type,
-      date: date.toISOString().split("T")[0],
-      paymentMethod: record.paymentMethod || "",
-      notes: record.notes || "",
-      isAnonymous: record.isAnonymous,
-      receiptNumber: record.receiptNumber || "",
-      receiptFile: record.receiptFile || "",
-      receiptFilePublicId: record.receiptFilePublicId || "",
-      phoneNumber: "",
-    });
-    setShowModal(true);
-  };
+    const matchesSearch =
+      memberName.includes(searchLower) ||
+      memberEmail.includes(searchLower) ||
+      categoryName.includes(searchLower) ||
+      (record.notes || "").toLowerCase().includes(searchLower) ||
+      (record.receiptNumber || "").toLowerCase().includes(searchLower);
 
-  const handleCreate = () => {
-    setEditingRecord(null);
-    setFormData({
-      categoryId: "",
-      amount: "",
-      type: "offering",
-      date: new Date().toISOString().split("T")[0],
-      paymentMethod: "",
-      notes: "",
-      isAnonymous: false,
-      receiptNumber: "",
-      receiptFile: "",
-      receiptFilePublicId: "",
-      phoneNumber: "",
-    });
-    if (userId) {
-      fetchMemberByUserId(userId, token).then(member => {
-        if (member && member.phone) {
-          setFormData(prev => ({ ...prev, phoneNumber: member.phone || "" }));
-        }
-      }).catch(console.error);
-    }
-    setShowModal(true);
-  };
+    const matchesCategory = filterCategory === "all" || record.categoryId === parseInt(filterCategory);
+    const matchesStatus = filterStatus === "all" || record.status === filterStatus;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!memberId) return;
-    setSubmitting(true);
-    try {
-      const payload: any = {
-        memberId: memberId,
-        churchId: churchId!,
-        categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
-        amount: formData.amount,
-        type: formData.type,
-        date: new Date(formData.date).toISOString(),
-        paymentMethod: formData.paymentMethod,
-        notes: formData.notes || undefined,
-        isAnonymous: formData.isAnonymous,
-      };
-
-      if (formData.paymentMethod === "mpesa") {
-        payload.phoneNumber = formData.phoneNumber;
-        payload.status = "pending";
-      } else {
-        if (!formData.receiptFile) {
-          alert("Please upload evidence (receipt/screenshot) for this payment.");
-          setSubmitting(false);
-          return;
-        }
-        payload.receiptFile = formData.receiptFile;
-        payload.receiptFilePublicId = formData.receiptFilePublicId;
-        payload.receiptNumber = formData.receiptNumber || undefined;
-        payload.status = "pending";
-      }
-
-      if (editingRecord) {
-        await updateGiving(editingRecord.givingId, payload, token);
-      } else {
-        await createGiving(payload, token);
-      }
-      setShowModal(false);
-      await loadData();
-    } catch (error: any) {
-      console.error("Failed to save giving:", error);
-      alert(error.response?.data?.message || "Failed to save giving record.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!deleteTargetId) return;
-    try {
-      await deleteGiving(deleteTargetId, token);
-      setShowDeleteModal(false);
-      setDeleteTargetId(null);
-      await loadData();
-    } catch (error) {
-      console.error("Failed to delete giving:", error);
-      alert("Failed to delete giving record.");
-    }
-  };
-
-  const hasActiveFilters = !!(searchTerm || filterCategory !== "all" || filterType !== "all" || filterStatus !== "all" || startDate || endDate);
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
   if (loading) {
     return (
@@ -298,381 +235,18 @@ export default function MyGiving() {
     );
   }
 
-  const totalAmount = giving.reduce((sum, g) => sum + parseFloat(g.amount), 0);
-  const isMpesa = formData.paymentMethod === "mpesa";
+  if (showCategories) {
+    return (
+      <MyGivingCategories
+        onBack={() => setShowCategories(false)}
+        token={token}
+        churchId={churchId!}
+      />
+    );
+  }
 
   return (
     <div className="member-giving-page">
-      <div className="member-giving-header">
-        <div>
-          <h2 className="member-giving-title">My Giving</h2>
-          <p className="member-giving-subtitle">Track your tithes and offerings</p>
-        </div>
-        <button className="member-giving-add-btn" onClick={handleCreate}>
-          Record Giving
-        </button>
-      </div>
-
-      <div className="member-giving-stats">
-        <div className="member-giving-stat">
-          <span className="member-giving-stat-value">{giving.length}</span>
-          <span className="member-giving-stat-label">Total Records</span>
-        </div>
-        <div className="member-giving-stat">
-          <span className="member-giving-stat-value">{formatCurrency(totalAmount.toString())}</span>
-          <span className="member-giving-stat-label">Total Giving</span>
-        </div>
-        <div className="member-giving-stat">
-          <span className="member-giving-stat-value">
-            {giving.length > 0 ? formatCurrency((totalAmount / giving.length).toString()) : "KES 0.00"}
-          </span>
-          <span className="member-giving-stat-label">Average</span>
-        </div>
-        <div className="member-giving-stat">
-          <span className="member-giving-stat-value">
-            {giving.filter(g => g.status === 'completed').length}
-          </span>
-          <span className="member-giving-stat-label">Completed</span>
-        </div>
-      </div>
-
-      <div className="member-giving-filters">
-        <div className="member-giving-filter-group">
-          <label>Search</label>
-          <input
-            type="text"
-            placeholder="Search by notes or receipt..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="member-giving-filter-group">
-          <label>Category</label>
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-          >
-            <option value="all">All Categories</option>
-            {categories.map((c) => (
-              <option key={c.categoryId} value={c.categoryId}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="member-giving-filter-group">
-          <label>Type</label>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-          >
-            <option value="all">All Types</option>
-            <option value="tithe">Tithe</option>
-            <option value="offering">Offering</option>
-            <option value="pledge">Pledge</option>
-            <option value="donation">Donation</option>
-            <option value="special">Special</option>
-          </select>
-        </div>
-        <div className="member-giving-filter-group">
-          <label>Status</label>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="completed">Completed</option>
-            <option value="failed">Failed</option>
-            <option value="refunded">Refunded</option>
-          </select>
-        </div>
-        <div className="member-giving-filter-group">
-          <label>From</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </div>
-        <div className="member-giving-filter-group">
-          <label>To</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-        {hasActiveFilters && (
-          <button className="member-giving-clear-btn" onClick={clearFilters}>
-            Clear Filters
-          </button>
-        )}
-      </div>
-
-      <div className="member-giving-table-wrapper">
-        {filteredGiving.length > 0 ? (
-          <table className="member-giving-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Category</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Method</th>
-                <th>Notes</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredGiving.map((record) => (
-                <tr key={record.givingId}>
-                  <td>{formatDate(record.date)}</td>
-                  <td>{getCategoryName(record.categoryId)}</td>
-                  <td>
-                    <span className="member-giving-type">{record.type}</span>
-                  </td>
-                  <td className="member-giving-amount">{formatCurrency(record.amount)}</td>
-                  <td>
-                    <span className={`member-giving-status status-${record.status}`}>
-                      {record.status}
-                    </span>
-                  </td>
-                  <td>{record.paymentMethod || "—"}</td>
-                  <td>{record.notes || "—"}</td>
-                  <td>
-                    <div className="member-giving-actions">
-                      <button
-                        className="member-giving-action-edit"
-                        onClick={() => handleEdit(record)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="member-giving-action-delete"
-                        onClick={() => {
-                          setDeleteTargetId(record.givingId);
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className="member-giving-empty">
-            <p>No giving records found</p>
-            <span>Record your first giving</span>
-          </div>
-        )}
-      </div>
-
-      {filteredGiving.length > 0 && (
-        <div className="member-giving-count">
-          Showing {filteredGiving.length} of {giving.length} records
-          {hasActiveFilters && " (filtered)"}
-        </div>
-      )}
-
-      {showModal && (
-        <div className="member-giving-modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="member-giving-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="member-giving-modal-header">
-              <h3>{editingRecord ? "Edit Giving" : "Record Giving"}</h3>
-              <button className="member-giving-modal-close" onClick={() => setShowModal(false)}>
-                Close
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="member-giving-modal-form">
-              <div className="member-giving-form-row">
-                <div className="member-giving-form-group">
-                  <label>Category</label>
-                  <select
-                    value={formData.categoryId}
-                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                    required
-                  >
-                    <option value="">Select category</option>
-                    {categories.filter(c => c.isActive).map((c) => (
-                      <option key={c.categoryId} value={c.categoryId}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="member-giving-form-group">
-                  <label>Type</label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  >
-                    <option value="tithe">Tithe</option>
-                    <option value="offering">Offering</option>
-                    <option value="pledge">Pledge</option>
-                    <option value="donation">Donation</option>
-                    <option value="special">Special</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="member-giving-form-row">
-                <div className="member-giving-form-group">
-                  <label>Amount</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-                <div className="member-giving-form-group">
-                  <label>Date</label>
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="member-giving-form-row">
-                <div className="member-giving-form-group">
-                  <label>Payment Method</label>
-                  <select
-                    value={formData.paymentMethod}
-                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                    required
-                  >
-                    <option value="">Select method</option>
-                    <option value="mpesa">M-Pesa</option>
-                    <option value="other">Upload Evidence</option>
-                  </select>
-                </div>
-                <div className="member-giving-form-group">
-                  <label>Status</label>
-                  <input
-                    type="text"
-                    value="Pending"
-                    disabled
-                    className="member-giving-status-disabled"
-                  />
-                </div>
-              </div>
-
-              {isMpesa && (
-                <div className="member-giving-form-group">
-                  <label>Phone Number (M-Pesa) *</label>
-                  <input
-                    type="tel"
-                    value={formData.phoneNumber}
-                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                    placeholder="e.g., 0712345678"
-                    required
-                  />
-                  <small style={{ color: "#6b7280", fontSize: "0.75rem" }}>
-                    STK push will be sent to this number. Auto-filled from your profile.
-                  </small>
-                </div>
-              )}
-
-              {!isMpesa && (
-                <div className="member-giving-form-group">
-                  <label>Upload Evidence (Receipt/Screenshot) *</label>
-                  <div className="member-giving-file-upload-wrapper">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      ref={fileInputRef}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload(file);
-                      }}
-                      disabled={uploadingFile}
-                      className="member-giving-file-input"
-                      id="evidence-upload"
-                    />
-                    <label htmlFor="evidence-upload" className="member-giving-file-label">
-                      <FiUpload size={16} />
-                      {uploadingFile ? "Uploading..." : "Upload Evidence"}
-                    </label>
-                  </div>
-                  {formData.receiptFile && (
-                    <div className="member-giving-file-preview">
-                      <span>Evidence uploaded</span>
-                      <button type="button" onClick={removeFile} className="member-giving-remove-file">
-                        <FiX size={16} />
-                      </button>
-                    </div>
-                  )}
-                  <small style={{ color: "#6b7280", fontSize: "0.75rem" }}>
-                    Upload a screenshot or photo of your payment receipt.
-                  </small>
-                </div>
-              )}
-
-              {!isMpesa && (
-                <div className="member-giving-form-group">
-                  <label>Receipt Number (Optional)</label>
-                  <input
-                    type="text"
-                    value={formData.receiptNumber}
-                    onChange={(e) => setFormData({ ...formData, receiptNumber: e.target.value })}
-                    placeholder="Optional"
-                  />
-                </div>
-              )}
-
-              <div className="member-giving-form-group">
-                <label>Notes</label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={2}
-                  placeholder="Additional notes..."
-                />
-              </div>
-
-              <div className="member-giving-checkbox-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={formData.isAnonymous}
-                    onChange={(e) => setFormData({ ...formData, isAnonymous: e.target.checked })}
-                  />
-                  Hide my name (Anonymous)
-                </label>
-              </div>
-
-              <div className="member-giving-modal-actions">
-                <button
-                  type="button"
-                  className="member-giving-modal-cancel"
-                  onClick={() => setShowModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="member-giving-modal-submit"
-                  disabled={submitting || uploadingFile || (isMpesa && !formData.phoneNumber) || (!isMpesa && !formData.receiptFile)}
-                >
-                  {submitting ? "Saving..." : isMpesa ? <><FiSend size={16} /> Send STK Push</> : "Submit for Approval"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
       {showDeleteModal && (
         <div className="member-giving-modal-overlay" onClick={() => setShowDeleteModal(false)}>
           <div className="member-giving-modal member-giving-modal-small" onClick={(e) => e.stopPropagation()}>
@@ -683,25 +257,403 @@ export default function MyGiving() {
               </button>
             </div>
             <div className="member-giving-modal-body">
-              <p>Are you sure you want to delete this giving record?</p>
+              <p>Are you sure you want to permanently delete this giving record?</p>
               <p className="member-giving-modal-warning">This action cannot be undone.</p>
             </div>
             <div className="member-giving-modal-actions">
-              <button
-                className="member-giving-modal-cancel"
-                onClick={() => setShowDeleteModal(false)}
-              >
+              <button className="member-giving-modal-cancel" onClick={() => setShowDeleteModal(false)}>
                 Cancel
               </button>
-              <button
-                className="member-giving-modal-danger"
-                onClick={handleDelete}
-              >
+              <button className="member-giving-modal-danger" onClick={confirmDelete}>
                 Delete
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {showApproveModal && (
+        <div className="member-giving-modal-overlay" onClick={() => setShowApproveModal(false)}>
+          <div className="member-giving-approve-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="member-giving-approve-modal-header">
+              <h3>Review & Approve Giving</h3>
+              <button
+                className="member-giving-approve-modal-close"
+                onClick={() => setShowApproveModal(false)}
+              >
+                <FiX size={24} />
+              </button>
+            </div>
+            <div className="member-giving-approve-modal-body">
+              <div className="member-giving-approve-member">
+                {approveMemberProfilePic ? (
+                  <div
+                    className="member-giving-approve-avatar member-giving-avatar-clickable"
+                    onClick={() => openProfileImageModal(approveMemberProfilePic)}
+                  >
+                    <img src={approveMemberProfilePic} alt={approveMemberName} />
+                    <div className="member-giving-avatar-expand">
+                      <FiMaximize2 size={12} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="member-giving-approve-avatar">
+                    {approveMemberName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="member-giving-approve-member-info">
+                  <strong>{approveMemberName}</strong>
+                  <span>Member</span>
+                </div>
+              </div>
+
+              <div className="member-giving-approve-details-grid">
+                <div className="member-giving-approve-detail-item">
+                  <label>Category</label>
+                  <span>{approveCategory}</span>
+                </div>
+                <div className="member-giving-approve-detail-item">
+                  <label>Date</label>
+                  <span>{approveDate}</span>
+                </div>
+                <div className="member-giving-approve-detail-item">
+                  <label>Payment Method</label>
+                  <span>{approvePaymentMethod}</span>
+                </div>
+                <div className="member-giving-approve-detail-item">
+                  <label>Receipt Number</label>
+                  <span>{approveReceiptNumber || "—"}</span>
+                </div>
+                {approveNotes && (
+                  <div className="member-giving-approve-detail-item full-width">
+                    <label>Notes</label>
+                    <span>{approveNotes}</span>
+                  </div>
+                )}
+                {approveEvidenceUrl && (
+                  <div className="member-giving-approve-detail-item full-width">
+                    <label>Evidence</label>
+                    <div className="member-giving-approve-evidence">
+                      <img
+                        src={approveEvidenceUrl}
+                        alt="Evidence"
+                        className="member-giving-approve-evidence-image"
+                        onClick={() => openEvidenceModal(approveEvidenceUrl)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="member-giving-approve-amount-section">
+                <label>Amount (KES)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={approveAmount}
+                  onChange={(e) => setApproveAmount(e.target.value)}
+                  className="member-giving-approve-amount-input"
+                />
+                <small className="member-giving-approve-hint">
+                  Adjust the amount if it differs from the evidence.
+                </small>
+              </div>
+            </div>
+            <div className="member-giving-approve-modal-actions">
+              <button
+                className="member-giving-btn-cancel"
+                onClick={() => setShowApproveModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="member-giving-btn-reject"
+                onClick={async () => {
+                  if (approveTargetId) {
+                    await handleReject(approveTargetId);
+                    setShowApproveModal(false);
+                    setApproveTargetId(null);
+                  }
+                }}
+                disabled={rejectingId === approveTargetId}
+              >
+                {rejectingId === approveTargetId ? "Rejecting..." : "Reject"}
+              </button>
+              <button
+                className="member-giving-btn-approve"
+                onClick={handleApprove}
+                disabled={approving || !approveAmount || parseFloat(approveAmount) <= 0}
+              >
+                {approving ? "Approving..." : "Approve"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {evidenceModalOpen && (
+        <div className="member-giving-modal-overlay" onClick={() => setEvidenceModalOpen(false)}>
+          <div className="member-giving-evidence-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="member-giving-evidence-modal-close"
+              onClick={() => setEvidenceModalOpen(false)}
+            >
+              <FiX size={24} />
+            </button>
+            <img src={evidenceUrl} alt="Evidence" className="member-giving-evidence-image" />
+          </div>
+        </div>
+      )}
+
+      {profileImageModalOpen && (
+        <div className="member-giving-modal-overlay" onClick={() => setProfileImageModalOpen(false)}>
+          <div className="member-giving-evidence-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="member-giving-evidence-modal-close"
+              onClick={() => setProfileImageModalOpen(false)}
+            >
+              <FiX size={24} />
+            </button>
+            <img src={profileImageUrl} alt="Profile" className="member-giving-evidence-image" />
+          </div>
+        </div>
+      )}
+
+      <div className="member-giving-header">
+        <div>
+          <h2 className="member-giving-title">My Giving</h2>
+          <p className="member-giving-subtitle">Track your tithes and offerings</p>
+        </div>
+        <div className="member-giving-header-actions">
+          {canManageGiving && (
+            <button
+              className="member-giving-btn-categories"
+              onClick={() => setShowCategories(true)}
+            >
+              <FiFilter size={16} />
+              Categories
+            </button>
+          )}
+          {canManageGiving && (
+            <>
+              <button
+                onClick={() => { setModalMode("mpesa"); setShowCreateModal(true); }}
+                className="member-giving-btn-primary"
+              >
+                <FiSend size={16} />
+                Send M-Pesa
+              </button>
+              <button
+                onClick={() => { setModalMode("cash"); setShowCreateModal(true); }}
+                className="member-giving-btn-secondary"
+              >
+                <FiDollarSign size={16} />
+                Record Cash
+              </button>
+            </>
+          )}
+          {!canManageGiving && (
+            <button className="member-giving-add-btn" onClick={() => { setModalMode("cash"); setShowCreateModal(true); }}>
+              Record Giving
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="member-giving-toolbar">
+        <div className="member-giving-search">
+          <FiSearch className="member-giving-search-icon" />
+          <input
+            type="text"
+            placeholder="Search by member, email, category, or notes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="member-giving-search-input"
+          />
+          {searchTerm && (
+            <button onClick={() => setSearchTerm("")} className="member-giving-search-clear">
+              <FiX size={16} />
+            </button>
+          )}
+        </div>
+        <div className="member-giving-filters">
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="member-giving-filter-select"
+          >
+            <option value="all">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat.categoryId} value={cat.categoryId}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="member-giving-filter-select"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+            <option value="failed">Failed</option>
+            <option value="refunded">Refunded</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="member-giving-cards-grid">
+        {filteredGiving.length === 0 ? (
+          <div className="member-giving-empty-state">
+            <p>No giving records found</p>
+            <span>Try adjusting your filters</span>
+          </div>
+        ) : (
+          filteredGiving.map((record) => {
+            const profilePic = getMemberProfilePicture(record.memberId);
+            const hasEvidence = record.receiptFile && record.paymentMethod !== "mpesa";
+            const isPending = record.status === "pending";
+            const isMpesaPending = isPending && record.paymentMethod === "mpesa";
+
+            return (
+              <div key={record.givingId} className="member-giving-card">
+                <div className="member-giving-card-header">
+                  <div className="member-giving-card-member">
+                    {profilePic ? (
+                      <div
+                        className="member-giving-card-avatar member-giving-avatar-clickable"
+                        onClick={() => openProfileImageModal(profilePic!)}
+                      >
+                        <img src={profilePic} alt={getMemberName(record.memberId)} />
+                        <div className="member-giving-avatar-expand">
+                          <FiMaximize2 size={12} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="member-giving-card-avatar">
+                        {getMemberName(record.memberId).charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="member-giving-card-member-info">
+                      <span className="member-giving-card-member-name">{getMemberName(record.memberId)}</span>
+                      <span className="member-giving-card-member-email">{getMemberEmail(record.memberId)}</span>
+                    </div>
+                  </div>
+                  <div className="member-giving-card-status-badge">
+                    <span className={`member-giving-status-badge status-${record.status}`}>
+                      {record.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="member-giving-card-body">
+                  <div className="member-giving-card-details">
+                    <div className="member-giving-card-detail">
+                      <label>Category</label>
+                      <span>{getCategoryName(record.categoryId)}</span>
+                    </div>
+                    <div className="member-giving-card-detail">
+                      <label>Amount</label>
+                      <span className="member-giving-card-amount">{formatCurrency(record.amount)}</span>
+                    </div>
+                    <div className="member-giving-card-detail">
+                      <label>Date</label>
+                      <span>{new Date(record.date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="member-giving-card-detail">
+                      <label>Method</label>
+                      <span className="member-giving-method-badge">{record.paymentMethod || "cash"}</span>
+                    </div>
+                    {hasEvidence && (
+                      <div className="member-giving-card-detail full-width">
+                        <label>Evidence</label>
+                        <button
+                          className="member-giving-evidence-btn"
+                          onClick={() => openEvidenceModal(record.receiptFile!)}
+                        >
+                          <FiEye size={16} />
+                          <span>View Evidence</span>
+                        </button>
+                      </div>
+                    )}
+                    {record.notes && (
+                      <div className="member-giving-card-detail full-width">
+                        <label>Notes</label>
+                        <span>{record.notes}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="member-giving-card-footer">
+                  {canApprove && isPending && !isMpesaPending && (
+                    <>
+                      <button
+                        onClick={() => openApproveModal(record)}
+                        className="member-giving-card-btn member-giving-card-btn-approve"
+                      >
+                        <FiCheck size={16} />
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleReject(record.givingId)}
+                        className="member-giving-card-btn member-giving-card-btn-reject"
+                        disabled={rejectingId === record.givingId}
+                      >
+                        {rejectingId === record.givingId ? "..." : <FiXCircle size={16} />}
+                        Reject
+                      </button>
+                    </>
+                  )}
+                  {isMpesaPending && (
+                    <span className="member-giving-mpesa-waiting">⏳ Waiting for M-Pesa confirmation...</span>
+                  )}
+                  {canManageGiving && (
+                    <button
+                      onClick={() => handleEdit(record)}
+                      className="member-giving-card-btn member-giving-card-btn-edit"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDeleteClick(record.givingId)}
+                    className="member-giving-card-btn member-giving-card-btn-delete"
+                  >
+                    <FiX size={16} />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <CreateMyGiving
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleSuccess}
+        churchId={churchId}
+        members={members}
+        categories={categories}
+        mode={modalMode}
+      />
+
+      {editingRecord && (
+        <UpdateMyGiving
+          isOpen={showUpdateModal}
+          onClose={() => {
+            setShowUpdateModal(false);
+            setEditingRecord(null);
+          }}
+          onSuccess={handleSuccess}
+          giving={editingRecord}
+          members={members}
+          categories={categories}
+        />
       )}
     </div>
   );

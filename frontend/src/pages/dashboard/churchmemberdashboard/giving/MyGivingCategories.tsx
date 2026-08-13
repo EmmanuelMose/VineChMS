@@ -1,17 +1,15 @@
-// File: src/pages/dashboard/churchadmindashboard/giving/GivingCategories.tsx
-
 import { useState, useEffect } from "react";
 import { FiX, FiPlus, FiEdit2, FiTrash2, FiArrowLeft } from "react-icons/fi";
 import { fetchGivingCategories, createGivingCategory, updateGivingCategory, deleteGivingCategory, type GivingCategory } from "../../../../Features/giving/givingAPI";
-import "./GivingCategories.css";
+import "./MyGivingCategories.css";
 
-interface GivingCategoriesProps {
+interface MyGivingCategoriesProps {
   onBack: () => void;
   token: string;
   churchId: number;
 }
 
-export default function GivingCategories({ onBack, token, churchId }: GivingCategoriesProps) {
+export default function MyGivingCategories({ onBack, token, churchId }: MyGivingCategoriesProps) {
   const [categories, setCategories] = useState<GivingCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -98,44 +96,44 @@ export default function GivingCategories({ onBack, token, churchId }: GivingCate
   };
 
   if (loading) {
-    return <div className="categories-loading">Loading categories...</div>;
+    return <div className="member-categories-loading">Loading categories...</div>;
   }
 
   return (
-    <div className="categories-page">
-      <div className="categories-header">
-        <button onClick={onBack} className="categories-back-btn">
+    <div className="member-categories-page">
+      <div className="member-categories-header">
+        <button onClick={onBack} className="member-categories-back-btn">
           <FiArrowLeft size={18} />
           Back
         </button>
-        <h2 className="categories-title">Giving Categories</h2>
-        <button onClick={() => { setEditing(null); setFormData({ name: "", description: "", type: "offering", image: "" }); setShowModal(true); }} className="categories-add-btn">
+        <h2 className="member-categories-title">Giving Categories</h2>
+        <button onClick={() => { setEditing(null); setFormData({ name: "", description: "", type: "offering", image: "" }); setShowModal(true); }} className="member-categories-add-btn">
           <FiPlus size={16} />
           Add Category
         </button>
       </div>
 
-      <div className="categories-grid">
+      <div className="member-categories-grid">
         {categories.map((category) => (
-          <div key={category.categoryId} className="categories-card">
+          <div key={category.categoryId} className="member-categories-card">
             {category.image && (
-              <div className="categories-card-image">
+              <div className="member-categories-card-image">
                 <img src={category.image} alt={category.name} />
               </div>
             )}
-            <div className="categories-card-content">
-              <div className="categories-card-header">
+            <div className="member-categories-card-content">
+              <div className="member-categories-card-header">
                 <h3>{category.name}</h3>
-                <span className="categories-card-type">{category.type}</span>
+                <span className="member-categories-card-type">{category.type}</span>
               </div>
               {category.description && (
-                <p className="categories-card-description">{category.description}</p>
+                <p className="member-categories-card-description">{category.description}</p>
               )}
-              <div className="categories-card-actions">
-                <button onClick={() => handleEdit(category)} className="categories-card-btn edit">
+              <div className="member-categories-card-actions">
+                <button onClick={() => handleEdit(category)} className="member-categories-card-btn edit">
                   <FiEdit2 size={14} />
                 </button>
-                <button onClick={() => handleDelete(category.categoryId)} className="categories-card-btn delete">
+                <button onClick={() => handleDelete(category.categoryId)} className="member-categories-card-btn delete">
                   <FiTrash2 size={14} />
                 </button>
               </div>
@@ -143,21 +141,21 @@ export default function GivingCategories({ onBack, token, churchId }: GivingCate
           </div>
         ))}
         {categories.length === 0 && (
-          <div className="categories-empty">No categories found</div>
+          <div className="member-categories-empty">No categories found</div>
         )}
       </div>
 
       {showModal && (
-        <div className="categories-modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="categories-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="categories-modal-header">
+        <div className="member-categories-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="member-categories-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="member-categories-modal-header">
               <h3>{editing ? "Edit Category" : "Add Category"}</h3>
-              <button onClick={() => setShowModal(false)} className="categories-modal-close">
+              <button onClick={() => setShowModal(false)} className="member-categories-modal-close">
                 <FiX size={20} />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="categories-modal-form">
-              <div className="categories-modal-group">
+            <form onSubmit={handleSubmit} className="member-categories-modal-form">
+              <div className="member-categories-modal-group">
                 <label>Name *</label>
                 <input
                   type="text"
@@ -166,7 +164,7 @@ export default function GivingCategories({ onBack, token, churchId }: GivingCate
                   required
                 />
               </div>
-              <div className="categories-modal-group">
+              <div className="member-categories-modal-group">
                 <label>Description</label>
                 <textarea
                   value={formData.description}
@@ -174,7 +172,7 @@ export default function GivingCategories({ onBack, token, churchId }: GivingCate
                   rows={2}
                 />
               </div>
-              <div className="categories-modal-group">
+              <div className="member-categories-modal-group">
                 <label>Type *</label>
                 <select
                   value={formData.type}
@@ -188,7 +186,7 @@ export default function GivingCategories({ onBack, token, churchId }: GivingCate
                   <option value="pledge">Pledge</option>
                 </select>
               </div>
-              <div className="categories-modal-group">
+              <div className="member-categories-modal-group">
                 <label>Image URL</label>
                 <input
                   type="url"
@@ -197,12 +195,12 @@ export default function GivingCategories({ onBack, token, churchId }: GivingCate
                   placeholder="https://example.com/image.jpg"
                 />
               </div>
-              {error && <div className="categories-modal-error">{error}</div>}
-              <div className="categories-modal-actions">
-                <button type="button" onClick={() => setShowModal(false)} className="categories-modal-cancel">
+              {error && <div className="member-categories-modal-error">{error}</div>}
+              <div className="member-categories-modal-actions">
+                <button type="button" onClick={() => setShowModal(false)} className="member-categories-modal-cancel">
                   Cancel
                 </button>
-                <button type="submit" className="categories-modal-save" disabled={saving}>
+                <button type="submit" className="member-categories-modal-save" disabled={saving}>
                   {saving ? "Saving..." : "Save"}
                 </button>
               </div>

@@ -1,3 +1,5 @@
+// File: backend/src/giving/giving.controller.ts
+
 import { Request, Response } from "express";
 import {
   createGivingService,
@@ -232,15 +234,29 @@ export const approveGiving = async (req: AuthRequest, res: Response) => {
     const id = parseInt(req.params.id);
     const userId = req.user!.userId;
     const churchId = req.user?.churchId;
+    const { amount } = req.body;
+
     const existing = await getGivingByIdService(id);
     if (existing.churchId !== churchId) {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
+
     const allowedRoles = ["treasurer", "church_admin", "pastor", "elder"];
     if (!allowedRoles.includes(req.user!.role)) {
       return res.status(403).json({ success: false, message: "Insufficient permissions" });
     }
-    const result = await approveGivingService(id, userId);
+
+    let finalAmount = existing.amount;
+    if (amount !== undefined && amount !== null && amount !== "") {
+      const numAmount = parseFloat(amount);
+      if (!isNaN(numAmount) && numAmount > 0) {
+        finalAmount = numAmount.toString();
+      } else {
+        return res.status(400).json({ success: false, message: "Invalid amount value" });
+      }
+    }
+
+    const result = await approveGivingService(id, userId, finalAmount);
     res.json({ success: true, data: result, message: "Giving approved" });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
@@ -252,14 +268,17 @@ export const rejectGiving = async (req: AuthRequest, res: Response) => {
     const id = parseInt(req.params.id);
     const userId = req.user!.userId;
     const churchId = req.user?.churchId;
+
     const existing = await getGivingByIdService(id);
     if (existing.churchId !== churchId) {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
+
     const allowedRoles = ["treasurer", "church_admin", "pastor", "elder"];
     if (!allowedRoles.includes(req.user!.role)) {
       return res.status(403).json({ success: false, message: "Insufficient permissions" });
     }
+
     const result = await rejectGivingService(id, userId);
     res.json({ success: true, data: result, message: "Giving rejected" });
   } catch (error: any) {
