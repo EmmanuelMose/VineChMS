@@ -1,0 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const events_controller_1 = require("./events.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const eventsRouter = (0, express_1.Router)();
+eventsRouter.post("/", auth_middleware_1.authenticate, events_controller_1.createEvent);
+eventsRouter.get("/", auth_middleware_1.authenticate, events_controller_1.getEvents);
+eventsRouter.get("/published", auth_middleware_1.authenticate, events_controller_1.getPublishedEvents);
+eventsRouter.get("/:id", auth_middleware_1.authenticate, events_controller_1.getEventById);
+eventsRouter.put("/:id", auth_middleware_1.authenticate, events_controller_1.updateEvent);
+eventsRouter.delete("/:id", auth_middleware_1.authenticate, events_controller_1.deleteEvent);
+eventsRouter.post("/register", auth_middleware_1.authenticate, events_controller_1.registerForEvent);
+eventsRouter.get("/:eventId/registrations", auth_middleware_1.authenticate, events_controller_1.getEventRegistrations);
+eventsRouter.put("/registration/:id", auth_middleware_1.authenticate, events_controller_1.updateEventRegistration);
+eventsRouter.delete("/registration/:id", auth_middleware_1.authenticate, events_controller_1.deleteEventRegistration);
+eventsRouter.get("/member/:memberId/registrations", auth_middleware_1.authenticate, events_controller_1.getMemberEventRegistrations);
+exports.default = eventsRouter;

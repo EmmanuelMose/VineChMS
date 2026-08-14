@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const visitors_controller_1 = require("./visitors.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const visitorsRouter = (0, express_1.Router)();
+visitorsRouter.post("/", auth_middleware_1.authenticate, visitors_controller_1.createVisitor);
+visitorsRouter.get("/", auth_middleware_1.authenticate, visitors_controller_1.getVisitors);
+visitorsRouter.get("/:id", auth_middleware_1.authenticate, visitors_controller_1.getVisitorById);
+visitorsRouter.put("/:id", auth_middleware_1.authenticate, visitors_controller_1.updateVisitor);
+visitorsRouter.delete("/:id", auth_middleware_1.authenticate, visitors_controller_1.deleteVisitor);
+visitorsRouter.get("/service/:serviceId", auth_middleware_1.authenticate, visitors_controller_1.getVisitorsByService);
+visitorsRouter.get("/date-range/:churchId", auth_middleware_1.authenticate, visitors_controller_1.getVisitorsByDateRange);
+visitorsRouter.post("/:id/convert", auth_middleware_1.authenticate, (0, auth_middleware_1.authorize)("secretary", "church_admin", "pastor", "elder"), visitors_controller_1.convertVisitorToMember);
+exports.default = visitorsRouter;

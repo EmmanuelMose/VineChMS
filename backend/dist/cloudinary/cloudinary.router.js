@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const upload_middleware_1 = require("../middleware/upload.middleware");
+const cloudinary_controller_1 = require("./cloudinary.controller");
+const cloudinaryRouter = (0, express_1.Router)();
+cloudinaryRouter.post("/upload", auth_middleware_1.authenticate, (0, auth_middleware_1.authorize)("church_admin", "pastor", "elder", "secretary", "treasurer", "church_member"), (0, upload_middleware_1.uploadSingle)("file", 50), cloudinary_controller_1.uploadFileController);
+cloudinaryRouter.delete("/delete", auth_middleware_1.authenticate, (0, auth_middleware_1.authorize)("church_admin", "pastor", "elder", "secretary", "treasurer"), cloudinary_controller_1.deleteFileController);
+cloudinaryRouter.delete("/delete-multiple", auth_middleware_1.authenticate, (0, auth_middleware_1.authorize)("church_admin", "pastor", "elder", "secretary", "treasurer"), cloudinary_controller_1.deleteMultipleFilesController);
+exports.default = cloudinaryRouter;

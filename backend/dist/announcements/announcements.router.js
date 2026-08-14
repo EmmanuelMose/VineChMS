@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const announcements_controller_1 = require("./announcements.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const announcementsRouter = (0, express_1.Router)();
+announcementsRouter.post("/", auth_middleware_1.authenticate, announcements_controller_1.createAnnouncement);
+announcementsRouter.get("/", auth_middleware_1.authenticate, announcements_controller_1.getAnnouncements);
+announcementsRouter.get("/published", auth_middleware_1.authenticate, announcements_controller_1.getPublishedAnnouncements);
+announcementsRouter.get("/active", auth_middleware_1.authenticate, announcements_controller_1.getActiveAnnouncements);
+announcementsRouter.get("/:id", auth_middleware_1.authenticate, announcements_controller_1.getAnnouncementById);
+announcementsRouter.put("/:id", auth_middleware_1.authenticate, announcements_controller_1.updateAnnouncement);
+announcementsRouter.delete("/:id", auth_middleware_1.authenticate, announcements_controller_1.deleteAnnouncement);
+announcementsRouter.put("/:id/publish", auth_middleware_1.authenticate, announcements_controller_1.publishAnnouncement);
+announcementsRouter.put("/:id/unpublish", auth_middleware_1.authenticate, announcements_controller_1.unpublishAnnouncement);
+exports.default = announcementsRouter;

@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const services_controller_1 = require("./services.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const servicesRouter = (0, express_1.Router)();
+servicesRouter.post("/", auth_middleware_1.authenticate, services_controller_1.createService);
+servicesRouter.get("/", auth_middleware_1.authenticate, services_controller_1.getServices);
+servicesRouter.get("/:id", auth_middleware_1.authenticate, services_controller_1.getServiceById);
+servicesRouter.put("/:id", auth_middleware_1.authenticate, services_controller_1.updateService);
+servicesRouter.delete("/:id", auth_middleware_1.authenticate, services_controller_1.deleteService);
+servicesRouter.get("/church/:churchId", auth_middleware_1.authenticate, services_controller_1.getServicesByChurch);
+servicesRouter.get("/status/active", auth_middleware_1.authenticate, services_controller_1.getActiveServices);
+servicesRouter.get("/day/:dayOfWeek", auth_middleware_1.authenticate, services_controller_1.getServicesByDay);
+exports.default = servicesRouter;

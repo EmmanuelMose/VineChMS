@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const prayer_controller_1 = require("./prayer.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const prayerRouter = (0, express_1.Router)();
+prayerRouter.post("/", auth_middleware_1.authenticate, prayer_controller_1.createPrayerRequest);
+prayerRouter.get("/", auth_middleware_1.authenticate, prayer_controller_1.getPrayerRequests);
+prayerRouter.get("/:id", auth_middleware_1.authenticate, prayer_controller_1.getPrayerRequestById);
+prayerRouter.put("/:id", auth_middleware_1.authenticate, prayer_controller_1.updatePrayerRequest);
+prayerRouter.delete("/:id", auth_middleware_1.authenticate, prayer_controller_1.deletePrayerRequest);
+prayerRouter.post("/:id/pray", auth_middleware_1.authenticate, prayer_controller_1.prayForRequest);
+prayerRouter.get("/:id/interactions", auth_middleware_1.authenticate, prayer_controller_1.getPrayerInteractions);
+exports.default = prayerRouter;

@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const attendance_controller_1 = require("./attendance.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const attendanceRouter = (0, express_1.Router)();
+attendanceRouter.post("/", auth_middleware_1.authenticate, attendance_controller_1.createAttendance);
+attendanceRouter.get("/", auth_middleware_1.authenticate, attendance_controller_1.getAttendance);
+attendanceRouter.get("/:id", auth_middleware_1.authenticate, attendance_controller_1.getAttendanceById);
+attendanceRouter.put("/:id", auth_middleware_1.authenticate, attendance_controller_1.updateAttendance);
+attendanceRouter.delete("/:id", auth_middleware_1.authenticate, attendance_controller_1.deleteAttendance);
+attendanceRouter.get("/member/:memberId", auth_middleware_1.authenticate, attendance_controller_1.getAttendanceByMember);
+attendanceRouter.get("/service/:serviceId", auth_middleware_1.authenticate, attendance_controller_1.getAttendanceByService);
+attendanceRouter.get("/date/:date", auth_middleware_1.authenticate, attendance_controller_1.getAttendanceByDate);
+attendanceRouter.get("/summary/:serviceId", auth_middleware_1.authenticate, attendance_controller_1.getAttendanceSummary);
+attendanceRouter.get("/member/:memberId/service/:serviceId", auth_middleware_1.authenticate, attendance_controller_1.getAttendanceByMemberAndService);
+exports.default = attendanceRouter;

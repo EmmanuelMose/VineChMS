@@ -1,0 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const budgets_controller_1 = require("./budgets.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const budgetsRouter = (0, express_1.Router)();
+budgetsRouter.post("/", auth_middleware_1.authenticate, budgets_controller_1.createBudget);
+budgetsRouter.get("/", auth_middleware_1.authenticate, budgets_controller_1.getBudgets);
+budgetsRouter.get("/:id", auth_middleware_1.authenticate, budgets_controller_1.getBudgetById);
+budgetsRouter.put("/:id", auth_middleware_1.authenticate, budgets_controller_1.updateBudget);
+budgetsRouter.delete("/:id", auth_middleware_1.authenticate, budgets_controller_1.deleteBudget);
+budgetsRouter.get("/year/:year", auth_middleware_1.authenticate, budgets_controller_1.getBudgetsByYear);
+budgetsRouter.get("/annual/:churchId", auth_middleware_1.authenticate, budgets_controller_1.getAnnualBudgets);
+budgetsRouter.get("/monthly/:churchId", auth_middleware_1.authenticate, budgets_controller_1.getMonthlyBudgets);
+budgetsRouter.get("/total/:churchId/year/:year", auth_middleware_1.authenticate, budgets_controller_1.getBudgetsTotal);
+budgetsRouter.get("/church/:churchId/year/:year/month/:month", auth_middleware_1.authenticate, budgets_controller_1.getBudgetsByMonth);
+budgetsRouter.get("/date-range/:churchId/:startYear/:endYear", auth_middleware_1.authenticate, budgets_controller_1.getBudgetsByDateRange);
+exports.default = budgetsRouter;

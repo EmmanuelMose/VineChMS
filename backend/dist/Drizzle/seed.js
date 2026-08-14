@@ -8,14 +8,9 @@ const schema_1 = require("./schema");
 async function seed() {
     try {
         console.log("🌿 Clearing existing data...");
-        await db_1.default.delete(schema_1.giving);
-        await db_1.default.delete(schema_1.pledges);
-        await db_1.default.delete(schema_1.leaders);
-        await db_1.default.delete(schema_1.members);
         await db_1.default.delete(schema_1.sermons);
         await db_1.default.delete(schema_1.groups);
         await db_1.default.delete(schema_1.announcements);
-        await db_1.default.delete(schema_1.prayerRequests);
         await db_1.default.delete(schema_1.events);
         await db_1.default.delete(schema_1.services);
         await db_1.default.delete(schema_1.expenseCategories);
@@ -95,7 +90,7 @@ async function seed() {
         })
             .returning();
         console.log("📦 Creating positions...");
-        const positionsList = await db_1.default
+        await db_1.default
             .insert(schema_1.positions)
             .values([
             {
@@ -314,57 +309,6 @@ async function seed() {
                 imageUrl: "https://res.cloudinary.com/demo/image/upload/v1/women-conference.jpg",
             },
         ]);
-        console.log("📦 Creating prayer requests...");
-        await db_1.default.insert(schema_1.prayerRequests).values([
-            {
-                churchId: church1[0].churchId,
-                title: "Healing for Mama Jane",
-                description: "Prayer for healing of Mama Jane who is in hospital",
-                memberId: null,
-                status: "pending",
-                visibility: "public",
-                prayerCount: 5,
-                image: "https://res.cloudinary.com/demo/image/upload/v1/prayer-healing.jpg",
-            },
-            {
-                churchId: church1[0].churchId,
-                title: "Church Outreach",
-                description: "Prayer for the upcoming outreach program",
-                memberId: null,
-                status: "praying",
-                visibility: "public",
-                prayerCount: 12,
-                image: "https://res.cloudinary.com/demo/image/upload/v1/prayer-outreach.jpg",
-            },
-            {
-                churchId: church1[0].churchId,
-                title: "Youth Revival",
-                description: "Prayer for the youth revival conference",
-                memberId: null,
-                status: "pending",
-                visibility: "public",
-                prayerCount: 8,
-                image: "https://res.cloudinary.com/demo/image/upload/v1/prayer-youth.jpg",
-            },
-            {
-                churchId: church1[0].churchId,
-                title: "Financial Breakthrough",
-                description: "Prayer for church finances",
-                memberId: null,
-                status: "praying",
-                visibility: "leadership_only",
-                prayerCount: 3,
-            },
-            {
-                churchId: church1[0].churchId,
-                title: "Pastor's Health",
-                description: "Prayer for Pastor Peter's health",
-                memberId: null,
-                status: "pending",
-                visibility: "confidential",
-                prayerCount: 0,
-            },
-        ]);
         console.log("📦 Creating announcements...");
         await db_1.default.insert(schema_1.announcements).values([
             {
@@ -414,31 +358,27 @@ async function seed() {
             },
         ]);
         console.log("📦 Creating groups...");
-        const group1 = await db_1.default
+        await db_1.default
             .insert(schema_1.groups)
-            .values({
-            churchId: church1[0].churchId,
-            name: "Men's Fellowship",
-            description: "Men's group meeting every Saturday",
-            type: "fellowship",
-            meetingDay: 6,
-            location: "Church Hall",
-            isActive: true,
-        })
-            .returning();
-        const group2 = await db_1.default
-            .insert(schema_1.groups)
-            .values({
-            churchId: church1[0].churchId,
-            name: "Women's Fellowship",
-            description: "Women's group meeting every Friday",
-            type: "fellowship",
-            meetingDay: 5,
-            location: "Church Hall",
-            isActive: true,
-        })
-            .returning();
-        await db_1.default.insert(schema_1.groups).values([
+            .values([
+            {
+                churchId: church1[0].churchId,
+                name: "Men's Fellowship",
+                description: "Men's group meeting every Saturday",
+                type: "fellowship",
+                meetingDay: 6,
+                location: "Church Hall",
+                isActive: true,
+            },
+            {
+                churchId: church1[0].churchId,
+                name: "Women's Fellowship",
+                description: "Women's group meeting every Friday",
+                type: "fellowship",
+                meetingDay: 5,
+                location: "Church Hall",
+                isActive: true,
+            },
             {
                 churchId: church1[0].churchId,
                 name: "Youth Group",
@@ -667,8 +607,8 @@ async function seed() {
                 churchId: church1[0].churchId,
             },
         ]);
-        console.log("\n Database seeding completed successfully!");
-        console.log("\n Unregistered Users (Must Register First):");
+        console.log("\n✅ Database seeding completed successfully!");
+        console.log("\n📋 Unregistered Users (Must Register First):");
         console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         console.log("Email                         | Role");
         console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

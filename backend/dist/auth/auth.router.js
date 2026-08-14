@@ -12,4 +12,6 @@ authRouter.post("/verify-reset-code", auth_controller_1.verifyResetCodeControlle
 authRouter.post("/reset-password", auth_controller_1.resetPasswordController);
 authRouter.post("/resend-verification", auth_controller_1.resendVerificationController);
 authRouter.get("/me", auth_middleware_1.authenticate, auth_controller_1.getCurrentUserController);
+authRouter.post("/invite", auth_middleware_1.authenticate, auth_controller_1.createMemberAndInviteController);
+authRouter.post("/refresh", auth_middleware_1.authenticate, auth_controller_1.refreshUserController);
 exports.default = authRouter;

@@ -1,0 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const pledges_controller_1 = require("./pledges.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const pledgesRouter = (0, express_1.Router)();
+pledgesRouter.post("/", auth_middleware_1.authenticate, pledges_controller_1.createPledge);
+pledgesRouter.get("/", auth_middleware_1.authenticate, pledges_controller_1.getPledges);
+pledgesRouter.get("/:id", auth_middleware_1.authenticate, pledges_controller_1.getPledgeById);
+pledgesRouter.put("/:id", auth_middleware_1.authenticate, pledges_controller_1.updatePledge);
+pledgesRouter.delete("/:id", auth_middleware_1.authenticate, pledges_controller_1.deletePledge);
+pledgesRouter.get("/member/:memberId", auth_middleware_1.authenticate, pledges_controller_1.getPledgesByMember);
+pledgesRouter.get("/category/:categoryId", auth_middleware_1.authenticate, pledges_controller_1.getPledgesByCategory);
+pledgesRouter.get("/fulfilled/:churchId", auth_middleware_1.authenticate, pledges_controller_1.getFulfilledPledges);
+pledgesRouter.get("/unfulfilled/:churchId", auth_middleware_1.authenticate, pledges_controller_1.getUnfulfilledPledges);
+pledgesRouter.put("/:id/fulfill", auth_middleware_1.authenticate, pledges_controller_1.fulfillPledge);
+pledgesRouter.get("/summary/:churchId", auth_middleware_1.authenticate, pledges_controller_1.getPledgesSummary);
+exports.default = pledgesRouter;

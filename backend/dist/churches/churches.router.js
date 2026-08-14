@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const churches_controller_1 = require("./churches.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const churchesRouter = (0, express_1.Router)();
+churchesRouter.post("/", auth_middleware_1.authenticate, churches_controller_1.createChurch);
+churchesRouter.get("/", auth_middleware_1.authenticate, churches_controller_1.getChurches);
+churchesRouter.get("/:id", auth_middleware_1.authenticate, churches_controller_1.getChurchById);
+churchesRouter.put("/:id", auth_middleware_1.authenticate, churches_controller_1.updateChurch);
+churchesRouter.delete("/:id", auth_middleware_1.authenticate, churches_controller_1.deleteChurch);
+churchesRouter.get("/:id/members", auth_middleware_1.authenticate, churches_controller_1.getChurchMembers);
+exports.default = churchesRouter;

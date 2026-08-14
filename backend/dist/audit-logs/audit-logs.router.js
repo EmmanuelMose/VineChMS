@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const audit_logs_controller_1 = require("./audit-logs.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const auditLogsRouter = (0, express_1.Router)();
+// All audit log routes require authentication and admin privileges
+auditLogsRouter.use(auth_middleware_1.authenticate);
+auditLogsRouter.use((0, auth_middleware_1.authorize)("super_admin", "large_org_admin", "small_org_admin", "church_admin"));
+auditLogsRouter.get("/", audit_logs_controller_1.getAuditLogs);
+auditLogsRouter.get("/summary", audit_logs_controller_1.getAuditLogsSummary);
+auditLogsRouter.get("/recent", audit_logs_controller_1.getRecentAuditLogs);
+auditLogsRouter.get("/:id", audit_logs_controller_1.getAuditLogById);
+auditLogsRouter.get("/user/:userId", audit_logs_controller_1.getAuditLogsByUser);
+auditLogsRouter.get("/action/:action", audit_logs_controller_1.getAuditLogsByAction);
+auditLogsRouter.get("/entity/:entity", audit_logs_controller_1.getAuditLogsByEntity);
+auditLogsRouter.get("/date-range", audit_logs_controller_1.getAuditLogsByDateRange);
+auditLogsRouter.delete("/:id", audit_logs_controller_1.deleteAuditLog);
+auditLogsRouter.delete("/clear/:days", audit_logs_controller_1.clearOldAuditLogs);
+exports.default = auditLogsRouter;

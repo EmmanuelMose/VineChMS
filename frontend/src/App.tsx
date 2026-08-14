@@ -1,4 +1,4 @@
-// File: frontend/src/App.tsx
+
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -122,7 +122,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       
-      {isAuthenticated && <Chatbot />}
+      <Chatbot />
     </Router>
   );
 }

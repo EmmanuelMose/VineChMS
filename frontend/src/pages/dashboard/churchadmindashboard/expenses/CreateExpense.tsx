@@ -45,7 +45,6 @@ export default function CreateExpense({
   const [uploadingFile, setUploadingFile] = useState(false);
   const [error, setError] = useState("");
 
-  const selectedMember = members.find((m) => m.memberId === parseInt(formData.memberId));
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;

@@ -1,0 +1,25 @@
+"use strict";
+// File: backend/src/expenses/expenses.router.ts
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const expenses_controller_1 = require("./expenses.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const expensesRouter = (0, express_1.Router)();
+expensesRouter.post("/categories", auth_middleware_1.authenticate, expenses_controller_1.createExpenseCategory);
+expensesRouter.get("/categories", auth_middleware_1.authenticate, expenses_controller_1.getExpenseCategories);
+expensesRouter.get("/categories/:id", auth_middleware_1.authenticate, expenses_controller_1.getExpenseCategoryById);
+expensesRouter.put("/categories/:id", auth_middleware_1.authenticate, expenses_controller_1.updateExpenseCategory);
+expensesRouter.delete("/categories/:id", auth_middleware_1.authenticate, expenses_controller_1.deleteExpenseCategory);
+expensesRouter.post("/", auth_middleware_1.authenticate, expenses_controller_1.createExpense);
+expensesRouter.get("/", auth_middleware_1.authenticate, expenses_controller_1.getExpenses);
+expensesRouter.get("/:id", auth_middleware_1.authenticate, expenses_controller_1.getExpenseById);
+expensesRouter.put("/:id", auth_middleware_1.authenticate, expenses_controller_1.updateExpense);
+expensesRouter.delete("/:id", auth_middleware_1.authenticate, expenses_controller_1.deleteExpense);
+expensesRouter.get("/category/:categoryId", auth_middleware_1.authenticate, expenses_controller_1.getExpensesByCategory);
+expensesRouter.get("/status/:status", auth_middleware_1.authenticate, expenses_controller_1.getExpensesByStatus);
+expensesRouter.get("/summary/:churchId", auth_middleware_1.authenticate, expenses_controller_1.getExpensesSummary);
+expensesRouter.get("/total/:churchId", auth_middleware_1.authenticate, expenses_controller_1.getExpensesTotal);
+expensesRouter.get("/date-range/:churchId", auth_middleware_1.authenticate, expenses_controller_1.getExpensesByDateRange);
+expensesRouter.put("/:id/approve", auth_middleware_1.authenticate, expenses_controller_1.approveExpense);
+expensesRouter.put("/:id/reject", auth_middleware_1.authenticate, expenses_controller_1.rejectExpense);
+exports.default = expensesRouter;

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.organizationsRelations = exports.largeOrganizationsRelations = exports.usersRelations = exports.sermons = exports.groupMembers = exports.groups = exports.invitations = exports.auditLogs = exports.documents = exports.notifications = exports.announcements = exports.prayerInteractions = exports.prayerRequests = exports.eventRegistrations = exports.events = exports.budgets = exports.expenses = exports.expenseCategories = exports.pledges = exports.giving = exports.givingCategories = exports.visitors = exports.attendance = exports.services = exports.leaders = exports.positions = exports.familyMembers = exports.members = exports.churches = exports.organizations = exports.largeOrganizations = exports.users = exports.unregisteredUsers = exports.announcementImagePositionEnum = exports.documentVisibilityEnum = exports.prayerRequestVisibilityEnum = exports.prayerRequestStatusEnum = exports.eventStatusEnum = exports.expenseStatusEnum = exports.givingStatusEnum = exports.givingTypeEnum = exports.notificationTypeEnum = exports.invitationStatusEnum = exports.attendanceTypeEnum = exports.subscriptionStatusEnum = exports.subscriptionPlanEnum = exports.maritalStatusEnum = exports.genderEnum = exports.approvalStatusEnum = exports.userRoleEnum = void 0;
-exports.sermonsRelations = exports.groupsRelations = exports.auditLogsRelations = exports.documentsRelations = exports.notificationsRelations = exports.announcementsRelations = exports.prayerRequestsRelations = exports.eventsRelations = exports.expensesRelations = exports.givingRelations = exports.attendanceRelations = exports.leadersRelations = exports.positionsRelations = exports.membersRelations = exports.churchesRelations = void 0;
+exports.sermons = exports.groupMembers = exports.groupJoinRequests = exports.groups = exports.invitations = exports.auditLogs = exports.documents = exports.notifications = exports.announcements = exports.prayerInteractions = exports.prayerRequests = exports.eventRegistrations = exports.events = exports.budgets = exports.expenses = exports.expenseCategories = exports.pledges = exports.giving = exports.givingCategories = exports.visitors = exports.attendance = exports.services = exports.departmentMembers = exports.departments = exports.leaders = exports.positions = exports.members = exports.churches = exports.organizations = exports.largeOrganizations = exports.users = exports.unregisteredUsers = exports.departmentTypeEnum = exports.announcementImagePositionEnum = exports.documentVisibilityEnum = exports.prayerRequestVisibilityEnum = exports.prayerRequestStatusEnum = exports.eventStatusEnum = exports.expenseStatusEnum = exports.givingStatusEnum = exports.givingTypeEnum = exports.notificationTypeEnum = exports.invitationStatusEnum = exports.attendanceTypeEnum = exports.subscriptionStatusEnum = exports.subscriptionPlanEnum = exports.maritalStatusEnum = exports.genderEnum = exports.approvalStatusEnum = exports.userRoleEnum = void 0;
+exports.sermonsRelations = exports.groupJoinRequestsRelations = exports.groupMembersRelations = exports.groupsRelations = exports.auditLogsRelations = exports.documentsRelations = exports.notificationsRelations = exports.announcementsRelations = exports.prayerRequestsRelations = exports.eventsRelations = exports.expensesRelations = exports.givingRelations = exports.attendanceRelations = exports.servicesRelations = exports.departmentMembersRelations = exports.departmentsRelations = exports.leadersRelations = exports.positionsRelations = exports.membersRelations = exports.churchesRelations = exports.organizationsRelations = exports.largeOrganizationsRelations = exports.usersRelations = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const drizzle_orm_1 = require("drizzle-orm");
 exports.userRoleEnum = (0, pg_core_1.pgEnum)("user_role", [
@@ -105,6 +105,11 @@ exports.announcementImagePositionEnum = (0, pg_core_1.pgEnum)("announcement_imag
     "left",
     "right",
     "cover",
+]);
+exports.departmentTypeEnum = (0, pg_core_1.pgEnum)("department_type", [
+    "large_org_department",
+    "org_department",
+    "church_department",
 ]);
 exports.unregisteredUsers = (0, pg_core_1.pgTable)("unregistered_users", {
     unregisteredUserId: (0, pg_core_1.serial)("unregistered_user_id").primaryKey(),
@@ -255,15 +260,19 @@ exports.churches = (0, pg_core_1.pgTable)("churches", {
 exports.members = (0, pg_core_1.pgTable)("members", {
     memberId: (0, pg_core_1.serial)("member_id").primaryKey(),
     userId: (0, pg_core_1.integer)("user_id")
-        .references(() => exports.users.userId, { onDelete: "cascade" })
-        .notNull()
-        .unique(),
+        .references(() => exports.users.userId, { onDelete: "set null" }),
+    email: (0, pg_core_1.varchar)("email", { length: 255 }).notNull().unique(),
+    fullName: (0, pg_core_1.varchar)("full_name", { length: 100 }).notNull(),
     churchId: (0, pg_core_1.integer)("church_id")
-        .references(() => exports.churches.churchId, { onDelete: "cascade" })
-        .notNull(),
-    membershipNumber: (0, pg_core_1.varchar)("membership_number", { length: 50 }).unique(),
-    membershipDate: (0, pg_core_1.timestamp)("membership_date").defaultNow(),
-    isActive: (0, pg_core_1.boolean)("is_active").default(true),
+        .references(() => exports.churches.churchId, { onDelete: "cascade" }),
+    organizationId: (0, pg_core_1.integer)("organization_id")
+        .references(() => exports.organizations.organizationId, { onDelete: "cascade" }),
+    largeOrganizationId: (0, pg_core_1.integer)("large_organization_id")
+        .references(() => exports.largeOrganizations.largeOrganizationId, { onDelete: "cascade" }),
+    membershipNumber: (0, pg_core_1.varchar)("membership_number", { length: 50 }),
+    membershipDate: (0, pg_core_1.timestamp)("membership_date"),
+    role: (0, exports.userRoleEnum)("role").notNull(),
+    isActive: (0, pg_core_1.boolean)("is_active").default(false),
     isBaptized: (0, pg_core_1.boolean)("is_baptized").default(false),
     baptismDate: (0, pg_core_1.timestamp)("baptism_date"),
     isConfirmed: (0, pg_core_1.boolean)("is_confirmed").default(false),
@@ -274,37 +283,27 @@ exports.members = (0, pg_core_1.pgTable)("members", {
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
 }, (table) => ({
     userIdIdx: (0, pg_core_1.index)("member_user_idx").on(table.userId),
+    emailIdx: (0, pg_core_1.index)("member_email_idx").on(table.email),
     churchIdIdx: (0, pg_core_1.index)("member_church_idx").on(table.churchId),
     membershipNumberIdx: (0, pg_core_1.index)("member_number_idx").on(table.membershipNumber),
-}));
-exports.familyMembers = (0, pg_core_1.pgTable)("family_members", {
-    familyMemberId: (0, pg_core_1.serial)("family_member_id").primaryKey(),
-    memberId: (0, pg_core_1.integer)("member_id")
-        .references(() => exports.members.memberId, { onDelete: "cascade" })
-        .notNull(),
-    fullName: (0, pg_core_1.varchar)("full_name", { length: 100 }).notNull(),
-    relationship: (0, pg_core_1.varchar)("relationship", { length: 50 }).notNull(),
-    email: (0, pg_core_1.varchar)("email", { length: 255 }),
-    phone: (0, pg_core_1.varchar)("phone", { length: 20 }),
-    dateOfBirth: (0, pg_core_1.timestamp)("date_of_birth"),
-    profilePicture: (0, pg_core_1.varchar)("profile_picture", { length: 500 }),
-    isMember: (0, pg_core_1.boolean)("is_member").default(false),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
-}, (table) => ({
-    memberIdIdx: (0, pg_core_1.index)("family_member_idx").on(table.memberId),
 }));
 exports.positions = (0, pg_core_1.pgTable)("positions", {
     positionId: (0, pg_core_1.serial)("position_id").primaryKey(),
     name: (0, pg_core_1.varchar)("name", { length: 100 }).notNull(),
     description: (0, pg_core_1.text)("description"),
     churchId: (0, pg_core_1.integer)("church_id")
-        .references(() => exports.churches.churchId, { onDelete: "cascade" })
-        .notNull(),
+        .references(() => exports.churches.churchId, { onDelete: "cascade" }),
+    organizationId: (0, pg_core_1.integer)("organization_id")
+        .references(() => exports.organizations.organizationId, { onDelete: "cascade" }),
+    largeOrganizationId: (0, pg_core_1.integer)("large_organization_id")
+        .references(() => exports.largeOrganizations.largeOrganizationId, { onDelete: "cascade" }),
     isActive: (0, pg_core_1.boolean)("is_active").default(true),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
 }, (table) => ({
     churchIdx: (0, pg_core_1.index)("position_church_idx").on(table.churchId),
+    orgIdx: (0, pg_core_1.index)("position_org_idx").on(table.organizationId),
+    largeOrgIdx: (0, pg_core_1.index)("position_large_org_idx").on(table.largeOrganizationId),
 }));
 exports.leaders = (0, pg_core_1.pgTable)("leaders", {
     leaderId: (0, pg_core_1.serial)("leader_id").primaryKey(),
@@ -329,6 +328,50 @@ exports.leaders = (0, pg_core_1.pgTable)("leaders", {
 }, (table) => ({
     memberIdx: (0, pg_core_1.index)("leader_member_idx").on(table.memberId),
     positionIdx: (0, pg_core_1.index)("leader_position_idx").on(table.positionId),
+}));
+exports.departments = (0, pg_core_1.pgTable)("departments", {
+    departmentId: (0, pg_core_1.serial)("department_id").primaryKey(),
+    name: (0, pg_core_1.varchar)("name", { length: 100 }).notNull(),
+    description: (0, pg_core_1.text)("description"),
+    type: (0, exports.departmentTypeEnum)("type").notNull(),
+    parentDepartmentId: (0, pg_core_1.integer)("parent_department_id")
+        .references(() => exports.departments.departmentId, { onDelete: "set null" }),
+    largeOrganizationId: (0, pg_core_1.integer)("large_organization_id")
+        .references(() => exports.largeOrganizations.largeOrganizationId, { onDelete: "cascade" }),
+    organizationId: (0, pg_core_1.integer)("organization_id")
+        .references(() => exports.organizations.organizationId, { onDelete: "cascade" }),
+    churchId: (0, pg_core_1.integer)("church_id")
+        .references(() => exports.churches.churchId, { onDelete: "cascade" }),
+    leaderId: (0, pg_core_1.integer)("leader_id")
+        .references(() => exports.members.memberId, { onDelete: "set null" }),
+    isActive: (0, pg_core_1.boolean)("is_active").default(true),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+}, (table) => ({
+    largeOrgIdx: (0, pg_core_1.index)("dept_large_org_idx").on(table.largeOrganizationId),
+    orgIdx: (0, pg_core_1.index)("dept_org_idx").on(table.organizationId),
+    churchIdx: (0, pg_core_1.index)("dept_church_idx").on(table.churchId),
+    parentIdx: (0, pg_core_1.index)("dept_parent_idx").on(table.parentDepartmentId),
+}));
+exports.departmentMembers = (0, pg_core_1.pgTable)("department_members", {
+    departmentMemberId: (0, pg_core_1.serial)("department_member_id").primaryKey(),
+    departmentId: (0, pg_core_1.integer)("department_id")
+        .references(() => exports.departments.departmentId, { onDelete: "cascade" })
+        .notNull(),
+    memberId: (0, pg_core_1.integer)("member_id")
+        .references(() => exports.members.memberId, { onDelete: "cascade" })
+        .notNull(),
+    positionId: (0, pg_core_1.integer)("position_id")
+        .references(() => exports.positions.positionId, { onDelete: "set null" }),
+    role: (0, pg_core_1.varchar)("role", { length: 50 }),
+    isActive: (0, pg_core_1.boolean)("is_active").default(true),
+    joinedAt: (0, pg_core_1.timestamp)("joined_at").defaultNow().notNull(),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+}, (table) => ({
+    unique: (0, pg_core_1.unique)("unique_dept_member").on(table.departmentId, table.memberId),
+    deptIdx: (0, pg_core_1.index)("dept_member_dept_idx").on(table.departmentId),
+    memberIdx: (0, pg_core_1.index)("dept_member_member_idx").on(table.memberId),
 }));
 exports.services = (0, pg_core_1.pgTable)("services", {
     serviceId: (0, pg_core_1.serial)("service_id").primaryKey(),
@@ -418,7 +461,7 @@ exports.giving = (0, pg_core_1.pgTable)("giving", {
         .notNull(),
     categoryId: (0, pg_core_1.integer)("category_id").references(() => exports.givingCategories.categoryId, { onDelete: "set null" }),
     amount: (0, pg_core_1.decimal)("amount", { precision: 10, scale: 2 }).notNull(),
-    currency: (0, pg_core_1.varchar)("currency", { length: 3 }).default("USD"),
+    currency: (0, pg_core_1.varchar)("currency", { length: 3 }).default("KES"),
     type: (0, exports.givingTypeEnum)("type").notNull(),
     status: (0, exports.givingStatusEnum)("status").default("pending"),
     date: (0, pg_core_1.timestamp)("date").defaultNow().notNull(),
@@ -429,6 +472,12 @@ exports.giving = (0, pg_core_1.pgTable)("giving", {
     receiptNumber: (0, pg_core_1.varchar)("receipt_number", { length: 50 }),
     receiptFile: (0, pg_core_1.varchar)("receipt_file", { length: 500 }),
     receiptFilePublicId: (0, pg_core_1.varchar)("receipt_file_public_id", { length: 255 }),
+    mpesaCheckoutRequestID: (0, pg_core_1.varchar)("mpesa_checkout_request_id", { length: 255 }),
+    mpesaMerchantRequestID: (0, pg_core_1.varchar)("mpesa_merchant_request_id", { length: 255 }),
+    approvedBy: (0, pg_core_1.integer)("approved_by").references(() => exports.users.userId, {
+        onDelete: "set null",
+    }),
+    approvedAt: (0, pg_core_1.timestamp)("approved_at"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
 }, (table) => ({
@@ -479,12 +528,15 @@ exports.expenses = (0, pg_core_1.pgTable)("expenses", {
     churchId: (0, pg_core_1.integer)("church_id")
         .references(() => exports.churches.churchId, { onDelete: "cascade" })
         .notNull(),
+    memberId: (0, pg_core_1.integer)("member_id")
+        .references(() => exports.members.memberId, { onDelete: "set null" }),
     categoryId: (0, pg_core_1.integer)("category_id").references(() => exports.expenseCategories.categoryId, { onDelete: "set null" }),
     amount: (0, pg_core_1.decimal)("amount", { precision: 10, scale: 2 }).notNull(),
-    currency: (0, pg_core_1.varchar)("currency", { length: 3 }).default("USD"),
+    currency: (0, pg_core_1.varchar)("currency", { length: 3 }).default("KES"),
     description: (0, pg_core_1.text)("description").notNull(),
     date: (0, pg_core_1.timestamp)("date").defaultNow().notNull(),
     status: (0, exports.expenseStatusEnum)("status").default("pending"),
+    paymentMethod: (0, pg_core_1.varchar)("payment_method", { length: 50 }),
     approvedBy: (0, pg_core_1.integer)("approved_by").references(() => exports.users.userId, {
         onDelete: "set null",
     }),
@@ -492,11 +544,15 @@ exports.expenses = (0, pg_core_1.pgTable)("expenses", {
     receiptUrl: (0, pg_core_1.varchar)("receipt_url", { length: 500 }),
     receiptPublicId: (0, pg_core_1.varchar)("receipt_public_id", { length: 255 }),
     notes: (0, pg_core_1.text)("notes"),
+    mpesaCheckoutRequestID: (0, pg_core_1.varchar)("mpesa_checkout_request_id", { length: 255 }),
+    mpesaMerchantRequestID: (0, pg_core_1.varchar)("mpesa_merchant_request_id", { length: 255 }),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
 }, (table) => ({
     churchIdx: (0, pg_core_1.index)("expense_church_idx").on(table.churchId),
+    memberIdx: (0, pg_core_1.index)("expense_member_idx").on(table.memberId),
     dateIdx: (0, pg_core_1.index)("expense_date_idx").on(table.date),
+    mpesaCheckoutIdx: (0, pg_core_1.index)("expense_mpesa_checkout_idx").on(table.mpesaCheckoutRequestID),
 }));
 exports.budgets = (0, pg_core_1.pgTable)("budgets", {
     budgetId: (0, pg_core_1.serial)("budget_id").primaryKey(),
@@ -729,6 +785,23 @@ exports.groups = (0, pg_core_1.pgTable)("groups", {
 }, (table) => ({
     churchIdx: (0, pg_core_1.index)("group_church_idx").on(table.churchId),
 }));
+exports.groupJoinRequests = (0, pg_core_1.pgTable)("group_join_requests", {
+    requestId: (0, pg_core_1.serial)("request_id").primaryKey(),
+    groupId: (0, pg_core_1.integer)("group_id")
+        .references(() => exports.groups.groupId, { onDelete: "cascade" })
+        .notNull(),
+    memberId: (0, pg_core_1.integer)("member_id")
+        .references(() => exports.members.memberId, { onDelete: "cascade" })
+        .notNull(),
+    message: (0, pg_core_1.text)("message"),
+    status: (0, pg_core_1.varchar)("status", { length: 20 }).default("pending"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+}, (table) => ({
+    groupIdx: (0, pg_core_1.index)("join_req_group_idx").on(table.groupId),
+    memberIdx: (0, pg_core_1.index)("join_req_member_idx").on(table.memberId),
+    statusIdx: (0, pg_core_1.index)("join_req_status_idx").on(table.status),
+}));
 exports.groupMembers = (0, pg_core_1.pgTable)("group_members", {
     groupMemberId: (0, pg_core_1.serial)("group_member_id").primaryKey(),
     groupId: (0, pg_core_1.integer)("group_id")
@@ -820,6 +893,7 @@ exports.churchesRelations = (0, drizzle_orm_1.relations)(exports.churches, ({ on
     documents: many(exports.documents),
     groups: many(exports.groups),
     sermons: many(exports.sermons),
+    departments: many(exports.departments),
     createdBy: one(exports.users, {
         fields: [exports.churches.createdBy],
         references: [exports.users.userId],
@@ -834,7 +908,6 @@ exports.membersRelations = (0, drizzle_orm_1.relations)(exports.members, ({ one,
         fields: [exports.members.churchId],
         references: [exports.churches.churchId],
     }),
-    familyMembers: many(exports.familyMembers),
     leaders: many(exports.leaders),
     attendance: many(exports.attendance),
     giving: many(exports.giving),
@@ -843,13 +916,23 @@ exports.membersRelations = (0, drizzle_orm_1.relations)(exports.members, ({ one,
     prayerRequests: many(exports.prayerRequests),
     prayerInteractions: many(exports.prayerInteractions),
     groupMembers: many(exports.groupMembers),
+    departmentMembers: many(exports.departmentMembers),
 }));
 exports.positionsRelations = (0, drizzle_orm_1.relations)(exports.positions, ({ one, many }) => ({
     church: one(exports.churches, {
         fields: [exports.positions.churchId],
         references: [exports.churches.churchId],
     }),
+    organization: one(exports.organizations, {
+        fields: [exports.positions.organizationId],
+        references: [exports.organizations.organizationId],
+    }),
+    largeOrganization: one(exports.largeOrganizations, {
+        fields: [exports.positions.largeOrganizationId],
+        references: [exports.largeOrganizations.largeOrganizationId],
+    }),
     leaders: many(exports.leaders),
+    departmentMembers: many(exports.departmentMembers),
 }));
 exports.leadersRelations = (0, drizzle_orm_1.relations)(exports.leaders, ({ one }) => ({
     member: one(exports.members, {
@@ -864,6 +947,51 @@ exports.leadersRelations = (0, drizzle_orm_1.relations)(exports.leaders, ({ one 
         fields: [exports.leaders.approvedBy],
         references: [exports.users.userId],
     }),
+}));
+exports.departmentsRelations = (0, drizzle_orm_1.relations)(exports.departments, ({ one, many }) => ({
+    largeOrganization: one(exports.largeOrganizations, {
+        fields: [exports.departments.largeOrganizationId],
+        references: [exports.largeOrganizations.largeOrganizationId],
+    }),
+    organization: one(exports.organizations, {
+        fields: [exports.departments.organizationId],
+        references: [exports.organizations.organizationId],
+    }),
+    church: one(exports.churches, {
+        fields: [exports.departments.churchId],
+        references: [exports.churches.churchId],
+    }),
+    parent: one(exports.departments, {
+        fields: [exports.departments.parentDepartmentId],
+        references: [exports.departments.departmentId],
+    }),
+    children: many(exports.departments, { relationName: "children" }),
+    leader: one(exports.members, {
+        fields: [exports.departments.leaderId],
+        references: [exports.members.memberId],
+    }),
+    departmentMembers: many(exports.departmentMembers),
+}));
+exports.departmentMembersRelations = (0, drizzle_orm_1.relations)(exports.departmentMembers, ({ one }) => ({
+    department: one(exports.departments, {
+        fields: [exports.departmentMembers.departmentId],
+        references: [exports.departments.departmentId],
+    }),
+    member: one(exports.members, {
+        fields: [exports.departmentMembers.memberId],
+        references: [exports.members.memberId],
+    }),
+    position: one(exports.positions, {
+        fields: [exports.departmentMembers.positionId],
+        references: [exports.positions.positionId],
+    }),
+}));
+exports.servicesRelations = (0, drizzle_orm_1.relations)(exports.services, ({ one, many }) => ({
+    church: one(exports.churches, {
+        fields: [exports.services.churchId],
+        references: [exports.churches.churchId],
+    }),
+    attendance: many(exports.attendance),
 }));
 exports.attendanceRelations = (0, drizzle_orm_1.relations)(exports.attendance, ({ one }) => ({
     member: one(exports.members, {
@@ -893,6 +1021,10 @@ exports.expensesRelations = (0, drizzle_orm_1.relations)(exports.expenses, ({ on
     church: one(exports.churches, {
         fields: [exports.expenses.churchId],
         references: [exports.churches.churchId],
+    }),
+    member: one(exports.members, {
+        fields: [exports.expenses.memberId],
+        references: [exports.members.memberId],
     }),
     category: one(exports.expenseCategories, {
         fields: [exports.expenses.categoryId],
@@ -967,6 +1099,27 @@ exports.groupsRelations = (0, drizzle_orm_1.relations)(exports.groups, ({ one, m
         references: [exports.members.memberId],
     }),
     groupMembers: many(exports.groupMembers),
+    joinRequests: many(exports.groupJoinRequests),
+}));
+exports.groupMembersRelations = (0, drizzle_orm_1.relations)(exports.groupMembers, ({ one }) => ({
+    group: one(exports.groups, {
+        fields: [exports.groupMembers.groupId],
+        references: [exports.groups.groupId],
+    }),
+    member: one(exports.members, {
+        fields: [exports.groupMembers.memberId],
+        references: [exports.members.memberId],
+    }),
+}));
+exports.groupJoinRequestsRelations = (0, drizzle_orm_1.relations)(exports.groupJoinRequests, ({ one }) => ({
+    group: one(exports.groups, {
+        fields: [exports.groupJoinRequests.groupId],
+        references: [exports.groups.groupId],
+    }),
+    member: one(exports.members, {
+        fields: [exports.groupJoinRequests.memberId],
+        references: [exports.members.memberId],
+    }),
 }));
 exports.sermonsRelations = (0, drizzle_orm_1.relations)(exports.sermons, ({ one }) => ({
     church: one(exports.churches, {

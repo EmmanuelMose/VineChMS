@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const departments_controller_1 = require("./departments.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const departmentsRouter = (0, express_1.Router)();
+departmentsRouter.post("/", auth_middleware_1.authenticate, departments_controller_1.createDepartment);
+departmentsRouter.get("/", auth_middleware_1.authenticate, departments_controller_1.getDepartments);
+departmentsRouter.get("/:id", auth_middleware_1.authenticate, departments_controller_1.getDepartmentById);
+departmentsRouter.put("/:id", auth_middleware_1.authenticate, departments_controller_1.updateDepartment);
+departmentsRouter.delete("/:id", auth_middleware_1.authenticate, departments_controller_1.deleteDepartment);
+departmentsRouter.get("/sub/:parentId", auth_middleware_1.authenticate, departments_controller_1.getSubDepartments);
+departmentsRouter.post("/member", auth_middleware_1.authenticate, departments_controller_1.addMemberToDepartment);
+departmentsRouter.get("/:departmentId/members", auth_middleware_1.authenticate, departments_controller_1.getDepartmentMembers);
+departmentsRouter.put("/member/:id", auth_middleware_1.authenticate, departments_controller_1.updateDepartmentMember);
+departmentsRouter.delete("/member/:id", auth_middleware_1.authenticate, departments_controller_1.removeMemberFromDepartment);
+exports.default = departmentsRouter;
