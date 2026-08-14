@@ -1,3 +1,5 @@
+// File: frontend/src/App.tsx
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import LandingPage from './pages/LandingPage';
@@ -46,6 +48,7 @@ import MemberAnalytics from './pages/dashboard/churchmemberdashboard/analytics/A
 import MemberReports from './pages/dashboard/churchmemberdashboard/reports/Reports';
 import MemberDocuments from './pages/dashboard/churchmemberdashboard/documents/Documents';
 import MemberProfile from './pages/dashboard/churchmemberdashboard/profile/MemberProfile';
+import Chatbot from './components/chatbot/Chatbot';
 
 function App() {
   const token = useSelector((state: any) => state.user.token);
@@ -118,6 +121,8 @@ function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      
+      {isAuthenticated && <Chatbot />}
     </Router>
   );
 }

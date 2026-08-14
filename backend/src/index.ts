@@ -1,3 +1,5 @@
+// File: backend/src/app.ts
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -28,6 +30,7 @@ import auditLogsRouter from "./audit-logs/audit-logs.router";
 import documentsRouter from "./documents/documents.router";
 import cloudinaryRouter from "./cloudinary/cloudinary.router";
 import mpesaRouter from "./mpesa/mpesa.router";
+import chatbotRouter from "./chatbot/chatbot.router";
 
 const initializeApp = () => {
   const app = express();
@@ -80,6 +83,7 @@ const initializeApp = () => {
   app.use("/api/documents", documentsRouter);
   app.use("/api/cloudinary", cloudinaryRouter);
   app.use("/api/mpesa", mpesaRouter);
+  app.use("/api/chatbot", chatbotRouter);
 
   return app;
 };

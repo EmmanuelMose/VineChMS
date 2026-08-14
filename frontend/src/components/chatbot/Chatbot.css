@@ -1,0 +1,274 @@
+/* File: frontend/src/components/chatbot/Chatbot.css */
+
+.vine-chatbot-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+}
+
+.vine-chatbot-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #2E7D32, #1b5e20);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(46, 125, 50, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+}
+
+.vine-chatbot-toggle-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 40px rgba(46, 125, 50, 0.5);
+  background: linear-gradient(135deg, #388E3C, #2E7D32);
+}
+
+.vine-chatbot-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.vine-chatbot-toggle-text {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.vine-chatbot-window {
+  width: 380px;
+  height: 560px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+  border: 1px solid rgba(46, 125, 50, 0.1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.vine-chatbot-header {
+  background: linear-gradient(135deg, #0a1a0e, #1a3a2a);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 193, 7, 0.1);
+  flex-shrink: 0;
+}
+
+.vine-chatbot-header-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vine-chatbot-icon {
+  font-size: 20px;
+  animation: gentlePulse 3s ease-in-out infinite;
+}
+
+@keyframes gentlePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.vine-chatbot-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.vine-chatbot-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.vine-chatbot-close-btn:hover {
+  background: rgba(255, 193, 7, 0.15);
+  color: #FFC107;
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.vine-chatbot-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  background: #f8faf8;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vine-chatbot-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.vine-chatbot-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.vine-chatbot-messages::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.vine-chatbot-message {
+  display: flex;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.vine-chatbot-message.user {
+  justify-content: flex-end;
+}
+
+.vine-chatbot-message.bot {
+  justify-content: flex-start;
+}
+
+.vine-chatbot-bubble {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.vine-chatbot-bubble.user-bubble {
+  background: linear-gradient(135deg, #2E7D32, #1b5e20);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.vine-chatbot-bubble.bot-bubble {
+  background: white;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+  border-bottom-left-radius: 4px;
+}
+
+.vine-chatbot-bubble.loading-bubble {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: #6b7280;
+}
+
+.vine-chatbot-loading-spinner {
+  animation: spin 1s linear infinite;
+  color: #2E7D32;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.vine-chatbot-input-area {
+  padding: 12px 16px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.vine-chatbot-input-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.vine-chatbot-input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  background: #fafbfa;
+}
+
+.vine-chatbot-input:focus {
+  border-color: #2E7D32;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+  background: white;
+}
+
+.vine-chatbot-input::placeholder {
+  color: #9ca3af;
+}
+
+.vine-chatbot-send-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2E7D32, #1b5e20);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.vine-chatbot-send-btn:hover:not(.disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(46, 125, 50, 0.3);
+}
+
+.vine-chatbot-send-btn:active:not(.disabled) {
+  transform: scale(0.95);
+}
+
+.vine-chatbot-send-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .vine-chatbot-window {
+    width: calc(100vw - 32px);
+    height: calc(100vh - 120px);
+    max-height: 600px;
+    border-radius: 16px;
+  }
+
+  .vine-chatbot-toggle-btn {
+    padding: 12px 16px;
+  }
+
+  .vine-chatbot-toggle-text {
+    display: none;
+  }
+}
