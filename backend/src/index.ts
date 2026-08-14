@@ -1,5 +1,3 @@
-// File: backend/src/app.ts
-
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -44,14 +42,10 @@ const initializeApp = () => {
 
   app.use(
     cors({
-      origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          callback(new Error("Not allowed by CORS"));
-        }
-      },
+      origin: allowedOrigins,
       credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
     })
   );
 
@@ -89,4 +83,5 @@ const initializeApp = () => {
 };
 
 const app: express.Express = initializeApp();
+
 export default app;
