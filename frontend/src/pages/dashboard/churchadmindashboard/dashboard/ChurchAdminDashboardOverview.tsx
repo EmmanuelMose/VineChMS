@@ -1,4 +1,3 @@
-// File: frontend/src/pages/dashboard/churchadmindashboard/dashboard/ChurchAdminDashboardOverview.tsx
 
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
@@ -27,6 +26,8 @@ import { fetchExpenses } from "../../../../Features/expenses/expensesAPI";
 import { fetchPledges } from "../../../../Features/pledges/pledgesAPI";
 import { fetchVisitors } from "../../../../Features/visitors/visitorsAPI";
 import { fetchSermons } from "../../../../Features/sermons/sermonsAPI";
+import { fetchGroups } from "../../../../Features/groups/groupsAPI";
+import { fetchDocuments } from "../../../../Features/documents/documentsAPI";
 import "./ChurchAdminDashboardOverview.css";
 
 export default function ChurchAdminDashboardOverview() {
@@ -46,8 +47,17 @@ export default function ChurchAdminDashboardOverview() {
     pledgesPaid: 0,
     visitors: 0,
     sermons: 0,
+    groups: 0,
+    documents: 0,
+    budgets: 0,
+    pendingExpenses: 0,
+    approvedExpenses: 0,
+    pendingGiving: 0,
+    unfulfilledPledges: 0,
+    attendanceTotal: 0,
   });
   const [greeting, setGreeting] = useState("");
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -61,7 +71,10 @@ export default function ChurchAdminDashboardOverview() {
       if (!token || !user) return;
       try {
         setLoading(true);
-        const [members, events, prayers, giving, announcements, services, expenses, pledges, visitors, sermons] = await Promise.all([
+        const [
+          members, events, prayers, giving, announcements, services,
+          expenses, pledges, visitors, sermons, groups, documents
+        ] = await Promise.all([
           fetchMembers(token),
           fetchEvents(token),
           fetchPrayerRequests(token),
@@ -72,6 +85,8 @@ export default function ChurchAdminDashboardOverview() {
           fetchPledges(token),
           fetchVisitors(token),
           fetchSermons(token),
+          fetchGroups(token),
+          fetchDocuments(token),
         ]);
 
         const churchMembers = members.filter((m: any) => m.churchId === churchId);
@@ -84,8 +99,23 @@ export default function ChurchAdminDashboardOverview() {
         const churchPledges = pledges.filter((p: any) => p.churchId === churchId);
         const churchVisitors = visitors.filter((v: any) => v.churchId === churchId);
         const churchSermons = sermons.filter((s: any) => s.churchId === churchId);
+        const churchGroups = groups.filter((g: any) => g.churchId === churchId);
+        const churchDocuments = documents.filter((d: any) => d.churchId === churchId);
 
         const totalPaid = churchPledges.reduce((sum: number, p: any) => sum + parseFloat(p.paidAmount || "0"), 0);
+        const pendingExpenses = churchExpenses.filter((e: any) => e.status === "pending").length;
+        const approvedExpenses = churchExpenses.filter((e: any) => e.status === "approved" || e.status === "paid").length;
+        const pendingGiving = churchGiving.filter((g: any) => g.status === "pending").length;
+        const unfulfilledPledges = churchPledges.filter((p: any) => !p.isFulfilled).length;
+        const attendanceTotal = churchServices.reduce((sum: number, s: any) => sum + (s.attendanceCount || 0), 0);
+
+        const activities = [
+          ...churchMembers.slice(0, 2).map((m: any) => ({ type: "member", text: `New member: ${m.fullName}`, time: m.createdAt })),
+          ...churchGiving.slice(0, 2).map((g: any) => ({ type: "giving", text: `Giving: KES ${g.amount}`, time: g.createdAt })),
+          ...churchEvents.slice(0, 2).map((e: any) => ({ type: "event", text: `Event created: ${e.title}`, time: e.createdAt })),
+        ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+
+        setRecentActivity(activities);
 
         setStats({
           members: churchMembers.length,
@@ -99,6 +129,14 @@ export default function ChurchAdminDashboardOverview() {
           pledgesPaid: totalPaid,
           visitors: churchVisitors.length,
           sermons: churchSermons.length,
+          groups: churchGroups.length,
+          documents: churchDocuments.length,
+          budgets: 0,
+          pendingExpenses,
+          approvedExpenses,
+          pendingGiving,
+          unfulfilledPledges,
+          attendanceTotal,
         });
       } catch (error) {
         console.error("Failed to load dashboard data:", error);
@@ -156,6 +194,13 @@ export default function ChurchAdminDashboardOverview() {
       link: "/dashboard/church-admin/giving",
     },
     {
+      title: "Pending Giving",
+      value: stats.pendingGiving,
+      icon: FiDollarSign,
+      color: "#F59E0B",
+      link: "/dashboard/church-admin/giving",
+    },
+    {
       title: "Announcements",
       value: stats.announcements,
       icon: FiBell,
@@ -184,6 +229,13 @@ export default function ChurchAdminDashboardOverview() {
       link: "/dashboard/church-admin/expenses",
     },
     {
+      title: "Pending Expenses",
+      value: stats.pendingExpenses,
+      icon: FiClipboard,
+      color: "#F59E0B",
+      link: "/dashboard/church-admin/expenses",
+    },
+    {
       title: "Total Pledges",
       value: formatCurrency(stats.pledgesTotal),
       icon: FaHandshake,
@@ -198,11 +250,39 @@ export default function ChurchAdminDashboardOverview() {
       link: "/dashboard/church-admin/pledges",
     },
     {
+      title: "Unfulfilled Pledges",
+      value: stats.unfulfilledPledges,
+      icon: FaHandshake,
+      color: "#DC2626",
+      link: "/dashboard/church-admin/pledges",
+    },
+    {
       title: "Visitors",
       value: stats.visitors,
       icon: FaUserFriends,
       color: "#7C3AED",
       link: "/dashboard/church-admin/visitors",
+    },
+    {
+      title: "Groups",
+      value: stats.groups,
+      icon: FiUsers,
+      color: "#8B5CF6",
+      link: "/dashboard/church-admin/groups",
+    },
+    {
+      title: "Documents",
+      value: stats.documents,
+      icon: FiFile,
+      color: "#1565C0",
+      link: "/dashboard/church-admin/documents",
+    },
+    {
+      title: "Attendance",
+      value: stats.attendanceTotal,
+      icon: FiUsers,
+      color: "#16A34A",
+      link: "/dashboard/church-admin/attendance",
     },
   ];
 
@@ -214,9 +294,13 @@ export default function ChurchAdminDashboardOverview() {
     { label: "Add Expense", icon: FiClipboard, link: "/dashboard/church-admin/expenses" },
     { label: "Create Pledge", icon: FaHandshake, link: "/dashboard/church-admin/pledges" },
     { label: "Pay Pledge", icon: FiDollarSign, link: "/dashboard/church-admin/pledges" },
+    { label: "Add Service", icon: FiMusic, link: "/dashboard/church-admin/services" },
+    { label: "Add Sermon", icon: FiBook, link: "/dashboard/church-admin/sermons" },
+    { label: "Create Group", icon: FiUsers, link: "/dashboard/church-admin/groups" },
+    { label: "Add Visitor", icon: FiUserPlus, link: "/dashboard/church-admin/visitors" },
+    { label: "Upload Document", icon: FiFile, link: "/dashboard/church-admin/documents" },
     { label: "View Reports", icon: FiBarChart2, link: "/dashboard/church-admin/reports" },
     { label: "Analytics", icon: FiTrendingUp, link: "/dashboard/church-admin/analytics" },
-    { label: "Documents", icon: FiFile, link: "/dashboard/church-admin/documents" },
   ];
 
   if (loading) {
@@ -236,6 +320,24 @@ export default function ChurchAdminDashboardOverview() {
             <span className="admin-dashboard-greeting">{greeting},</span>
             <h1 className="admin-dashboard-welcome-name">{user?.fullName || "Admin"}</h1>
             <p className="admin-dashboard-welcome-role">Church Administrator</p>
+            <div className="admin-dashboard-quick-stats">
+              <span className="admin-dashboard-quick-stat">
+                <span className="admin-dashboard-quick-stat-value">{stats.members}</span>
+                <span className="admin-dashboard-quick-stat-label">Members</span>
+              </span>
+              <span className="admin-dashboard-quick-stat">
+                <span className="admin-dashboard-quick-stat-value">{formatCurrency(stats.givingTotal)}</span>
+                <span className="admin-dashboard-quick-stat-label">Giving</span>
+              </span>
+              <span className="admin-dashboard-quick-stat">
+                <span className="admin-dashboard-quick-stat-value">{stats.services}</span>
+                <span className="admin-dashboard-quick-stat-label">Services</span>
+              </span>
+              <span className="admin-dashboard-quick-stat">
+                <span className="admin-dashboard-quick-stat-value">{stats.events}</span>
+                <span className="admin-dashboard-quick-stat-label">Events</span>
+              </span>
+            </div>
           </div>
           <div className="admin-dashboard-welcome-avatar">
             <div className="admin-dashboard-welcome-avatar-circle">
@@ -252,6 +354,23 @@ export default function ChurchAdminDashboardOverview() {
           </div>
         </div>
       </div>
+
+      {recentActivity.length > 0 && (
+        <div className="admin-dashboard-recent-activity">
+          <h3 className="admin-dashboard-recent-title">Recent Activity</h3>
+          <div className="admin-dashboard-recent-grid">
+            {recentActivity.map((activity, index) => (
+              <div key={index} className="admin-dashboard-recent-item">
+                <span className="admin-dashboard-recent-dot"></span>
+                <span className="admin-dashboard-recent-text">{activity.text}</span>
+                <span className="admin-dashboard-recent-time">
+                  {new Date(activity.time).toLocaleDateString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="admin-dashboard-stats-grid">
         {statCards.map((stat, index) => {
