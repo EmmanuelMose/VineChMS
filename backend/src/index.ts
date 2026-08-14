@@ -1,3 +1,5 @@
+// File: backend/src/app.ts
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -38,16 +40,28 @@ const initializeApp = () => {
   const allowedOrigins = [
     "http://localhost:5173",
     "https://vinechms.vercel.app",
+    "https://vinechms-mk5hfvk9i-emmanuel-moses-projects.vercel.app",
   ];
 
   app.use(
     cors({
-      origin: allowedOrigins,
+      origin: (origin, callback) => {
+        if (!origin) {
+          return callback(null, true);
+        }
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        console.log("Blocked origin:", origin);
+        callback(new Error("Not allowed by CORS"));
+      },
       credentials: true,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
     })
   );
+
+  app.options("*", cors());
 
   app.get("/", (_req, res) => {
     res.send("VineChMS Backend server running successfully!");
